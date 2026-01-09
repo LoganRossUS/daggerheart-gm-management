@@ -548,6 +548,31 @@
       font-size: 1.5rem;
     }
 
+    .adversary-portrait-thumb.has-default {
+      border-color: rgba(107, 91, 149, 0.4);
+    }
+
+    .adversary-portrait-thumb.has-default:hover {
+      border-color: #b388ff;
+    }
+
+    .adversary-portrait-thumb .default-indicator {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      background: rgba(107, 91, 149, 0.8);
+      color: #e0d0ff;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
     .adversary-portrait-gallery {
       display: flex;
       gap: 5px;
@@ -1255,6 +1280,81 @@
     let adversaryDatabase = [];
     let selectedAutocompleteIndex = -1;
 
+    // Default NPC image (shadowy silhouette) - embedded SVG as data URL
+    const DEFAULT_NPC_IMAGE = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+      <defs>
+        <radialGradient id="shadowGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style="stop-color:#1a1a2e"/>
+          <stop offset="70%" style="stop-color:#0d0d15"/>
+          <stop offset="100%" style="stop-color:#050508"/>
+        </radialGradient>
+        <filter id="blur"><feGaussianBlur in="SourceGraphic" stdDeviation="3"/></filter>
+        <linearGradient id="silhouetteGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#2d2d44"/>
+          <stop offset="100%" style="stop-color:#15151f"/>
+        </linearGradient>
+      </defs>
+      <rect width="200" height="200" fill="url(#shadowGlow)"/>
+      <ellipse cx="100" cy="180" rx="60" ry="20" fill="#1a1a2e" filter="url(#blur)" opacity="0.8"/>
+      <path d="M100 30 C75 30 60 50 60 75 C60 95 75 105 85 110 L75 115 C55 120 40 140 40 165 L40 190 L70 190 L75 150 L85 145 L90 190 L110 190 L115 145 L125 150 L130 190 L160 190 L160 165 C160 140 145 120 125 115 L115 110 C125 105 140 95 140 75 C140 50 125 30 100 30Z" fill="url(#silhouetteGrad)"/>
+      <path d="M100 25 C70 25 55 50 55 80 C55 95 65 105 75 110 L65 115 C65 115 50 175 55 190 L70 190 L80 140 L100 135 L120 140 L130 190 L145 190 C150 175 135 115 135 115 L125 110 C135 105 145 95 145 80 C145 50 130 25 100 25Z" fill="#15151f" opacity="0.7"/>
+      <ellipse cx="85" cy="60" rx="4" ry="3" fill="#4a4a6a" opacity="0.4"/>
+      <ellipse cx="115" cy="60" rx="4" ry="3" fill="#4a4a6a" opacity="0.4"/>
+      <text x="100" y="120" font-family="Georgia, serif" font-size="48" font-weight="bold" fill="#6b5b95" text-anchor="middle" opacity="0.6">?</text>
+    </svg>`)}`;
+
+    // Default NPC images directory path (for loading from folder uploads)
+    const DEFAULT_NPC_IMAGES_PATH = 'images/npcs/';
+
+    // Map of creature types/themes to default image filenames
+    // Users can add images like 'undead.png', 'beast.png', etc. to images/npcs/
+    const DEFAULT_NPC_IMAGE_MAP = {
+      // Add creature type mappings here - these will be matched against
+      // creature names, themes, or traits to find appropriate default images
+      // Example: 'undead': 'undead.png', 'beast': 'beast.png'
+    };
+
+    // Helper function to get the appropriate default image for an adversary
+    function getDefaultImageForAdversary(adv) {
+      // First, check if there's a defaultPortrait specified in the adversary data
+      if (adv.defaultPortrait) {
+        return `${DEFAULT_NPC_IMAGES_PATH}${adv.defaultPortrait}`;
+      }
+
+      // Check themes for a matching default image
+      if (adv.themes && Array.isArray(adv.themes)) {
+        for (const theme of adv.themes) {
+          const themeKey = theme.toLowerCase();
+          if (DEFAULT_NPC_IMAGE_MAP[themeKey]) {
+            return `${DEFAULT_NPC_IMAGES_PATH}${DEFAULT_NPC_IMAGE_MAP[themeKey]}`;
+          }
+        }
+      }
+
+      // Check traits for a matching default image
+      if (adv.traits && Array.isArray(adv.traits)) {
+        for (const trait of adv.traits) {
+          const traitKey = trait.toLowerCase();
+          if (DEFAULT_NPC_IMAGE_MAP[traitKey]) {
+            return `${DEFAULT_NPC_IMAGES_PATH}${DEFAULT_NPC_IMAGE_MAP[traitKey]}`;
+          }
+        }
+      }
+
+      // Check creature name for keywords
+      if (adv.name) {
+        const nameLower = adv.name.toLowerCase();
+        for (const [key, filename] of Object.entries(DEFAULT_NPC_IMAGE_MAP)) {
+          if (nameLower.includes(key)) {
+            return `${DEFAULT_NPC_IMAGES_PATH}${filename}`;
+          }
+        }
+      }
+
+      // Fall back to the embedded default silhouette
+      return DEFAULT_NPC_IMAGE;
+    }
+
     // Initialize from localStorage
     function init() {
       const stored = localStorage.getItem('daggerheart-fear');
@@ -1956,10 +2056,9 @@
         html += `
           <div class="adversary-card ${isSpotlighted ? 'spotlighted' : ''} ${isDefeated ? 'defeated' : ''}" data-adversary-id="${adv.id}">
             <div class="adversary-header">
-              <div class="adversary-portrait-thumb" onclick="triggerImageUpload('${adv.id}')" title="Click to add portrait">
-                ${activePortrait ?
-                  `<img src="${activePortrait}" alt="${adv.name}">` :
-                  '<span class="upload-icon">📷</span>'}
+              <div class="adversary-portrait-thumb ${!hasPortrait ? 'has-default' : ''}" onclick="triggerImageUpload('${adv.id}')" title="${hasPortrait ? 'Click to change portrait' : 'Click to add portrait (showing default)'}">
+                <img src="${activePortrait || getDefaultImageForAdversary(adv)}" alt="${adv.name}">
+                ${!hasPortrait ? '<span class="default-indicator" title="Default image - click to upload custom">?</span>' : ''}
               </div>
               <div class="adversary-info">
                 <div class="adversary-name">
@@ -1985,7 +2084,7 @@
               <div class="adversary-actions">
                 <button class="spotlight-btn ${isSpotlighted ? 'active' : ''}"
                         onclick="toggleSpotlight('${adv.id}')"
-                        ${!hasPortrait ? 'disabled title="Add a portrait first"' : ''}>
+                        title="${!hasPortrait ? 'Show with default image' : 'Show to players'}">
                   ${isSpotlighted ? '★ Lit' : '☆ Show'}
                 </button>
                 <button class="stat-toggle-btn" onclick="toggleStats('${adv.id}')">Stats</button>
@@ -2198,7 +2297,7 @@
     // Toggle spotlight for an adversary
     function toggleSpotlight(adversaryId) {
       const adversary = currentEncounter.adversaries.find(a => a.id === adversaryId);
-      if (!adversary || !adversary.portraits || adversary.portraits.length === 0) return;
+      if (!adversary) return;
 
       if (spotlightedAdversary === adversaryId) {
         // Turn off spotlight
@@ -2252,13 +2351,20 @@
     function syncSpotlightToStorage() {
       if (spotlightedAdversary && currentEncounter) {
         const adversary = currentEncounter.adversaries.find(a => a.id === spotlightedAdversary);
-        if (adversary && adversary.portraits && adversary.portraits.length > 0) {
+        if (adversary) {
           const isDefeated = adversary.hp !== undefined && adversary.currentHp <= 0;
+          // Use custom portrait if available, otherwise use default image
+          const hasCustomPortrait = adversary.portraits && adversary.portraits.length > 0;
+          const imageToShow = hasCustomPortrait
+            ? adversary.portraits[adversary.activePortraitIndex || 0]
+            : getDefaultImageForAdversary(adversary);
+
           const spotlightData = {
             visible: true,
             adversaryId: adversary.id,
             name: adversary.name,
-            image: adversary.portraits[adversary.activePortraitIndex || 0],
+            image: imageToShow,
+            isDefaultImage: !hasCustomPortrait,
             defeated: isDefeated,
             conditions: adversary.conditions || {},
             timestamp: Date.now()

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="shadowGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#0d0d15;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#050508;stop-opacity:1" />
+    </radialGradient>
+    <filter id="blur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
+    </filter>
+    <linearGradient id="silhouetteGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d2d44;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#15151f;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="200" height="200" fill="url(#shadowGlow)"/>
+
+  <!-- Mysterious smoke/mist effect -->
+  <ellipse cx="100" cy="180" rx="60" ry="20" fill="#1a1a2e" filter="url(#blur)" opacity="0.8"/>
+  <ellipse cx="100" cy="170" rx="45" ry="15" fill="#252538" filter="url(#blur)" opacity="0.6"/>
+
+  <!-- Shadowy humanoid silhouette -->
+  <g filter="url(#blur)" opacity="0.3">
+    <ellipse cx="100" cy="55" rx="28" ry="32" fill="#3d3d5c"/>
+  </g>
+
+  <!-- Main silhouette body -->
+  <path d="M100 30
+           C75 30 60 50 60 75
+           C60 95 75 105 85 110
+           L75 115
+           C55 120 40 140 40 165
+           L40 190
+           L70 190
+           L75 150
+           L85 145
+           L90 190
+           L110 190
+           L115 145
+           L125 150
+           L130 190
+           L160 190
+           L160 165
+           C160 140 145 120 125 115
+           L115 110
+           C125 105 140 95 140 75
+           C140 50 125 30 100 30Z"
+        fill="url(#silhouetteGrad)"/>
+
+  <!-- Hood/cloak overlay for mystery -->
+  <path d="M100 25
+           C70 25 55 50 55 80
+           C55 95 65 105 75 110
+           L65 115
+           C65 115 50 175 55 190
+           L70 190
+           L80 140
+           L100 135
+           L120 140
+           L130 190
+           L145 190
+           C150 175 135 115 135 115
+           L125 110
+           C135 105 145 95 145 80
+           C145 50 130 25 100 25Z"
+        fill="#15151f" opacity="0.7"/>
+
+  <!-- Glowing eyes hint -->
+  <ellipse cx="85" cy="60" rx="4" ry="3" fill="#4a4a6a" opacity="0.4"/>
+  <ellipse cx="115" cy="60" rx="4" ry="3" fill="#4a4a6a" opacity="0.4"/>
+
+  <!-- Question mark overlay -->
+  <text x="100" y="120" font-family="Georgia, serif" font-size="48" font-weight="bold"
+        fill="#6b5b95" text-anchor="middle" opacity="0.6">?</text>
+</svg>

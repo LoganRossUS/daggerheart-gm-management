@@ -1899,19 +1899,25 @@
       // Create clean export format
       return {
         name: currentEncounter.name,
-        adversaries: currentEncounter.adversaries.map(adv => ({
-          id: adv.id,
-          name: adv.name,
-          tier: adv.tier,
-          hp: adv.hp,
-          stress: adv.stress,
-          attack: adv.attack,
-          defense: adv.defense,
-          portrait: adv.portrait,
-          traits: adv.traits,
-          abilities: adv.abilities,
-          conditions: adv.conditions
-        }))
+        adversaries: currentEncounter.adversaries.map(adv => {
+          // Find the original template to get themes for default image matching
+          const template = adversaryDatabase.find(t => t.name === adv.name);
+          return {
+            id: adv.id,
+            name: adv.name,
+            tier: adv.tier,
+            hp: adv.hp,
+            stress: adv.stress,
+            attack: adv.attack,
+            defense: adv.defense,
+            portrait: adv.portrait,
+            traits: adv.traits,
+            abilities: adv.abilities,
+            conditions: adv.conditions,
+            // Include themes for default image matching in GM control panel
+            themes: template?.themes || []
+          };
+        })
       };
     }
 
