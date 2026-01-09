@@ -776,6 +776,118 @@
       background: rgba(179, 136, 255, 0.15);
     }
 
+    /* Adversary Search Autocomplete */
+    .adversary-search-container {
+      position: relative;
+      margin-bottom: 15px;
+    }
+
+    .adversary-search-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid rgba(76, 175, 80, 0.4);
+      border-radius: 8px;
+      background: rgba(0,0,0,0.3);
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .adversary-search-input::placeholder {
+      color: #666;
+    }
+
+    .adversary-search-input:focus {
+      border-color: #4CAF50;
+      background: rgba(0,0,0,0.4);
+    }
+
+    .autocomplete-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 300px;
+      overflow-y: auto;
+      background: #1a1a2e;
+      border: 2px solid #4CAF50;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      z-index: 100;
+      display: none;
+    }
+
+    .autocomplete-dropdown.visible {
+      display: block;
+    }
+
+    .autocomplete-item {
+      padding: 10px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: all 0.15s;
+    }
+
+    .autocomplete-item:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete-item:hover,
+    .autocomplete-item.selected {
+      background: rgba(76, 175, 80, 0.2);
+    }
+
+    .autocomplete-item-name {
+      font-weight: 700;
+      color: #ffd700;
+      font-size: 0.95rem;
+    }
+
+    .autocomplete-item-tier {
+      font-size: 0.75rem;
+      color: #888;
+      margin-left: 8px;
+    }
+
+    .autocomplete-item-role {
+      font-size: 0.75rem;
+      color: #b388ff;
+      margin-left: 8px;
+    }
+
+    .autocomplete-item-stats {
+      font-size: 0.7rem;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .autocomplete-no-results {
+      padding: 15px;
+      text-align: center;
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    .loading-indicator {
+      text-align: center;
+      padding: 10px;
+      color: #888;
+      font-size: 0.85rem;
+    }
+
+    @keyframes flashGreen {
+      0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+        background: rgba(76, 175, 80, 0.3);
+      }
+      100% {
+        box-shadow: 0 0 20px 10px rgba(76, 175, 80, 0);
+        background: rgba(0,0,0,0.3);
+      }
+    }
+
     /* HP/Stress Tracker */
     .adversary-trackers {
       display: flex;
@@ -967,6 +1079,14 @@
         Sample
       </button>
     </div>
+    <div class="adversary-search-container">
+      <input type="text"
+             id="adversarySearchInput"
+             class="adversary-search-input"
+             placeholder="🔍 Search adversaries (e.g., skeleton, dragon, ooze...)"
+             autocomplete="off">
+      <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
+    </div>
     <div id="encounterContainer">
       <div class="encounter-empty">
         No encounter loaded.<br>
@@ -1021,6 +1141,10 @@
     let spotlightedAdversary = null;
     let pendingImageUploadAdversaryId = null;
 
+    // Adversary database (parsed from markdown)
+    let adversaryDatabase = [];
+    let selectedAutocompleteIndex = -1;
+
     // Initialize from localStorage
     function init() {
       const stored = localStorage.getItem('daggerheart-fear');
@@ -1057,6 +1181,12 @@
           updateSpotlightUI();
         }
       }
+
+      // Load adversary database from markdown
+      loadAdversaryDatabase();
+
+      // Initialize autocomplete
+      initAdversarySearch();
     }
 
     // Handle image file selection
@@ -1134,6 +1264,389 @@
         timestamp: Date.now()
       };
       localStorage.setItem('daggerheart-npc', JSON.stringify(npcData));
+    }
+
+    // ============ ADVERSARY DATABASE & SEARCH ============
+
+    // Load and parse the adversary database from the markdown file
+    async function loadAdversaryDatabase() {
+      try {
+        const response = await fetch('DH-SRD-May202025.md');
+        if (!response.ok) {
+          console.warn('Could not load adversary database:', response.statusText);
+          return;
+        }
+        const markdown = await response.text();
+        adversaryDatabase = parseAdversaryMarkdown(markdown);
+        console.log(`Loaded ${adversaryDatabase.length} adversaries from database`);
+      } catch (err) {
+        console.warn('Error loading adversary database:', err);
+      }
+    }
+
+    // Parse adversary stat blocks from markdown
+    function parseAdversaryMarkdown(markdown) {
+      const adversaries = [];
+      const lines = markdown.split('\n');
+
+      // Patterns to match
+      const tierRolePattern = /^Tier\s+(\d?)\s+(\w+(?:\s*\([^)]*\))?)/i;
+      const statsPattern = /Diffi?culty:\s*(\d+)\s*\|\s*Thresholds:\s*([^|]+)\s*\|\s*HP:\s*(\d+)\s*\|\s*Stress:\s*(\d+)/i;
+      const attackPattern = /ATK:\s*([+-]?\d+)\s*\|\s*([^|:]+):\s*([^|]+)\s*\|\s*(.+)/i;
+      const experiencePattern = /Experience:\s*(.+)/i;
+
+      let currentAdversary = null;
+      let inFeatures = false;
+      let lastHeaderLine = '';
+      let featureBuffer = '';
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        // Skip page markers and empty lines
+        if (line.startsWith('---') || line.match(/^\d+\s+Daggerheart\s+SRD/i) || line.match(/^Daggerheart\s+SRD\s+\d+/i)) {
+          continue;
+        }
+
+        // Check for tier/role line (indicates start of a stat block)
+        const tierMatch = line.match(tierRolePattern);
+        if (tierMatch) {
+          // Save previous adversary if exists
+          if (currentAdversary && currentAdversary.name) {
+            if (featureBuffer.trim()) {
+              currentAdversary.abilities.push(featureBuffer.trim());
+            }
+            adversaries.push(currentAdversary);
+          }
+
+          // Use the previous non-empty line as the name
+          const tier = tierMatch[1] ? parseInt(tierMatch[1]) : 1;
+          const role = tierMatch[2].trim();
+
+          // Look back for the name
+          let name = '';
+          for (let j = i - 1; j >= 0 && j > i - 5; j--) {
+            const prevLine = lines[j].trim();
+            if (prevLine && !prevLine.startsWith('---') && !prevLine.match(/^\d+\s+Daggerheart/i) &&
+                !prevLine.match(/^Daggerheart\s+SRD/i) && !prevLine.match(/^FEATURES/i) &&
+                !prevLine.match(/^Experience:/i) && !prevLine.match(/^ATK:/i) &&
+                prevLine.length > 1 && prevLine.length < 50) {
+              // Check if it's all caps or mostly caps (adversary names are usually uppercase)
+              if (prevLine === prevLine.toUpperCase() || /^[A-Z][A-Za-z\s'-]+$/.test(prevLine)) {
+                name = prevLine;
+                break;
+              }
+            }
+          }
+
+          if (name) {
+            currentAdversary = {
+              name: toTitleCase(name),
+              tier: tier,
+              role: role,
+              difficulty: null,
+              thresholds: '',
+              hp: null,
+              stress: null,
+              attack: '',
+              attackMod: '',
+              weapon: '',
+              range: '',
+              damage: '',
+              experience: '',
+              description: '',
+              motives: '',
+              abilities: []
+            };
+            inFeatures = false;
+            featureBuffer = '';
+          }
+          continue;
+        }
+
+        if (!currentAdversary) continue;
+
+        // Check for stats line
+        const statsMatch = line.match(statsPattern);
+        if (statsMatch) {
+          currentAdversary.difficulty = parseInt(statsMatch[1]);
+          currentAdversary.thresholds = statsMatch[2].trim();
+          currentAdversary.hp = parseInt(statsMatch[3]);
+          currentAdversary.stress = parseInt(statsMatch[4]);
+          continue;
+        }
+
+        // Check for attack line
+        const attackMatch = line.match(attackPattern);
+        if (attackMatch) {
+          currentAdversary.attackMod = attackMatch[1];
+          currentAdversary.weapon = attackMatch[2].trim();
+          currentAdversary.range = attackMatch[3].trim();
+          currentAdversary.damage = attackMatch[4].trim();
+          currentAdversary.attack = `${attackMatch[1]} | ${attackMatch[2].trim()}: ${attackMatch[3].trim()} | ${attackMatch[4].trim()}`;
+          continue;
+        }
+
+        // Check for experience line
+        const expMatch = line.match(experiencePattern);
+        if (expMatch) {
+          currentAdversary.experience = expMatch[1].trim();
+          continue;
+        }
+
+        // Check for motives & tactics
+        if (line.startsWith('Motives & Tactics:')) {
+          currentAdversary.motives = line.replace('Motives & Tactics:', '').trim();
+          continue;
+        }
+
+        // Check for FEATURES section
+        if (line === 'FEATURES') {
+          inFeatures = true;
+          continue;
+        }
+
+        // Parse features/abilities
+        if (inFeatures && line) {
+          // Check if this is a new feature (contains " - " pattern like "Name - Type:")
+          const featureMatch = line.match(/^([A-Za-z][A-Za-z\s']+)\s*[-–]\s*(Passive|Action|Reaction):/i);
+          if (featureMatch) {
+            // Save previous feature if exists
+            if (featureBuffer.trim()) {
+              currentAdversary.abilities.push(featureBuffer.trim());
+            }
+            featureBuffer = line;
+          } else if (featureBuffer) {
+            // Continue previous feature
+            featureBuffer += ' ' + line;
+          }
+        }
+
+        // Capture description (usually comes right after the name line but before Motives)
+        if (!currentAdversary.description && !line.startsWith('Motives') && !statsMatch &&
+            !attackMatch && !line.match(/^Tier\s/i) && !inFeatures && line.length > 20) {
+          // This might be the description
+          if (!currentAdversary.motives) {
+            currentAdversary.description = line;
+          }
+        }
+      }
+
+      // Don't forget the last adversary
+      if (currentAdversary && currentAdversary.name) {
+        if (featureBuffer.trim()) {
+          currentAdversary.abilities.push(featureBuffer.trim());
+        }
+        adversaries.push(currentAdversary);
+      }
+
+      // Filter out invalid entries and sort alphabetically
+      return adversaries
+        .filter(a => a.name && a.hp !== null && a.tier)
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    // Convert string to title case
+    function toTitleCase(str) {
+      return str.toLowerCase().split(' ').map(word =>
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ');
+    }
+
+    // Initialize adversary search autocomplete
+    function initAdversarySearch() {
+      const input = document.getElementById('adversarySearchInput');
+      const dropdown = document.getElementById('autocompleteDropdown');
+
+      if (!input || !dropdown) return;
+
+      // Input event for searching
+      input.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        if (query.length < 1) {
+          hideAutocomplete();
+          return;
+        }
+        const results = searchAdversaries(query);
+        showAutocomplete(results);
+      });
+
+      // Keyboard navigation
+      input.addEventListener('keydown', (e) => {
+        const items = dropdown.querySelectorAll('.autocomplete-item');
+        if (!items.length) return;
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          selectedAutocompleteIndex = Math.min(selectedAutocompleteIndex + 1, items.length - 1);
+          updateAutocompleteSelection(items);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          selectedAutocompleteIndex = Math.max(selectedAutocompleteIndex - 1, 0);
+          updateAutocompleteSelection(items);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (selectedAutocompleteIndex >= 0 && items[selectedAutocompleteIndex]) {
+            const advName = items[selectedAutocompleteIndex].dataset.adversaryName;
+            addAdversaryToEncounter(advName);
+            input.value = '';
+            hideAutocomplete();
+          }
+        } else if (e.key === 'Escape') {
+          hideAutocomplete();
+          input.blur();
+        }
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.adversary-search-container')) {
+          hideAutocomplete();
+        }
+      });
+
+      // Focus behavior
+      input.addEventListener('focus', () => {
+        const query = input.value.trim();
+        if (query.length >= 1) {
+          const results = searchAdversaries(query);
+          showAutocomplete(results);
+        }
+      });
+    }
+
+    // Search adversaries by query
+    function searchAdversaries(query) {
+      if (!adversaryDatabase.length) return [];
+
+      const lowerQuery = query.toLowerCase();
+      return adversaryDatabase
+        .filter(adv => {
+          const nameMatch = adv.name.toLowerCase().includes(lowerQuery);
+          const roleMatch = adv.role && adv.role.toLowerCase().includes(lowerQuery);
+          return nameMatch || roleMatch;
+        })
+        .slice(0, 15); // Limit to 15 results
+    }
+
+    // Show autocomplete dropdown
+    function showAutocomplete(results) {
+      const dropdown = document.getElementById('autocompleteDropdown');
+      selectedAutocompleteIndex = -1;
+
+      if (!results.length) {
+        if (adversaryDatabase.length === 0) {
+          dropdown.innerHTML = '<div class="loading-indicator">Loading adversary database...</div>';
+        } else {
+          dropdown.innerHTML = '<div class="autocomplete-no-results">No adversaries found</div>';
+        }
+        dropdown.classList.add('visible');
+        return;
+      }
+
+      dropdown.innerHTML = results.map((adv, idx) => `
+        <div class="autocomplete-item" data-adversary-name="${adv.name}" onclick="selectAutocompleteItem('${adv.name.replace(/'/g, "\\'")}')">
+          <div>
+            <span class="autocomplete-item-name">${highlightMatch(adv.name, document.getElementById('adversarySearchInput').value)}</span>
+            <span class="autocomplete-item-tier">Tier ${adv.tier}</span>
+            <span class="autocomplete-item-role">${adv.role}</span>
+          </div>
+          <div class="autocomplete-item-stats">
+            HP: ${adv.hp} | Stress: ${adv.stress} | Difficulty: ${adv.difficulty}
+          </div>
+        </div>
+      `).join('');
+
+      dropdown.classList.add('visible');
+    }
+
+    // Hide autocomplete dropdown
+    function hideAutocomplete() {
+      const dropdown = document.getElementById('autocompleteDropdown');
+      dropdown.classList.remove('visible');
+      selectedAutocompleteIndex = -1;
+    }
+
+    // Update selection highlighting
+    function updateAutocompleteSelection(items) {
+      items.forEach((item, idx) => {
+        item.classList.toggle('selected', idx === selectedAutocompleteIndex);
+      });
+      // Scroll into view
+      if (selectedAutocompleteIndex >= 0 && items[selectedAutocompleteIndex]) {
+        items[selectedAutocompleteIndex].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    // Highlight matching text
+    function highlightMatch(text, query) {
+      if (!query) return text;
+      const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return text.replace(regex, '<strong style="color: #4CAF50;">$1</strong>');
+    }
+
+    // Select item from autocomplete
+    function selectAutocompleteItem(name) {
+      addAdversaryToEncounter(name);
+      document.getElementById('adversarySearchInput').value = '';
+      hideAutocomplete();
+    }
+
+    // Add adversary from database to current encounter
+    function addAdversaryToEncounter(adversaryName) {
+      const adversary = adversaryDatabase.find(a => a.name === adversaryName);
+      if (!adversary) {
+        console.error('Adversary not found:', adversaryName);
+        return;
+      }
+
+      // Create encounter if none exists
+      if (!currentEncounter) {
+        currentEncounter = {
+          name: 'Quick Encounter',
+          adversaries: []
+        };
+      }
+
+      // Create a unique ID for this adversary instance
+      const existingCount = currentEncounter.adversaries.filter(a =>
+        a.name.startsWith(adversary.name)
+      ).length;
+      const instanceNum = existingCount + 1;
+
+      // Build the adversary object for the encounter
+      const newAdversary = {
+        id: `adv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: instanceNum > 1 ? `${adversary.name} #${instanceNum}` : adversary.name,
+        tier: adversary.tier,
+        hp: adversary.hp,
+        currentHp: adversary.hp,
+        stress: adversary.stress,
+        currentStress: adversary.stress,
+        defense: adversary.difficulty,
+        attack: adversary.attack,
+        traits: adversary.role ? [adversary.role] : [],
+        abilities: adversary.abilities || [],
+        portraits: [],
+        activePortraitIndex: 0
+      };
+
+      // Add motives as a trait if exists
+      if (adversary.motives) {
+        newAdversary.traits.push(`Motives: ${adversary.motives}`);
+      }
+
+      currentEncounter.adversaries.push(newAdversary);
+      renderEncounter();
+      syncEncounterToStorage();
+
+      // Flash feedback
+      const card = document.querySelector(`[data-adversary-id="${newAdversary.id}"]`);
+      if (card) {
+        card.style.animation = 'none';
+        card.offsetHeight; // Trigger reflow
+        card.style.animation = 'flashGreen 0.5s ease-out';
+      }
     }
 
     // ============ ENCOUNTER FUNCTIONS ============
