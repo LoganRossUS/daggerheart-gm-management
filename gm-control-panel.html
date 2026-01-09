@@ -426,6 +426,355 @@
       opacity: 0.4;
       cursor: not-allowed;
     }
+
+    /* Encounters Section */
+    .encounter-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .encounter-upload-btn {
+      padding: 12px 20px;
+      border: 2px dashed rgba(255, 136, 0, 0.5);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      color: #ff9800;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex: 1;
+      text-align: center;
+    }
+
+    .encounter-upload-btn:hover {
+      background: rgba(255, 136, 0, 0.15);
+      border-color: #ff9800;
+    }
+
+    .encounter-clear-btn {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255,68,68,0.2);
+      color: #ff6b6b;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .encounter-clear-btn:hover {
+      background: rgba(255,68,68,0.3);
+    }
+
+    .encounter-clear-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .encounter-name {
+      font-size: 1.1rem;
+      color: #ffd700;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .encounter-empty {
+      text-align: center;
+      color: #666;
+      padding: 30px;
+      font-size: 0.9rem;
+    }
+
+    .adversary-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .adversary-card {
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: all 0.2s;
+    }
+
+    .adversary-card.spotlighted {
+      border-color: #ffd700;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+
+    .adversary-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .adversary-portrait-thumb {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .adversary-portrait-thumb:hover {
+      border-color: #b388ff;
+    }
+
+    .adversary-portrait-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .adversary-portrait-thumb .upload-icon {
+      color: #666;
+      font-size: 1.5rem;
+    }
+
+    .adversary-portrait-gallery {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-top: 5px;
+    }
+
+    .gallery-thumb {
+      width: 35px;
+      height: 35px;
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .gallery-thumb:hover {
+      border-color: #b388ff;
+    }
+
+    .gallery-thumb.active {
+      border-color: #ffd700;
+    }
+
+    .gallery-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .add-image-btn {
+      width: 35px;
+      height: 35px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.05);
+      border: 1px dashed rgba(255,255,255,0.2);
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      transition: all 0.2s;
+    }
+
+    .add-image-btn:hover {
+      background: rgba(179, 136, 255, 0.15);
+      border-color: #b388ff;
+      color: #b388ff;
+    }
+
+    .adversary-info {
+      flex: 1;
+    }
+
+    .adversary-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #e0e0e0;
+      margin-bottom: 4px;
+    }
+
+    .adversary-tier {
+      font-size: 0.75rem;
+      color: #888;
+    }
+
+    .adversary-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .spotlight-btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      color: #1a1a2e;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .spotlight-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 3px 10px rgba(255, 215, 0, 0.4);
+    }
+
+    .spotlight-btn.active {
+      background: linear-gradient(135deg, #4a0e4e, #7c4dff);
+      color: #fff;
+    }
+
+    .stat-toggle-btn {
+      padding: 8px 12px;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      border-radius: 6px;
+      background: transparent;
+      color: #b388ff;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .stat-toggle-btn:hover {
+      background: rgba(179, 136, 255, 0.15);
+    }
+
+    .stat-toggle-btn.expanded {
+      background: rgba(179, 136, 255, 0.2);
+    }
+
+    .adversary-stats {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .adversary-stats.visible {
+      display: block;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .stat-item {
+      background: rgba(0,0,0,0.3);
+      padding: 8px;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.65rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .stat-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ffd700;
+    }
+
+    .traits-section, .abilities-section {
+      margin-top: 8px;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      color: #b388ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+
+    .trait-tag {
+      display: inline-block;
+      padding: 3px 8px;
+      background: rgba(179, 136, 255, 0.2);
+      border-radius: 4px;
+      font-size: 0.75rem;
+      color: #e0e0e0;
+      margin-right: 5px;
+      margin-bottom: 5px;
+    }
+
+    .ability-item {
+      font-size: 0.8rem;
+      color: #ccc;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .ability-item:last-child {
+      border-bottom: none;
+    }
+
+    .hide-spotlight-btn {
+      width: 100%;
+      padding: 10px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255,68,68,0.2);
+      color: #ff6b6b;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .hide-spotlight-btn:hover {
+      background: rgba(255,68,68,0.3);
+    }
+
+    .hide-spotlight-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Sample Encounter Button */
+    .sample-btn {
+      padding: 8px 16px;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      border-radius: 6px;
+      background: transparent;
+      color: #b388ff;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sample-btn:hover {
+      background: rgba(179, 136, 255, 0.15);
+    }
   </style>
 </head>
 <body>
@@ -483,6 +832,32 @@
     </div>
   </div>
 
+  <!-- Encounters -->
+  <div class="section">
+    <h2>⚔️ Encounters</h2>
+    <div class="encounter-controls">
+      <input type="file" id="encounterFileInput" accept=".json" style="display: none;" onchange="handleEncounterUpload(event)">
+      <input type="file" id="adversaryImageInput" accept="image/*" style="display: none;" multiple onchange="handleAdversaryImageUpload(event)">
+      <button class="encounter-upload-btn" onclick="document.getElementById('encounterFileInput').click()">
+        📄 Load Encounter File (.json)
+      </button>
+      <button class="encounter-clear-btn" id="clearEncounterBtn" onclick="clearEncounter()" disabled>
+        Clear
+      </button>
+      <button class="sample-btn" onclick="loadSampleEncounter()">
+        Sample
+      </button>
+    </div>
+    <div id="encounterContainer">
+      <div class="encounter-empty">
+        No encounter loaded. Upload a JSON file or click "Sample" to see an example.
+      </div>
+    </div>
+    <button class="hide-spotlight-btn" id="hideSpotlightBtn" onclick="hideSpotlight()" disabled>
+      Hide Spotlight
+    </button>
+  </div>
+
   <!-- Dice Roller -->
   <div class="section">
     <h2>🎲 Dice Roller</h2>
@@ -518,6 +893,11 @@
     let currentNpcImage = null;
     let npcVisible = false;
 
+    // Encounter state
+    let currentEncounter = null;
+    let spotlightedAdversary = null;
+    let pendingImageUploadAdversaryId = null;
+
     // Initialize from localStorage
     function init() {
       const stored = localStorage.getItem('daggerheart-fear');
@@ -534,6 +914,24 @@
           currentNpcImage = parsed.image;
           npcVisible = parsed.visible || false;
           updateNpcPreview();
+        }
+      }
+
+      // Initialize encounter state
+      const encounterData = localStorage.getItem('daggerheart-encounter');
+      if (encounterData) {
+        const parsed = JSON.parse(encounterData);
+        currentEncounter = parsed.encounter;
+        renderEncounter();
+      }
+
+      // Initialize spotlight state
+      const spotlightData = localStorage.getItem('daggerheart-spotlight');
+      if (spotlightData) {
+        const parsed = JSON.parse(spotlightData);
+        if (parsed.visible && parsed.adversaryId && currentEncounter) {
+          spotlightedAdversary = parsed.adversaryId;
+          updateSpotlightUI();
         }
       }
     }
@@ -614,7 +1012,353 @@
       };
       localStorage.setItem('daggerheart-npc', JSON.stringify(npcData));
     }
-    
+
+    // ============ ENCOUNTER FUNCTIONS ============
+
+    // Handle encounter JSON file upload
+    function handleEncounterUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const encounter = JSON.parse(e.target.result);
+
+          // Validate encounter structure
+          if (!encounter.name || !Array.isArray(encounter.adversaries)) {
+            alert('Invalid encounter file. Must have "name" and "adversaries" array.');
+            return;
+          }
+
+          // Add unique IDs to adversaries if not present
+          encounter.adversaries = encounter.adversaries.map((adv, idx) => ({
+            ...adv,
+            id: adv.id || `adv-${Date.now()}-${idx}`,
+            portraits: adv.portraits || [],
+            activePortraitIndex: 0
+          }));
+
+          currentEncounter = encounter;
+          spotlightedAdversary = null;
+          renderEncounter();
+          syncEncounterToStorage();
+          syncSpotlightToStorage();
+        } catch (err) {
+          alert('Error parsing encounter file: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = ''; // Reset input
+    }
+
+    // Load sample encounter for testing
+    function loadSampleEncounter() {
+      const sampleEncounter = {
+        name: "Skeleton Ambush",
+        adversaries: [
+          {
+            id: "skeleton-1",
+            name: "Skeleton Warrior",
+            tier: 1,
+            hp: 6,
+            stress: 3,
+            attack: "+2 (2d6+2 physical)",
+            defense: 10,
+            traits: ["Undead", "Fearless"],
+            abilities: [
+              "Bone Strike: Melee attack dealing 2d6+2 physical damage",
+              "Reassemble: Once per encounter, regain 1d6 HP when reduced to 0"
+            ],
+            portraits: [],
+            activePortraitIndex: 0
+          },
+          {
+            id: "skeleton-2",
+            name: "Skeleton Archer",
+            tier: 1,
+            hp: 4,
+            stress: 2,
+            attack: "+3 (2d6+1 physical, ranged)",
+            defense: 8,
+            traits: ["Undead", "Fearless"],
+            abilities: [
+              "Arrow Volley: Ranged attack dealing 2d6+1 physical damage",
+              "Bone Shield: Reaction - reduce incoming damage by 2"
+            ],
+            portraits: [],
+            activePortraitIndex: 0
+          },
+          {
+            id: "ooze-1",
+            name: "Crimson Ooze",
+            tier: 2,
+            hp: 12,
+            stress: 4,
+            attack: "+1 (2d8 acid)",
+            defense: 6,
+            traits: ["Ooze", "Acidic", "Slow"],
+            abilities: [
+              "Engulf: Melee attack dealing 2d8 acid damage. On hit, target is grappled",
+              "Split: When reduced to half HP, split into two smaller oozes with 4 HP each",
+              "Acid Trail: Leaves acidic residue that deals 1d4 damage to creatures that step in it"
+            ],
+            portraits: [],
+            activePortraitIndex: 0
+          }
+        ]
+      };
+
+      currentEncounter = sampleEncounter;
+      spotlightedAdversary = null;
+      renderEncounter();
+      syncEncounterToStorage();
+      syncSpotlightToStorage();
+    }
+
+    // Render the encounter UI
+    function renderEncounter() {
+      const container = document.getElementById('encounterContainer');
+      const clearBtn = document.getElementById('clearEncounterBtn');
+
+      if (!currentEncounter) {
+        container.innerHTML = `
+          <div class="encounter-empty">
+            No encounter loaded. Upload a JSON file or click "Sample" to see an example.
+          </div>
+        `;
+        clearBtn.disabled = true;
+        return;
+      }
+
+      clearBtn.disabled = false;
+
+      let html = `<div class="encounter-name">${currentEncounter.name}</div>`;
+      html += '<div class="adversary-list">';
+
+      currentEncounter.adversaries.forEach((adv, index) => {
+        const isSpotlighted = spotlightedAdversary === adv.id;
+        const hasPortrait = adv.portraits && adv.portraits.length > 0;
+        const activePortrait = hasPortrait ? adv.portraits[adv.activePortraitIndex || 0] : null;
+
+        html += `
+          <div class="adversary-card ${isSpotlighted ? 'spotlighted' : ''}" data-adversary-id="${adv.id}">
+            <div class="adversary-header">
+              <div class="adversary-portrait-thumb" onclick="triggerImageUpload('${adv.id}')" title="Click to add portrait">
+                ${activePortrait ?
+                  `<img src="${activePortrait}" alt="${adv.name}">` :
+                  '<span class="upload-icon">📷</span>'}
+              </div>
+              <div class="adversary-info">
+                <div class="adversary-name">${adv.name}</div>
+                <div class="adversary-tier">Tier ${adv.tier || 1}</div>
+                ${hasPortrait && adv.portraits.length > 1 ? `
+                  <div class="adversary-portrait-gallery">
+                    ${adv.portraits.map((p, pIdx) => `
+                      <div class="gallery-thumb ${pIdx === (adv.activePortraitIndex || 0) ? 'active' : ''}"
+                           onclick="selectPortrait('${adv.id}', ${pIdx})">
+                        <img src="${p}" alt="Portrait ${pIdx + 1}">
+                      </div>
+                    `).join('')}
+                    <button class="add-image-btn" onclick="triggerImageUpload('${adv.id}')" title="Add another portrait">+</button>
+                  </div>
+                ` : ''}
+              </div>
+              <div class="adversary-actions">
+                <button class="spotlight-btn ${isSpotlighted ? 'active' : ''}"
+                        onclick="toggleSpotlight('${adv.id}')"
+                        ${!hasPortrait ? 'disabled title="Add a portrait first"' : ''}>
+                  ${isSpotlighted ? '★ Lit' : '☆ Show'}
+                </button>
+                <button class="stat-toggle-btn" onclick="toggleStats('${adv.id}')">Stats</button>
+              </div>
+            </div>
+            <div class="adversary-stats" id="stats-${adv.id}">
+              <div class="stat-grid">
+                ${adv.hp !== undefined ? `<div class="stat-item"><div class="stat-label">HP</div><div class="stat-value">${adv.hp}</div></div>` : ''}
+                ${adv.stress !== undefined ? `<div class="stat-item"><div class="stat-label">Stress</div><div class="stat-value">${adv.stress}</div></div>` : ''}
+                ${adv.defense !== undefined ? `<div class="stat-item"><div class="stat-label">Defense</div><div class="stat-value">${adv.defense}</div></div>` : ''}
+                ${adv.attack ? `<div class="stat-item"><div class="stat-label">Attack</div><div class="stat-value" style="font-size: 0.75rem;">${adv.attack}</div></div>` : ''}
+              </div>
+              ${adv.traits && adv.traits.length > 0 ? `
+                <div class="traits-section">
+                  <div class="section-label">Traits</div>
+                  ${adv.traits.map(t => `<span class="trait-tag">${t}</span>`).join('')}
+                </div>
+              ` : ''}
+              ${adv.abilities && adv.abilities.length > 0 ? `
+                <div class="abilities-section">
+                  <div class="section-label">Abilities</div>
+                  ${adv.abilities.map(a => `<div class="ability-item">${a}</div>`).join('')}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      container.innerHTML = html;
+      updateSpotlightUI();
+    }
+
+    // Toggle stat block visibility
+    function toggleStats(adversaryId) {
+      const statsEl = document.getElementById(`stats-${adversaryId}`);
+      const btn = document.querySelector(`[data-adversary-id="${adversaryId}"] .stat-toggle-btn`);
+
+      if (statsEl) {
+        statsEl.classList.toggle('visible');
+        btn.classList.toggle('expanded');
+      }
+    }
+
+    // Trigger image upload for specific adversary
+    function triggerImageUpload(adversaryId) {
+      pendingImageUploadAdversaryId = adversaryId;
+      document.getElementById('adversaryImageInput').click();
+    }
+
+    // Handle adversary portrait image upload
+    function handleAdversaryImageUpload(event) {
+      const files = event.target.files;
+      if (!files.length || !pendingImageUploadAdversaryId) return;
+
+      const adversary = currentEncounter.adversaries.find(a => a.id === pendingImageUploadAdversaryId);
+      if (!adversary) return;
+
+      // Process each file
+      let loadedCount = 0;
+      Array.from(files).forEach(file => {
+        if (file.size > 5 * 1024 * 1024) {
+          alert(`Image "${file.name}" is too large. Please select images under 5MB.`);
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          if (!adversary.portraits) {
+            adversary.portraits = [];
+          }
+          adversary.portraits.push(e.target.result);
+          adversary.activePortraitIndex = adversary.portraits.length - 1;
+          loadedCount++;
+
+          // After all files are loaded, update UI
+          if (loadedCount === files.length) {
+            renderEncounter();
+            syncEncounterToStorage();
+
+            // If this adversary is spotlighted, update the spotlight
+            if (spotlightedAdversary === adversary.id) {
+              syncSpotlightToStorage();
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+
+      event.target.value = ''; // Reset input
+      pendingImageUploadAdversaryId = null;
+    }
+
+    // Select a specific portrait from the gallery
+    function selectPortrait(adversaryId, portraitIndex) {
+      const adversary = currentEncounter.adversaries.find(a => a.id === adversaryId);
+      if (!adversary) return;
+
+      adversary.activePortraitIndex = portraitIndex;
+      renderEncounter();
+      syncEncounterToStorage();
+
+      // If this adversary is spotlighted, update the spotlight
+      if (spotlightedAdversary === adversaryId) {
+        syncSpotlightToStorage();
+      }
+    }
+
+    // Toggle spotlight for an adversary
+    function toggleSpotlight(adversaryId) {
+      const adversary = currentEncounter.adversaries.find(a => a.id === adversaryId);
+      if (!adversary || !adversary.portraits || adversary.portraits.length === 0) return;
+
+      if (spotlightedAdversary === adversaryId) {
+        // Turn off spotlight
+        spotlightedAdversary = null;
+      } else {
+        // Spotlight this adversary
+        spotlightedAdversary = adversaryId;
+      }
+
+      renderEncounter();
+      syncSpotlightToStorage();
+    }
+
+    // Hide spotlight (turn off current spotlight)
+    function hideSpotlight() {
+      spotlightedAdversary = null;
+      renderEncounter();
+      syncSpotlightToStorage();
+    }
+
+    // Update spotlight UI elements
+    function updateSpotlightUI() {
+      const hideBtn = document.getElementById('hideSpotlightBtn');
+      hideBtn.disabled = !spotlightedAdversary;
+    }
+
+    // Clear current encounter
+    function clearEncounter() {
+      currentEncounter = null;
+      spotlightedAdversary = null;
+      renderEncounter();
+      syncEncounterToStorage();
+      syncSpotlightToStorage();
+      document.getElementById('encounterFileInput').value = '';
+    }
+
+    // Sync encounter data to localStorage
+    function syncEncounterToStorage() {
+      if (currentEncounter) {
+        const encounterData = {
+          encounter: currentEncounter,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('daggerheart-encounter', JSON.stringify(encounterData));
+      } else {
+        localStorage.removeItem('daggerheart-encounter');
+      }
+    }
+
+    // Sync spotlight data to localStorage (this is what player display reads)
+    function syncSpotlightToStorage() {
+      if (spotlightedAdversary && currentEncounter) {
+        const adversary = currentEncounter.adversaries.find(a => a.id === spotlightedAdversary);
+        if (adversary && adversary.portraits && adversary.portraits.length > 0) {
+          const spotlightData = {
+            visible: true,
+            adversaryId: adversary.id,
+            name: adversary.name,
+            image: adversary.portraits[adversary.activePortraitIndex || 0],
+            timestamp: Date.now()
+          };
+          localStorage.setItem('daggerheart-spotlight', JSON.stringify(spotlightData));
+          document.getElementById('hideSpotlightBtn').disabled = false;
+          return;
+        }
+      }
+
+      // No spotlight
+      const spotlightData = {
+        visible: false,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('daggerheart-spotlight', JSON.stringify(spotlightData));
+      document.getElementById('hideSpotlightBtn').disabled = true;
+    }
+
+    // ============ END ENCOUNTER FUNCTIONS ============
+
     function updateFearDisplay() {
       const display = document.getElementById('fearDisplay');
       display.textContent = currentFear;

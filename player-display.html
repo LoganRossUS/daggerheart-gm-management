@@ -1202,10 +1202,15 @@
     // Listen for updates from GM panel
     let lastDiceTimestamp = 0;
     let lastNpcTimestamp = 0;
+    let lastSpotlightTimestamp = 0;
     let currentNpcVisible = false;
+    let currentSpotlightVisible = false;
 
     // Update NPC portrait display
     function updateNpcPortrait(npcData) {
+      // Don't show NPC portrait if spotlight is active
+      if (currentSpotlightVisible) return;
+
       const portrait = document.getElementById('npcPortrait');
       const npcImage = document.getElementById('npcImage');
 
@@ -1227,6 +1232,42 @@
       }
     }
 
+    // Update spotlight display (from encounters)
+    function updateSpotlight(spotlightData) {
+      const portrait = document.getElementById('npcPortrait');
+      const npcImage = document.getElementById('npcImage');
+
+      if (spotlightData && spotlightData.visible && spotlightData.image) {
+        // Show the spotlighted adversary
+        if (npcImage.src !== spotlightData.image) {
+          npcImage.src = spotlightData.image;
+        }
+        if (!currentSpotlightVisible) {
+          portrait.classList.add('visible');
+          currentSpotlightVisible = true;
+          // Hide NPC portrait state since spotlight takes priority
+          currentNpcVisible = false;
+        }
+      } else {
+        // Hide the spotlight
+        if (currentSpotlightVisible) {
+          portrait.classList.remove('visible');
+          currentSpotlightVisible = false;
+
+          // Check if NPC portrait should be shown instead
+          const npcData = localStorage.getItem('daggerheart-npc');
+          if (npcData) {
+            const parsed = JSON.parse(npcData);
+            if (parsed.visible && parsed.image) {
+              npcImage.src = parsed.image;
+              portrait.classList.add('visible');
+              currentNpcVisible = true;
+            }
+          }
+        }
+      }
+    }
+
     function checkForUpdates() {
       // Check fear
       const fear = parseInt(localStorage.getItem('daggerheart-fear')) || 0;
@@ -1242,18 +1283,30 @@
         }
       }
 
-      // Check for NPC portrait updates
-      const npcData = localStorage.getItem('daggerheart-npc');
-      if (npcData) {
-        const parsed = JSON.parse(npcData);
-        if (parsed.timestamp > lastNpcTimestamp || parsed.visible !== currentNpcVisible) {
-          lastNpcTimestamp = parsed.timestamp;
-          updateNpcPortrait(parsed);
+      // Check for spotlight updates (from encounters) - takes priority over NPC portrait
+      const spotlightData = localStorage.getItem('daggerheart-spotlight');
+      if (spotlightData) {
+        const parsed = JSON.parse(spotlightData);
+        if (parsed.timestamp > lastSpotlightTimestamp || parsed.visible !== currentSpotlightVisible) {
+          lastSpotlightTimestamp = parsed.timestamp;
+          updateSpotlight(parsed);
         }
-      } else {
-        // No NPC data, ensure portrait is hidden
-        if (currentNpcVisible) {
-          updateNpcPortrait(null);
+      }
+
+      // Check for NPC portrait updates (only if spotlight is not active)
+      if (!currentSpotlightVisible) {
+        const npcData = localStorage.getItem('daggerheart-npc');
+        if (npcData) {
+          const parsed = JSON.parse(npcData);
+          if (parsed.timestamp > lastNpcTimestamp || parsed.visible !== currentNpcVisible) {
+            lastNpcTimestamp = parsed.timestamp;
+            updateNpcPortrait(parsed);
+          }
+        } else {
+          // No NPC data, ensure portrait is hidden
+          if (currentNpcVisible) {
+            updateNpcPortrait(null);
+          }
         }
       }
     }
