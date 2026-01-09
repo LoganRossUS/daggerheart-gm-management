@@ -3,6 +3,7 @@
   "adversaries": [
     {
       "name": "Skeleton Warrior",
+      "portrait": "skeleton_warrior.png",
       "tier": 1,
       "hp": 6,
       "stress": 3,
@@ -16,6 +17,7 @@
     },
     {
       "name": "Skeleton Archer",
+      "portrait": "skeleton_archer.png",
       "tier": 1,
       "hp": 4,
       "stress": 2,
@@ -29,6 +31,7 @@
     },
     {
       "name": "Crimson Ooze",
+      "portrait": "crimson_ooze.png",
       "tier": 2,
       "hp": 12,
       "stress": 4,

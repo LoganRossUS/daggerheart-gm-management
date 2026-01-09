@@ -836,10 +836,11 @@
   <div class="section">
     <h2>⚔️ Encounters</h2>
     <div class="encounter-controls">
+      <input type="file" id="encounterFolderInput" webkitdirectory directory style="display: none;" onchange="handleEncounterFolderUpload(event)">
       <input type="file" id="encounterFileInput" accept=".json" style="display: none;" onchange="handleEncounterUpload(event)">
       <input type="file" id="adversaryImageInput" accept="image/*" style="display: none;" multiple onchange="handleAdversaryImageUpload(event)">
-      <button class="encounter-upload-btn" onclick="document.getElementById('encounterFileInput').click()">
-        📄 Load Encounter File (.json)
+      <button class="encounter-upload-btn" onclick="document.getElementById('encounterFolderInput').click()">
+        📁 Load Encounter Folder
       </button>
       <button class="encounter-clear-btn" id="clearEncounterBtn" onclick="clearEncounter()" disabled>
         Clear
@@ -850,7 +851,11 @@
     </div>
     <div id="encounterContainer">
       <div class="encounter-empty">
-        No encounter loaded. Upload a JSON file or click "Sample" to see an example.
+        No encounter loaded.<br>
+        <small style="color: #888; display: block; margin-top: 8px;">
+          Create a folder with encounter.json + images.<br>
+          Use "portrait": "filename.png" in your JSON.
+        </small>
       </div>
     </div>
     <button class="hide-spotlight-btn" id="hideSpotlightBtn" onclick="hideSpotlight()" disabled>
@@ -1052,6 +1057,114 @@
       event.target.value = ''; // Reset input
     }
 
+    // Handle encounter folder upload (folder with JSON + images)
+    function handleEncounterFolderUpload(event) {
+      const files = Array.from(event.target.files);
+      if (!files.length) return;
+
+      // Find the JSON file
+      const jsonFile = files.find(f => f.name.endsWith('.json'));
+      if (!jsonFile) {
+        alert('No JSON file found in folder. Please include an encounter.json file.');
+        return;
+      }
+
+      // Find all image files
+      const imageFiles = files.filter(f =>
+        f.type.startsWith('image/') ||
+        /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(f.name)
+      );
+
+      // Read the JSON file first
+      const jsonReader = new FileReader();
+      jsonReader.onload = function(e) {
+        try {
+          const encounter = JSON.parse(e.target.result);
+
+          // Validate encounter structure
+          if (!encounter.name || !Array.isArray(encounter.adversaries)) {
+            alert('Invalid encounter file. Must have "name" and "adversaries" array.');
+            return;
+          }
+
+          // Process adversaries and match images
+          const imageLoadPromises = [];
+          const imageMap = new Map(); // filename -> base64 data
+
+          // Load all images first
+          imageFiles.forEach(imgFile => {
+            const promise = new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onload = function(imgE) {
+                // Store with just the filename (not the path)
+                const filename = imgFile.name;
+                imageMap.set(filename.toLowerCase(), imgE.target.result);
+                resolve();
+              };
+              reader.onerror = () => resolve(); // Continue even if image fails
+              reader.readAsDataURL(imgFile);
+            });
+            imageLoadPromises.push(promise);
+          });
+
+          // After all images are loaded, process the encounter
+          Promise.all(imageLoadPromises).then(() => {
+            // Add unique IDs and match images to adversaries
+            encounter.adversaries = encounter.adversaries.map((adv, idx) => {
+              const processedAdv = {
+                ...adv,
+                id: adv.id || `adv-${Date.now()}-${idx}`,
+                portraits: [],
+                activePortraitIndex: 0
+              };
+
+              // Check for image reference in JSON (supports: portrait, image, portraits array)
+              const imageRefs = [];
+
+              if (adv.portrait) {
+                imageRefs.push(adv.portrait);
+              }
+              if (adv.image) {
+                imageRefs.push(adv.image);
+              }
+              if (Array.isArray(adv.portraits)) {
+                imageRefs.push(...adv.portraits.filter(p => typeof p === 'string' && !p.startsWith('data:')));
+              }
+
+              // Match image references to loaded images
+              imageRefs.forEach(ref => {
+                const filename = ref.toLowerCase();
+                if (imageMap.has(filename)) {
+                  processedAdv.portraits.push(imageMap.get(filename));
+                }
+              });
+
+              return processedAdv;
+            });
+
+            currentEncounter = encounter;
+            spotlightedAdversary = null;
+            renderEncounter();
+            syncEncounterToStorage();
+            syncSpotlightToStorage();
+
+            // Show feedback
+            const loadedImages = encounter.adversaries.reduce((sum, adv) => sum + adv.portraits.length, 0);
+            if (loadedImages > 0) {
+              console.log(`Loaded encounter "${encounter.name}" with ${loadedImages} image(s)`);
+            } else if (imageFiles.length > 0) {
+              alert(`Loaded encounter but couldn't match images. Make sure your JSON uses "portrait" or "image" fields matching the image filenames.`);
+            }
+          });
+
+        } catch (err) {
+          alert('Error parsing encounter file: ' + err.message);
+        }
+      };
+      jsonReader.readAsText(jsonFile);
+      event.target.value = ''; // Reset input
+    }
+
     // Load sample encounter for testing
     function loadSampleEncounter() {
       const sampleEncounter = {
@@ -1124,7 +1237,11 @@
       if (!currentEncounter) {
         container.innerHTML = `
           <div class="encounter-empty">
-            No encounter loaded. Upload a JSON file or click "Sample" to see an example.
+            No encounter loaded.<br>
+            <small style="color: #888; display: block; margin-top: 8px;">
+              Create a folder with encounter.json + images.<br>
+              Use "portrait": "filename.png" in your JSON.
+            </small>
           </div>
         `;
         clearBtn.disabled = true;
