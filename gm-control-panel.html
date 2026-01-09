@@ -775,6 +775,124 @@
     .sample-btn:hover {
       background: rgba(179, 136, 255, 0.15);
     }
+
+    /* HP/Stress Tracker */
+    .adversary-trackers {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .tracker {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.3);
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+
+    .tracker-label {
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      min-width: 45px;
+    }
+
+    .tracker-hp .tracker-label {
+      color: #ff6b6b;
+    }
+
+    .tracker-stress .tracker-label {
+      color: #b388ff;
+    }
+
+    .tracker-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tracker-btn {
+      width: 24px;
+      height: 24px;
+      border: none;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+      color: #ccc;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .tracker-btn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .tracker-btn.minus:hover {
+      background: rgba(255,68,68,0.3);
+      color: #ff6b6b;
+    }
+
+    .tracker-btn.plus:hover {
+      background: rgba(102,187,106,0.3);
+      color: #66bb6a;
+    }
+
+    .tracker-value {
+      min-width: 50px;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .tracker-hp .tracker-value {
+      color: #ff6b6b;
+    }
+
+    .tracker-stress .tracker-value {
+      color: #b388ff;
+    }
+
+    .tracker-value.depleted {
+      color: #666;
+    }
+
+    .tracker-value.critical {
+      color: #ff4444;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .adversary-card.defeated {
+      opacity: 0.5;
+      border-color: rgba(255,68,68,0.3);
+    }
+
+    .adversary-card.defeated .adversary-name {
+      text-decoration: line-through;
+      color: #888;
+    }
+
+    .defeated-badge {
+      background: rgba(255,68,68,0.2);
+      color: #ff6b6b;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      margin-left: 8px;
+    }
   </style>
 </head>
 <body>
@@ -1258,8 +1376,19 @@
         const hasPortrait = adv.portraits && adv.portraits.length > 0;
         const activePortrait = hasPortrait ? adv.portraits[adv.activePortraitIndex || 0] : null;
 
+        // Initialize current HP/Stress if not set
+        if (adv.hp !== undefined && adv.currentHp === undefined) {
+          adv.currentHp = adv.hp;
+        }
+        if (adv.stress !== undefined && adv.currentStress === undefined) {
+          adv.currentStress = adv.stress;
+        }
+
+        const isDefeated = adv.hp !== undefined && adv.currentHp <= 0;
+        const hpCritical = adv.hp !== undefined && adv.currentHp > 0 && adv.currentHp <= Math.ceil(adv.hp / 4);
+
         html += `
-          <div class="adversary-card ${isSpotlighted ? 'spotlighted' : ''}" data-adversary-id="${adv.id}">
+          <div class="adversary-card ${isSpotlighted ? 'spotlighted' : ''} ${isDefeated ? 'defeated' : ''}" data-adversary-id="${adv.id}">
             <div class="adversary-header">
               <div class="adversary-portrait-thumb" onclick="triggerImageUpload('${adv.id}')" title="Click to add portrait">
                 ${activePortrait ?
@@ -1267,7 +1396,10 @@
                   '<span class="upload-icon">📷</span>'}
               </div>
               <div class="adversary-info">
-                <div class="adversary-name">${adv.name}</div>
+                <div class="adversary-name">
+                  ${adv.name}
+                  ${isDefeated ? '<span class="defeated-badge">DEFEATED</span>' : ''}
+                </div>
                 <div class="adversary-tier">Tier ${adv.tier || 1}</div>
                 ${hasPortrait && adv.portraits.length > 1 ? `
                   <div class="adversary-portrait-gallery">
@@ -1290,10 +1422,32 @@
                 <button class="stat-toggle-btn" onclick="toggleStats('${adv.id}')">Stats</button>
               </div>
             </div>
+            ${(adv.hp !== undefined || adv.stress !== undefined) ? `
+              <div class="adversary-trackers">
+                ${adv.hp !== undefined ? `
+                  <div class="tracker tracker-hp">
+                    <span class="tracker-label">HP</span>
+                    <div class="tracker-controls">
+                      <button class="tracker-btn minus" onclick="adjustHp('${adv.id}', -1)">-</button>
+                      <span class="tracker-value ${adv.currentHp <= 0 ? 'depleted' : ''} ${hpCritical ? 'critical' : ''}">${adv.currentHp} / ${adv.hp}</span>
+                      <button class="tracker-btn plus" onclick="adjustHp('${adv.id}', 1)">+</button>
+                    </div>
+                  </div>
+                ` : ''}
+                ${adv.stress !== undefined ? `
+                  <div class="tracker tracker-stress">
+                    <span class="tracker-label">Stress</span>
+                    <div class="tracker-controls">
+                      <button class="tracker-btn minus" onclick="adjustStress('${adv.id}', -1)">-</button>
+                      <span class="tracker-value ${adv.currentStress <= 0 ? 'depleted' : ''}">${adv.currentStress} / ${adv.stress}</span>
+                      <button class="tracker-btn plus" onclick="adjustStress('${adv.id}', 1)">+</button>
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
             <div class="adversary-stats" id="stats-${adv.id}">
               <div class="stat-grid">
-                ${adv.hp !== undefined ? `<div class="stat-item"><div class="stat-label">HP</div><div class="stat-value">${adv.hp}</div></div>` : ''}
-                ${adv.stress !== undefined ? `<div class="stat-item"><div class="stat-label">Stress</div><div class="stat-value">${adv.stress}</div></div>` : ''}
                 ${adv.defense !== undefined ? `<div class="stat-item"><div class="stat-label">Defense</div><div class="stat-value">${adv.defense}</div></div>` : ''}
                 ${adv.attack ? `<div class="stat-item"><div class="stat-label">Attack</div><div class="stat-value" style="font-size: 0.75rem;">${adv.attack}</div></div>` : ''}
               </div>
@@ -1328,6 +1482,40 @@
         statsEl.classList.toggle('visible');
         btn.classList.toggle('expanded');
       }
+    }
+
+    // Adjust HP for an adversary
+    function adjustHp(adversaryId, amount) {
+      const adversary = currentEncounter.adversaries.find(a => a.id === adversaryId);
+      if (!adversary || adversary.hp === undefined) return;
+
+      // Initialize current HP if needed
+      if (adversary.currentHp === undefined) {
+        adversary.currentHp = adversary.hp;
+      }
+
+      // Adjust HP (can go negative but not above max)
+      adversary.currentHp = Math.min(adversary.hp, adversary.currentHp + amount);
+
+      renderEncounter();
+      syncEncounterToStorage();
+    }
+
+    // Adjust Stress for an adversary
+    function adjustStress(adversaryId, amount) {
+      const adversary = currentEncounter.adversaries.find(a => a.id === adversaryId);
+      if (!adversary || adversary.stress === undefined) return;
+
+      // Initialize current Stress if needed
+      if (adversary.currentStress === undefined) {
+        adversary.currentStress = adversary.stress;
+      }
+
+      // Adjust Stress (can go negative but not above max)
+      adversary.currentStress = Math.min(adversary.stress, adversary.currentStress + amount);
+
+      renderEncounter();
+      syncEncounterToStorage();
     }
 
     // Trigger image upload for specific adversary
