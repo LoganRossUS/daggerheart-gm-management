@@ -406,6 +406,111 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
+
+    /* NPC Portrait Display */
+    #npcPortrait {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    #npcPortrait.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .npc-frame {
+      position: relative;
+      padding: 12px;
+      background: linear-gradient(145deg, #2a1a35, #1a0d24);
+      border-radius: 16px;
+      box-shadow:
+        0 0 40px rgba(123, 45, 142, 0.4),
+        0 0 80px rgba(75, 0, 130, 0.2),
+        inset 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .npc-frame::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      padding: 3px;
+      background: linear-gradient(145deg, #ffd700, #b8860b, #7c4dff, #b388ff);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+
+    .npc-frame::after {
+      content: '';
+      position: absolute;
+      inset: 6px;
+      border-radius: 12px;
+      padding: 2px;
+      background: linear-gradient(145deg, rgba(255, 215, 0, 0.3), rgba(179, 136, 255, 0.3));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+
+    .npc-inner-frame {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0d0610;
+    }
+
+    #npcImage {
+      display: block;
+      max-width: 70vw;
+      max-height: 65vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+
+    /* Corner decorations */
+    .npc-corner {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      z-index: 10;
+    }
+
+    .npc-corner svg {
+      width: 100%;
+      height: 100%;
+      fill: #ffd700;
+      filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
+    }
+
+    .npc-corner.top-left { top: -4px; left: -4px; }
+    .npc-corner.top-right { top: -4px; right: -4px; transform: rotate(90deg); }
+    .npc-corner.bottom-right { bottom: -4px; right: -4px; transform: rotate(180deg); }
+    .npc-corner.bottom-left { bottom: -4px; left: -4px; transform: rotate(270deg); }
+
+    /* Glow effect animation */
+    @keyframes portraitGlow {
+      0%, 100% { box-shadow: 0 0 40px rgba(123, 45, 142, 0.4), 0 0 80px rgba(75, 0, 130, 0.2), inset 0 0 30px rgba(0, 0, 0, 0.5); }
+      50% { box-shadow: 0 0 50px rgba(123, 45, 142, 0.5), 0 0 100px rgba(75, 0, 130, 0.3), inset 0 0 30px rgba(0, 0, 0, 0.5); }
+    }
+
+    #npcPortrait.visible .npc-frame {
+      animation: portraitGlow 3s ease-in-out infinite;
+    }
   </style>
 </head>
 <body>
@@ -427,6 +532,28 @@
   <div id="resultDisplay">
     <div class="result-value" id="resultValue"></div>
     <div class="result-detail" id="resultDetail"></div>
+  </div>
+
+  <!-- NPC Portrait Display -->
+  <div id="npcPortrait">
+    <div class="npc-frame">
+      <!-- Corner decorations -->
+      <div class="npc-corner top-left">
+        <svg viewBox="0 0 24 24"><path d="M2 2 L2 14 L4 14 L4 4 L14 4 L14 2 Z M6 6 L6 10 L10 10 L10 6 Z"/></svg>
+      </div>
+      <div class="npc-corner top-right">
+        <svg viewBox="0 0 24 24"><path d="M2 2 L2 14 L4 14 L4 4 L14 4 L14 2 Z M6 6 L6 10 L10 10 L10 6 Z"/></svg>
+      </div>
+      <div class="npc-corner bottom-right">
+        <svg viewBox="0 0 24 24"><path d="M2 2 L2 14 L4 14 L4 4 L14 4 L14 2 Z M6 6 L6 10 L10 10 L10 6 Z"/></svg>
+      </div>
+      <div class="npc-corner bottom-left">
+        <svg viewBox="0 0 24 24"><path d="M2 2 L2 14 L4 14 L4 4 L14 4 L14 2 Z M6 6 L6 10 L10 10 L10 6 Z"/></svg>
+      </div>
+      <div class="npc-inner-frame">
+        <img id="npcImage" src="" alt="NPC Portrait">
+      </div>
+    </div>
   </div>
   
   <!-- Fear Tracker Pike -->
@@ -1074,12 +1201,37 @@
     
     // Listen for updates from GM panel
     let lastDiceTimestamp = 0;
-    
+    let lastNpcTimestamp = 0;
+    let currentNpcVisible = false;
+
+    // Update NPC portrait display
+    function updateNpcPortrait(npcData) {
+      const portrait = document.getElementById('npcPortrait');
+      const npcImage = document.getElementById('npcImage');
+
+      if (npcData && npcData.visible && npcData.image) {
+        // Show the portrait
+        if (npcImage.src !== npcData.image) {
+          npcImage.src = npcData.image;
+        }
+        if (!currentNpcVisible) {
+          portrait.classList.add('visible');
+          currentNpcVisible = true;
+        }
+      } else {
+        // Hide the portrait
+        if (currentNpcVisible) {
+          portrait.classList.remove('visible');
+          currentNpcVisible = false;
+        }
+      }
+    }
+
     function checkForUpdates() {
       // Check fear
       const fear = parseInt(localStorage.getItem('daggerheart-fear')) || 0;
       updateFear(fear);
-      
+
       // Check for dice roll
       const diceData = localStorage.getItem('daggerheart-dice');
       if (diceData) {
@@ -1087,6 +1239,21 @@
         if (parsed.timestamp > lastDiceTimestamp) {
           lastDiceTimestamp = parsed.timestamp;
           animateDiceRoll(parsed);
+        }
+      }
+
+      // Check for NPC portrait updates
+      const npcData = localStorage.getItem('daggerheart-npc');
+      if (npcData) {
+        const parsed = JSON.parse(npcData);
+        if (parsed.timestamp > lastNpcTimestamp || parsed.visible !== currentNpcVisible) {
+          lastNpcTimestamp = parsed.timestamp;
+          updateNpcPortrait(parsed);
+        }
+      } else {
+        // No NPC data, ensure portrait is hidden
+        if (currentNpcVisible) {
+          updateNpcPortrait(null);
         }
       }
     }
