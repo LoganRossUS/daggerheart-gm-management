@@ -385,20 +385,23 @@
       counter.textContent = fearCount;
       counter.style.color = fearCount > 8 ? '#ff4444' : fearCount > 4 ? '#b388ff' : '#ffd700';
       counter.style.textShadow = `0 0 30px ${fearCount > 8 ? 'rgba(255,68,68,0.6)' : fearCount > 4 ? 'rgba(179,136,255,0.6)' : 'rgba(255,215,0,0.5)'}`;
-      
+
       // Update skulls
       const pikeContainer = document.querySelector('.pike-container');
       const pikeWidth = pikeContainer.offsetWidth - 80; // Account for points
-      
+
       for (let i = 0; i < 12; i++) {
         const skull = document.getElementById(`skull-${i}`);
-        const isActive = i < fearCount;
+        // Rightmost skull (index 11) moves first, then 10, 9, etc.
+        // When fearCount=1, skull 11 is active
+        // When fearCount=2, skulls 11 and 10 are active
+        const isActive = i >= (12 - fearCount);
         const spacing = pikeWidth / 24;
-        
+
         // Hope side: left half, Fear side: right half
         const hopePos = 40 + (i * spacing);
         const fearPos = (pikeWidth / 2) + 40 + (i * spacing);
-        
+
         skull.style.left = `${isActive ? fearPos : hopePos}px`;
         skull.innerHTML = createSkullSVG(12 - i, isActive);
         skull.style.filter = `drop-shadow(0 0 ${isActive ? 12 : 6}px ${isActive ? 'rgba(179, 136, 255, 0.6)' : 'rgba(255, 215, 0, 0.3)'})`;
@@ -424,32 +427,51 @@
       const resultDisplay = document.getElementById('resultDisplay');
       const resultValue = document.getElementById('resultValue');
       const resultDetail = document.getElementById('resultDetail');
-      
+
       // Clear previous
       area.innerHTML = '';
       resultDisplay.classList.remove('visible', 'hope', 'fear');
-      
+
       if (diceData.type === 'hopefear') {
         // Hope/Fear roll - two dice
         animateHopeFearRoll(diceData);
         return;
       }
-      
-      // Standard dice roll
+
+      // Handle both legacy 'standard' format and new 'notation' format
+      let allResults = [];
+      let allSides = [];
+
+      if (diceData.type === 'notation' && diceData.diceRolls) {
+        // New notation format with multiple dice types
+        diceData.diceRolls.forEach(roll => {
+          roll.results.forEach(result => {
+            allResults.push(result);
+            allSides.push(roll.sides);
+          });
+        });
+      } else if (diceData.results) {
+        // Legacy standard format
+        allResults = diceData.results;
+        allSides = diceData.results.map(() => diceData.sides);
+      }
+
+      if (allResults.length === 0) return;
+
       const dice = [];
       const colors = ['#e0e0e0', '#ffd700', '#b388ff', '#ff6b6b', '#4CAF50', '#2196F3'];
-      
-      for (let i = 0; i < diceData.results.length; i++) {
+
+      for (let i = 0; i < allResults.length; i++) {
         const die = document.createElement('div');
-        die.className = `die d${diceData.sides}`;
+        die.className = `die d${allSides[i]}`;
         die.textContent = '?';
         die.style.color = colors[i % colors.length];
-        
+
         // Random starting position (off screen)
         const startSide = Math.random() > 0.5 ? -1 : 1;
         die.style.left = startSide > 0 ? '-100px' : (window.innerWidth + 100) + 'px';
         die.style.top = (Math.random() * (window.innerHeight * 0.4) + 100) + 'px';
-        
+
         area.appendChild(die);
         dice.push({
           el: die,
@@ -459,30 +481,31 @@
           vy: -5 + Math.random() * 10,
           rotation: 0,
           vr: (Math.random() - 0.5) * 30,
-          result: diceData.results[i],
+          result: allResults[i],
+          sides: allSides[i],
           settled: false
         });
       }
-      
+
       const gravity = 0.5;
       const friction = 0.98;
       const bounceFactor = 0.6;
       const floor = window.innerHeight * 0.6;
       let allSettled = false;
       let settleTime = 0;
-      
+
       function animate() {
         allSettled = true;
-        
+
         dice.forEach(d => {
           if (d.settled) return;
-          
+
           // Physics
           d.vy += gravity;
           d.x += d.vx;
           d.y += d.vy;
           d.rotation += d.vr;
-          
+
           // Bounce off floor
           if (d.y > floor) {
             d.y = floor;
@@ -490,14 +513,14 @@
             d.vx *= friction;
             d.vr *= 0.8;
           }
-          
+
           // Bounce off walls
           if (d.x < 50) { d.x = 50; d.vx *= -bounceFactor; }
           if (d.x > window.innerWidth - 50) { d.x = window.innerWidth - 50; d.vx *= -bounceFactor; }
-          
+
           // Apply friction
           d.vx *= friction;
-          
+
           // Check if settled
           if (Math.abs(d.vy) < 1 && Math.abs(d.vx) < 0.5 && d.y >= floor - 5) {
             d.settled = true;
@@ -505,15 +528,15 @@
           } else {
             allSettled = false;
             // Randomize display while rolling
-            d.el.textContent = Math.floor(Math.random() * diceData.sides) + 1;
+            d.el.textContent = Math.floor(Math.random() * d.sides) + 1;
           }
-          
+
           // Update position
           d.el.style.left = d.x + 'px';
           d.el.style.top = d.y + 'px';
           d.el.style.transform = `translate(-50%, -50%) rotate(${d.rotation}deg)`;
         });
-        
+
         if (!allSettled) {
           requestAnimationFrame(animate);
         } else {
@@ -525,17 +548,18 @@
             setTimeout(() => {
               // Fade out dice
               dice.forEach(d => d.el.style.opacity = '0.3');
-              
-              // Show result
-              if (diceData.count > 1) {
-                resultValue.textContent = diceData.total;
+
+              // Show result - use notation format if available
+              resultValue.textContent = diceData.total;
+              if (diceData.notation) {
+                resultDetail.textContent = diceData.notation;
+              } else if (diceData.count > 1) {
                 resultDetail.textContent = `${diceData.results.join(' + ')}`;
               } else {
-                resultValue.textContent = diceData.results[0];
                 resultDetail.textContent = `d${diceData.sides}`;
               }
               resultDisplay.classList.add('visible');
-              
+
               // Hide after delay
               setTimeout(() => {
                 resultDisplay.classList.remove('visible');
@@ -545,7 +569,7 @@
           }
         }
       }
-      
+
       requestAnimationFrame(animate);
     }
     
