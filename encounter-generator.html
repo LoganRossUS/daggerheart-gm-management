@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daggerheart Encounter Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Cinzel', serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #12061a 100%);
+      min-height: 100vh;
+      color: #e0e0e0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 30px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .section {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section h2 {
+      font-size: 1.1rem;
+      color: #b388ff;
+      border-bottom: 1px solid rgba(179, 136, 255, 0.3);
+      padding-bottom: 8px;
+      margin-bottom: 15px;
+    }
+
+    .question-group {
+      margin-bottom: 20px;
+    }
+
+    .question-group label {
+      display: block;
+      color: #b388ff;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+    }
+
+    .question-group .hint {
+      color: #666;
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid rgba(179, 136, 255, 0.3);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+    }
+
+    input[type="number"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
+    .checkbox-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .checkbox-item:hover {
+      background: rgba(179, 136, 255, 0.1);
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #b388ff;
+    }
+
+    .checkbox-item label {
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #7c4dff, #4a0e4e);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(124, 77, 255, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #b388ff;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(179, 136, 255, 0.2);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #4caf50, #2e7d32);
+      color: white;
+    }
+
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    #encounterResult {
+      display: none;
+    }
+
+    .encounter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .encounter-name {
+      font-size: 1.3rem;
+      color: #ffd700;
+    }
+
+    .battle-points {
+      color: #888;
+      font-size: 0.9rem;
+    }
+
+    .adversary-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(179, 136, 255, 0.2);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 12px;
+    }
+
+    .adversary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .adversary-name {
+      font-size: 1.1rem;
+      color: #b388ff;
+    }
+
+    .adversary-type-tier {
+      color: #888;
+      font-size: 0.85rem;
+    }
+
+    .adversary-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .stat-item {
+      background: rgba(179, 136, 255, 0.1);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .stat-label {
+      color: #888;
+      font-size: 0.75rem;
+    }
+
+    .stat-value {
+      color: #e0e0e0;
+    }
+
+    .adversary-traits {
+      margin-top: 8px;
+    }
+
+    .trait-tag {
+      display: inline-block;
+      background: rgba(255, 215, 0, 0.1);
+      color: #ffd700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      margin-right: 5px;
+      margin-bottom: 5px;
+    }
+
+    .adversary-abilities {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(179, 136, 255, 0.1);
+    }
+
+    .ability-item {
+      font-size: 0.85rem;
+      color: #aaa;
+      margin-bottom: 5px;
+      padding-left: 10px;
+      border-left: 2px solid rgba(179, 136, 255, 0.3);
+    }
+
+    .json-output {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(179, 136, 255, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 400px;
+      overflow-y: auto;
+      display: none;
+      margin-top: 15px;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    .footer a {
+      color: #b388ff;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .theme-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .theme-pill {
+      padding: 6px 14px;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      background: transparent;
+      color: #aaa;
+    }
+
+    .theme-pill:hover {
+      border-color: #b388ff;
+      color: #b388ff;
+    }
+
+    .theme-pill.selected {
+      background: rgba(179, 136, 255, 0.2);
+      border-color: #b388ff;
+      color: #b388ff;
+    }
+
+    .minion-note {
+      background: rgba(255, 215, 0, 0.1);
+      border-left: 3px solid #ffd700;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      color: #daa520;
+      margin-bottom: 10px;
+      border-radius: 0 6px 6px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Encounter Generator</h1>
+    <p class="subtitle">Create balanced Daggerheart encounters</p>
+
+    <!-- Questionnaire Section -->
+    <div class="section" id="questionnaireSection">
+      <h2>Encounter Parameters</h2>
+
+      <div class="question-group">
+        <label>How many players are in the party?</label>
+        <input type="number" id="partySize" min="1" max="10" value="4">
+        <p class="hint">Base battle points = (3 x party size) + 2</p>
+      </div>
+
+      <div class="question-group">
+        <label>What tier are the players?</label>
+        <select id="partyTier">
+          <option value="1">Tier 1 (Level 1)</option>
+          <option value="2">Tier 2 (Levels 2-4)</option>
+          <option value="3">Tier 3 (Levels 5-7)</option>
+          <option value="4">Tier 4 (Levels 8-10)</option>
+        </select>
+      </div>
+
+      <div class="question-group">
+        <label>What difficulty level do you want?</label>
+        <select id="difficulty">
+          <option value="easier">Easier (-1 battle point)</option>
+          <option value="standard" selected>Standard</option>
+          <option value="harder">Harder (+2 battle points)</option>
+        </select>
+      </div>
+
+      <div class="question-group">
+        <label>What themes fit this encounter? (select any that apply)</label>
+        <div class="theme-pills" id="themePills">
+          <button class="theme-pill" data-theme="undead">Undead</button>
+          <button class="theme-pill" data-theme="beasts">Beasts</button>
+          <button class="theme-pill" data-theme="bandits">Bandits</button>
+          <button class="theme-pill" data-theme="guards">Guards</button>
+          <button class="theme-pill" data-theme="demons">Demons</button>
+          <button class="theme-pill" data-theme="elementals">Elementals</button>
+          <button class="theme-pill" data-theme="nature">Nature</button>
+          <button class="theme-pill" data-theme="giants">Giants</button>
+          <button class="theme-pill" data-theme="oozes">Oozes</button>
+          <button class="theme-pill" data-theme="constructs">Constructs</button>
+          <button class="theme-pill" data-theme="pirates">Pirates</button>
+          <button class="theme-pill" data-theme="social">Social</button>
+        </div>
+        <p class="hint">Leave empty for any theme</p>
+      </div>
+
+      <div class="question-group">
+        <label>What types of adversaries would you like? (select any)</label>
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input type="checkbox" id="typeBruiser" checked>
+            <label for="typeBruiser">Bruisers (tough)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="typeHorde" checked>
+            <label for="typeHorde">Hordes (groups)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="typeLeader" checked>
+            <label for="typeLeader">Leaders (commanders)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="typeMinion" checked>
+            <label for="typeMinion">Minions (weak)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="typeRanged" checked>
+            <label for="typeRanged">Ranged (archers)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="typeSkulk" checked>
+            <label for="typeSkulk">Skulks (ambushers)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="typeSocial">
+            <label for="typeSocial">Socials (talkers)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="typeSolo" checked>
+            <label for="typeSolo">Solos (boss-level)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="typeStandard" checked>
+            <label for="typeStandard">Standards (typical)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="typeSupport" checked>
+            <label for="typeSupport">Supports (buffers)</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="question-group">
+        <label>Give this encounter a name (optional)</label>
+        <input type="text" id="encounterName" placeholder="e.g., Graveyard Ambush" style="width: 100%; padding: 12px; border: 2px solid rgba(179, 136, 255, 0.3); border-radius: 8px; background: rgba(0, 0, 0, 0.3); color: #e0e0e0; font-family: 'Cinzel', serif; font-size: 1rem;">
+      </div>
+
+      <div class="button-row">
+        <button class="btn btn-primary" onclick="generateEncounter()">Generate Encounter</button>
+      </div>
+    </div>
+
+    <!-- Result Section -->
+    <div class="section" id="encounterResult">
+      <div class="encounter-header">
+        <span class="encounter-name" id="resultName">Generated Encounter</span>
+        <span class="battle-points" id="resultBattlePoints">Battle Points: 14/14</span>
+      </div>
+
+      <div id="adversaryList"></div>
+
+      <div class="button-row">
+        <button class="btn btn-secondary" onclick="regenerateEncounter()">Regenerate</button>
+        <button class="btn btn-primary" onclick="toggleJson()">Show JSON</button>
+        <button class="btn btn-success" onclick="downloadJson()">Download JSON</button>
+        <button class="btn btn-secondary" onclick="copyJson()">Copy JSON</button>
+      </div>
+
+      <div class="json-output" id="jsonOutput"></div>
+    </div>
+
+    <div class="footer">
+      <a href="gm-control-panel.html">Back to GM Control Panel</a>
+    </div>
+  </div>
+
+  <script>
+    // Adversary Database
+    const adversaryDatabase = [
+      // TIER 1 ADVERSARIES
+      {
+        name: "Acid Burrower",
+        tier: 1,
+        type: "Solo",
+        themes: ["beasts"],
+        difficulty: 14,
+        thresholds: { major: 8, severe: 15 },
+        hp: 8,
+        stress: 3,
+        attack: "+3 (1d12+2 physical)",
+        defense: 14,
+        traits: ["Burrowing", "Acidic Blood"],
+        abilities: [
+          "Relentless (3): Can be spotlighted up to three times per GM turn",
+          "Earth Eruption: Burst from ground, knock creatures prone",
+          "Spit Acid: Attack all targets in front within Close range",
+          "Acid Bath: When takes Severe damage, splash acid on nearby creatures"
+        ]
+      },
+      {
+        name: "Bear",
+        tier: 1,
+        type: "Bruiser",
+        themes: ["beasts", "nature"],
+        difficulty: 14,
+        thresholds: { major: 9, severe: 17 },
+        hp: 7,
+        stress: 2,
+        attack: "+1 (1d8+3 physical)",
+        defense: 14,
+        traits: ["Powerful", "Keen Senses"],
+        abilities: [
+          "Overwhelming Force: Targets knocked back to Very Close range",
+          "Bite: 3d4+10 physical damage, target is Restrained",
+          "Momentum: Gain Fear on successful attack"
+        ]
+      },
+      {
+        name: "Cave Ogre",
+        tier: 1,
+        type: "Solo",
+        themes: ["giants"],
+        difficulty: 13,
+        thresholds: { major: 8, severe: 15 },
+        hp: 8,
+        stress: 3,
+        attack: "+1 (1d10+2 physical)",
+        defense: 13,
+        traits: ["Giant", "Hungry"],
+        abilities: [
+          "Ramp Up: Must spend Fear to spotlight, attacks all in range",
+          "Bone Breaker: Attacks deal direct damage",
+          "Hail of Boulders: Throw objects at all targets in front within Far range",
+          "Rampaging Fury: Move and deal damage to all in path when hurt"
+        ]
+      },
+      {
+        name: "Construct",
+        tier: 1,
+        type: "Solo",
+        themes: ["constructs"],
+        difficulty: 13,
+        thresholds: { major: 7, severe: 15 },
+        hp: 9,
+        stress: 4,
+        attack: "+4 (1d20 physical)",
+        defense: 13,
+        traits: ["Constructed", "Magical"],
+        abilities: [
+          "Relentless (2): Can be spotlighted twice per GM turn",
+          "Weak Structure: Mark extra HP from physical damage",
+          "Trample: Attack all targets in path when moving",
+          "Overload: +10 damage bonus, spotlight again",
+          "Death Quake: Explosion on death"
+        ]
+      },
+      {
+        name: "Courtier",
+        tier: 1,
+        type: "Social",
+        themes: ["social"],
+        difficulty: 12,
+        thresholds: { major: 4, severe: 8 },
+        hp: 3,
+        stress: 4,
+        attack: "-4 (1d4+2 physical)",
+        defense: 12,
+        traits: ["Noble", "Scheming"],
+        abilities: [
+          "Mockery: Force Presence roll or mark 2 Stress and become Vulnerable",
+          "Scapegoat: Convince crowd target is cause of conflict"
+        ]
+      },
+      {
+        name: "Deeproot Defender",
+        tier: 1,
+        type: "Bruiser",
+        themes: ["nature"],
+        difficulty: 10,
+        thresholds: { major: 8, severe: 14 },
+        hp: 7,
+        stress: 3,
+        attack: "+2 (1d8+3 physical)",
+        defense: 10,
+        traits: ["Plant", "Guardian"],
+        abilities: [
+          "Ground Slam: Knock targets back to Far range, mark Stress",
+          "Grab and Drag: Pull target into Melee and Restrain"
+        ]
+      },
+      {
+        name: "Dire Wolf",
+        tier: 1,
+        type: "Skulk",
+        themes: ["beasts", "nature"],
+        difficulty: 12,
+        thresholds: { major: 5, severe: 9 },
+        hp: 4,
+        stress: 3,
+        attack: "+2 (1d6+2 physical)",
+        defense: 12,
+        traits: ["Pack Hunter", "Keen Senses"],
+        abilities: [
+          "Pack Tactics: Extra damage when ally nearby",
+          "Hobbling Strike: 3d4+10 direct damage, make Vulnerable"
+        ]
+      },
+      {
+        name: "Giant Mosquitoes",
+        tier: 1,
+        type: "Horde",
+        themes: ["beasts"],
+        difficulty: 10,
+        thresholds: { major: 5, severe: 9 },
+        hp: 6,
+        stress: 3,
+        attack: "-2 (1d8+3 physical)",
+        defense: 10,
+        traits: ["Flying", "Swarm"],
+        abilities: [
+          "Horde: Reduced damage at half HP",
+          "Flying: +2 Difficulty while flying",
+          "Bloodsucker: Force target to mark extra HP"
+        ]
+      },
+      {
+        name: "Giant Rat",
+        tier: 1,
+        type: "Minion",
+        themes: ["beasts"],
+        difficulty: 10,
+        thresholds: { major: 0, severe: 0 },
+        hp: 1,
+        stress: 1,
+        attack: "-4 (1 physical)",
+        defense: 10,
+        traits: ["Minion", "Vermin"],
+        abilities: [
+          "Minion (3): Defeated by any damage, extra kills per 3 damage",
+          "Group Attack: All nearby rats attack together"
+        ]
+      },
+      {
+        name: "Giant Scorpion",
+        tier: 1,
+        type: "Bruiser",
+        themes: ["beasts"],
+        difficulty: 13,
+        thresholds: { major: 7, severe: 13 },
+        hp: 6,
+        stress: 3,
+        attack: "+1 (1d12+2 physical)",
+        defense: 13,
+        traits: ["Venomous", "Armored"],
+        abilities: [
+          "Double Strike: Attack two targets",
+          "Venomous Stinger: Poison target until rest",
+          "Momentum: Gain Fear on successful attack"
+        ]
+      },
+      {
+        name: "Glass Snake",
+        tier: 1,
+        type: "Standard",
+        themes: ["beasts"],
+        difficulty: 14,
+        thresholds: { major: 6, severe: 10 },
+        hp: 5,
+        stress: 3,
+        attack: "+2 (1d8+2 physical)",
+        defense: 14,
+        traits: ["Crystalline", "Slithering"],
+        abilities: [
+          "Armor-Shredding Shards: Attackers must mark Armor Slot",
+          "Spinning Serpent: Attack all targets in Very Close range",
+          "Spitter: Ranged acid attack"
+        ]
+      },
+      {
+        name: "Harrier",
+        tier: 1,
+        type: "Standard",
+        themes: ["bandits"],
+        difficulty: 12,
+        thresholds: { major: 5, severe: 9 },
+        hp: 3,
+        stress: 3,
+        attack: "+1 (1d6+2 physical)",
+        defense: 12,
+        traits: ["Nimble", "Skirmisher"],
+        abilities: [
+          "Maintain Distance: Move within Far range after attack",
+          "Fall Back: Move and counterattack when approached"
+        ]
+      },
+      {
+        name: "Archer Guard",
+        tier: 1,
+        type: "Ranged",
+        themes: ["guards"],
+        difficulty: 10,
+        thresholds: { major: 4, severe: 8 },
+        hp: 3,
+        stress: 2,
+        attack: "+1 (1d8+3 physical, ranged)",
+        defense: 10,
+        traits: ["Trained", "Ranged"],
+        abilities: [
+          "Hobbling Shot: 1d12+3 damage, disadvantage on Agility"
+        ]
+      },
+      {
+        name: "Bladed Guard",
+        tier: 1,
+        type: "Standard",
+        themes: ["guards"],
+        difficulty: 12,
+        thresholds: { major: 5, severe: 9 },
+        hp: 5,
+        stress: 2,
+        attack: "+1 (1d6+1 physical)",
+        defense: 12,
+        traits: ["Trained", "Armored"],
+        abilities: [
+          "Shield Wall: Increased Difficulty to approach",
+          "Detain: Restrain target on hit"
+        ]
+      },
+      {
+        name: "Head Guard",
+        tier: 1,
+        type: "Leader",
+        themes: ["guards"],
+        difficulty: 15,
+        thresholds: { major: 7, severe: 13 },
+        hp: 7,
+        stress: 3,
+        attack: "+4 (1d10+4 physical)",
+        defense: 15,
+        traits: ["Commander", "Veteran"],
+        abilities: [
+          "Rally Guards: Spotlight self and up to 2d4 allies",
+          "On My Signal: Coordinated archer volley",
+          "Momentum: Gain Fear on successful attack"
+        ]
+      },
+      {
+        name: "Jagged Knife Bandit",
+        tier: 1,
+        type: "Standard",
+        themes: ["bandits"],
+        difficulty: 12,
+        thresholds: { major: 8, severe: 14 },
+        hp: 5,
+        stress: 3,
+        attack: "+1 (1d8+1 physical)",
+        defense: 12,
+        traits: ["Thief", "Climber"],
+        abilities: [
+          "Climber: Climbs easily",
+          "From Above: Extra damage when attacking from above"
+        ]
+      },
+      {
+        name: "Jagged Knife Hexer",
+        tier: 1,
+        type: "Support",
+        themes: ["bandits"],
+        difficulty: 13,
+        thresholds: { major: 5, severe: 9 },
+        hp: 4,
+        stress: 4,
+        attack: "+2 (1d6+2 magic, ranged)",
+        defense: 13,
+        traits: ["Spellcaster", "Cursed"],
+        abilities: [
+          "Curse: Make Hope rolls become Fear rolls",
+          "Chaotic Flux: Attack up to three targets with magic"
+        ]
+      },
+      {
+        name: "Jagged Knife Kneebreaker",
+        tier: 1,
+        type: "Bruiser",
+        themes: ["bandits"],
+        difficulty: 12,
+        thresholds: { major: 7, severe: 14 },
+        hp: 7,
+        stress: 4,
+        attack: "-3 (1d4+6 physical)",
+        defense: 12,
+        traits: ["Enforcer", "Intimidating"],
+        abilities: [
+          "Experience: Thief +2, Unveiled Threats +3"
+        ]
+      },
+      {
+        name: "Jagged Knife Lackey",
+        tier: 1,
+        type: "Minion",
+        themes: ["bandits"],
+        difficulty: 10,
+        thresholds: { major: 0, severe: 0 },
+        hp: 1,
+        stress: 1,
+        attack: "+0 (1d4 physical)",
+        defense: 10,
+        traits: ["Minion", "Thief"],
+        abilities: [
+          "Minion (5): Defeated by any damage",
+          "Overwhelm: Attack with advantage when ally nearby"
+        ]
+      },
+      {
+        name: "Jagged Knife Lieutenant",
+        tier: 1,
+        type: "Leader",
+        themes: ["bandits"],
+        difficulty: 13,
+        thresholds: { major: 7, severe: 14 },
+        hp: 6,
+        stress: 3,
+        attack: "+2 (1d8+3 physical)",
+        defense: 13,
+        traits: ["Commander", "Cunning"],
+        abilities: [
+          "Tactician: Spotlight self and two allies",
+          "More Where That Came From: Summon three Lackeys",
+          "Coup de Grace: Devastating attack on Vulnerable targets",
+          "Momentum: Gain Fear on successful attack"
+        ]
+      },
+      {
+        name: "Jagged Knife Shadow",
+        tier: 1,
+        type: "Skulk",
+        themes: ["bandits"],
+        difficulty: 12,
+        thresholds: { major: 4, severe: 8 },
+        hp: 3,
+        stress: 3,
+        attack: "+1 (1d4+4 physical)",
+        defense: 12,
+        traits: ["Assassin", "Shadow Magic"],
+        abilities: [
+          "Shadow Step: Teleport and isolate targets"
+        ]
+      },
+      {
+        name: "Jagged Knife Sniper",
+        tier: 1,
+        type: "Ranged",
+        themes: ["bandits"],
+        difficulty: 11,
+        thresholds: { major: 4, severe: 8 },
+        hp: 3,
+        stress: 2,
+        attack: "+3 (1d10+2 physical, ranged)",
+        defense: 11,
+        traits: ["Sharpshooter", "Hidden"],
+        abilities: [
+          "Headshot: High damage on unaware targets"
+        ]
+      },
+      {
+        name: "Skeleton Warrior",
+        tier: 1,
+        type: "Standard",
+        themes: ["undead"],
+        difficulty: 11,
+        thresholds: { major: 5, severe: 9 },
+        hp: 6,
+        stress: 3,
+        attack: "+2 (2d6+2 physical)",
+        defense: 10,
+        traits: ["Undead", "Fearless"],
+        abilities: [
+          "Bone Strike: Melee attack dealing 2d6+2 physical damage",
+          "Reassemble: Once per encounter, regain 1d6 HP when reduced to 0"
+        ]
+      },
+      {
+        name: "Skeleton Archer",
+        tier: 1,
+        type: "Ranged",
+        themes: ["undead"],
+        difficulty: 10,
+        thresholds: { major: 4, severe: 7 },
+        hp: 4,
+        stress: 2,
+        attack: "+3 (2d6+1 physical, ranged)",
+        defense: 8,
+        traits: ["Undead", "Fearless"],
+        abilities: [
+          "Arrow Volley: Ranged attack dealing 2d6+1 physical damage",
+          "Bone Shield: Reaction - reduce incoming damage by 2"
+        ]
+      },
+      {
+        name: "Skeleton Knight",
+        tier: 1,
+        type: "Bruiser",
+        themes: ["undead"],
+        difficulty: 13,
+        thresholds: { major: 8, severe: 14 },
+        hp: 8,
+        stress: 3,
+        attack: "+2 (1d10+3 physical)",
+        defense: 13,
+        traits: ["Undead", "Armored", "Fearless"],
+        abilities: [
+          "Shield Bash: Knock target back and stun",
+          "Unholy Resilience: Reduce damage from non-magic sources"
+        ]
+      },
+      {
+        name: "Shambling Zombie",
+        tier: 1,
+        type: "Standard",
+        themes: ["undead"],
+        difficulty: 10,
+        thresholds: { major: 6, severe: 11 },
+        hp: 5,
+        stress: 2,
+        attack: "+0 (1d6+3 physical)",
+        defense: 10,
+        traits: ["Undead", "Slow"],
+        abilities: [
+          "Slow: Must charge up before acting",
+          "Grab: Restrain target on hit"
+        ]
+      },
+      {
+        name: "Zombie Pack",
+        tier: 1,
+        type: "Horde",
+        themes: ["undead"],
+        difficulty: 11,
+        thresholds: { major: 6, severe: 11 },
+        hp: 8,
+        stress: 3,
+        attack: "+1 (1d8+2 physical)",
+        defense: 11,
+        traits: ["Undead", "Horde"],
+        abilities: [
+          "Horde: Reduced damage at half HP",
+          "Overwhelm: Swarm and grapple targets"
+        ]
+      },
+      {
+        name: "Rotted Zombie",
+        tier: 1,
+        type: "Minion",
+        themes: ["undead"],
+        difficulty: 9,
+        thresholds: { major: 0, severe: 0 },
+        hp: 1,
+        stress: 1,
+        attack: "-2 (1d4 physical)",
+        defense: 9,
+        traits: ["Undead", "Minion"],
+        abilities: [
+          "Minion (4): Defeated by any damage",
+          "Infectious: Targets hit must save or become diseased"
+        ]
+      },
+      {
+        name: "Minor Fire Elemental",
+        tier: 1,
+        type: "Standard",
+        themes: ["elementals"],
+        difficulty: 12,
+        thresholds: { major: 5, severe: 10 },
+        hp: 5,
+        stress: 3,
+        attack: "+2 (1d8+2 magic)",
+        defense: 12,
+        traits: ["Elemental", "Fiery"],
+        abilities: [
+          "Burn: Targets hit catch fire, taking ongoing damage",
+          "Flare Up: Explode when defeated, damaging nearby"
+        ]
+      },
+      {
+        name: "Minor Chaos Elemental",
+        tier: 1,
+        type: "Standard",
+        themes: ["elementals"],
+        difficulty: 13,
+        thresholds: { major: 5, severe: 10 },
+        hp: 5,
+        stress: 4,
+        attack: "+1 (1d10+1 magic)",
+        defense: 13,
+        traits: ["Elemental", "Chaotic"],
+        abilities: [
+          "Reality Warp: Random effects on attacks",
+          "Unstable: Unpredictable teleportation"
+        ]
+      },
+      {
+        name: "Minor Demon",
+        tier: 1,
+        type: "Skulk",
+        themes: ["demons"],
+        difficulty: 12,
+        thresholds: { major: 5, severe: 9 },
+        hp: 4,
+        stress: 4,
+        attack: "+2 (1d6+3 magic)",
+        defense: 12,
+        traits: ["Demon", "Corrupting"],
+        abilities: [
+          "Temptation: Force Presence save or take action",
+          "Shadow Meld: Become hidden in darkness"
+        ]
+      },
+      {
+        name: "Minor Treant",
+        tier: 1,
+        type: "Bruiser",
+        themes: ["nature"],
+        difficulty: 11,
+        thresholds: { major: 7, severe: 13 },
+        hp: 6,
+        stress: 2,
+        attack: "+1 (1d8+4 physical)",
+        defense: 11,
+        traits: ["Plant", "Ancient"],
+        abilities: [
+          "Root Grasp: Restrain targets in area",
+          "Bark Armor: Reduce physical damage"
+        ]
+      },
+      {
+        name: "Green Ooze",
+        tier: 1,
+        type: "Standard",
+        themes: ["oozes"],
+        difficulty: 10,
+        thresholds: { major: 6, severe: 11 },
+        hp: 6,
+        stress: 2,
+        attack: "+0 (1d8+2 acid)",
+        defense: 10,
+        traits: ["Ooze", "Acidic"],
+        abilities: [
+          "Engulf: Grapple and dissolve targets",
+          "Split: Divide into smaller oozes when damaged"
+        ]
+      },
+      {
+        name: "Red Ooze",
+        tier: 1,
+        type: "Standard",
+        themes: ["oozes"],
+        difficulty: 11,
+        thresholds: { major: 6, severe: 12 },
+        hp: 7,
+        stress: 2,
+        attack: "+1 (1d10+1 acid)",
+        defense: 11,
+        traits: ["Ooze", "Corrosive"],
+        abilities: [
+          "Dissolve Metal: Destroy armor and weapons",
+          "Regenerate: Heal when consuming metal"
+        ]
+      },
+      {
+        name: "Swarm of Rats",
+        tier: 1,
+        type: "Horde",
+        themes: ["beasts"],
+        difficulty: 10,
+        thresholds: { major: 4, severe: 8 },
+        hp: 5,
+        stress: 2,
+        attack: "-1 (1d6+2 physical)",
+        defense: 10,
+        traits: ["Swarm", "Vermin"],
+        abilities: [
+          "Horde: Reduced damage at half HP",
+          "Disease: Infected bites cause ongoing damage"
+        ]
+      },
+      {
+        name: "Pirate Tough",
+        tier: 1,
+        type: "Standard",
+        themes: ["pirates"],
+        difficulty: 12,
+        thresholds: { major: 6, severe: 11 },
+        hp: 5,
+        stress: 3,
+        attack: "+1 (1d8+2 physical)",
+        defense: 12,
+        traits: ["Sailor", "Brawler"],
+        abilities: [
+          "Dirty Fighting: Blind or stagger targets",
+          "Grappling Hook: Pull targets closer"
+        ]
+      },
+      {
+        name: "Pirate Raiders",
+        tier: 1,
+        type: "Horde",
+        themes: ["pirates"],
+        difficulty: 11,
+        thresholds: { major: 5, severe: 10 },
+        hp: 6,
+        stress: 3,
+        attack: "+0 (1d8+1 physical)",
+        defense: 11,
+        traits: ["Sailors", "Horde"],
+        abilities: [
+          "Horde: Reduced damage at half HP",
+          "Boarding Action: Swarm and overwhelm"
+        ]
+      },
+      // TIER 2 ADVERSARIES
+      {
+        name: "Apprentice Assassin",
+        tier: 2,
+        type: "Skulk",
+        themes: ["bandits"],
+        difficulty: 14,
+        thresholds: { major: 8, severe: 16 },
+        hp: 6,
+        stress: 4,
+        attack: "+3 (2d6+3 physical)",
+        defense: 14,
+        traits: ["Assassin", "Stealthy"],
+        abilities: [
+          "Sneak Attack: Massive damage from hiding",
+          "Vanish: Become hidden after attacking"
+        ]
+      },
+      {
+        name: "Master Assassin",
+        tier: 2,
+        type: "Solo",
+        themes: ["bandits"],
+        difficulty: 16,
+        thresholds: { major: 12, severe: 22 },
+        hp: 10,
+        stress: 5,
+        attack: "+4 (2d8+4 physical)",
+        defense: 16,
+        traits: ["Assassin", "Deadly", "Stealthy"],
+        abilities: [
+          "Relentless (2): Can be spotlighted twice per GM turn",
+          "Death Strike: Devastating attack from stealth",
+          "Shadow Step: Teleport between shadows",
+          "Evasion: Avoid damage on successful saves"
+        ]
+      },
+      {
+        name: "Knight of the Realm",
+        tier: 2,
+        type: "Bruiser",
+        themes: ["guards"],
+        difficulty: 15,
+        thresholds: { major: 12, severe: 22 },
+        hp: 9,
+        stress: 4,
+        attack: "+3 (2d8+3 physical)",
+        defense: 15,
+        traits: ["Knight", "Armored", "Noble"],
+        abilities: [
+          "Challenge: Force target to attack them",
+          "Shield Wall: Protect nearby allies",
+          "Momentum: Gain Fear on successful attack"
+        ]
+      },
+      {
+        name: "War Wizard",
+        tier: 2,
+        type: "Support",
+        themes: ["guards"],
+        difficulty: 14,
+        thresholds: { major: 8, severe: 16 },
+        hp: 6,
+        stress: 5,
+        attack: "+3 (2d6+2 magic, ranged)",
+        defense: 14,
+        traits: ["Spellcaster", "Military"],
+        abilities: [
+          "Fireball: Area attack dealing magic damage",
+          "Shield: Grant allies damage resistance",
+          "Counterspell: Negate enemy magic"
+        ]
+      },
+      {
+        name: "Gorgon",
+        tier: 2,
+        type: "Solo",
+        themes: ["beasts"],
+        difficulty: 15,
+        thresholds: { major: 12, severe: 22 },
+        hp: 10,
+        stress: 4,
+        attack: "+3 (2d8+3 physical)",
+        defense: 15,
+        traits: ["Mythical", "Petrifying"],
+        abilities: [
+          "Relentless (2): Can be spotlighted twice per GM turn",
+          "Petrifying Gaze: Turn targets to stone",
+          "Snake Hair: Attack all adjacent targets",
+          "Stone Form: Become resistant to damage"
+        ]
+      },
+      {
+        name: "Minotaur Wrecker",
+        tier: 2,
+        type: "Bruiser",
+        themes: ["beasts", "giants"],
+        difficulty: 14,
+        thresholds: { major: 11, severe: 20 },
+        hp: 9,
+        stress: 3,
+        attack: "+3 (2d10+3 physical)",
+        defense: 14,
+        traits: ["Minotaur", "Raging"],
+        abilities: [
+          "Gore: Charge and impale targets",
+          "Rampage: Attack all in path when moving",
+          "Maze Runner: Never lost, always finds targets"
+        ]
+      },
+      {
+        name: "Giant Brawler",
+        tier: 2,
+        type: "Bruiser",
+        themes: ["giants"],
+        difficulty: 14,
+        thresholds: { major: 10, severe: 20 },
+        hp: 10,
+        stress: 3,
+        attack: "+2 (2d8+4 physical)",
+        defense: 14,
+        traits: ["Giant", "Strong"],
+        abilities: [
+          "Sweeping Strike: Hit all targets in front",
+          "Throw: Hurl targets or objects",
+          "Stomp: Knock prone all nearby"
+        ]
+      },
+      {
+        name: "Spectral Guardian",
+        tier: 2,
+        type: "Standard",
+        themes: ["undead"],
+        difficulty: 14,
+        thresholds: { major: 8, severe: 16 },
+        hp: 7,
+        stress: 4,
+        attack: "+2 (2d6+2 magic)",
+        defense: 14,
+        traits: ["Undead", "Incorporeal"],
+        abilities: [
+          "Phasing: Pass through solid objects",
+          "Life Drain: Heal when dealing damage",
+          "Terrifying Presence: Force fear saves"
+        ]
+      },
+      {
+        name: "Spectral Captain",
+        tier: 2,
+        type: "Leader",
+        themes: ["undead", "pirates"],
+        difficulty: 15,
+        thresholds: { major: 10, severe: 18 },
+        hp: 8,
+        stress: 4,
+        attack: "+3 (2d8+2 magic)",
+        defense: 15,
+        traits: ["Undead", "Commander", "Incorporeal"],
+        abilities: [
+          "Rally the Dead: Summon spectral crew",
+          "Ghostly Orders: Coordinate spectral allies",
+          "Momentum: Gain Fear on successful attack"
+        ]
+      },
+      {
+        name: "Greater Earth Elemental",
+        tier: 2,
+        type: "Bruiser",
+        themes: ["elementals"],
+        difficulty: 14,
+        thresholds: { major: 12, severe: 22 },
+        hp: 10,
+        stress: 3,
+        attack: "+2 (2d10+3 physical)",
+        defense: 14,
+        traits: ["Elemental", "Earthen"],
+        abilities: [
+          "Earthquake: Knock all nearby prone",
+          "Stone Form: High damage resistance",
+          "Engulf: Trap targets in stone"
+        ]
+      },
+      {
+        name: "Greater Water Elemental",
+        tier: 2,
+        type: "Standard",
+        themes: ["elementals"],
+        difficulty: 14,
+        thresholds: { major: 10, severe: 18 },
+        hp: 8,
+        stress: 4,
+        attack: "+3 (2d8+2 physical)",
+        defense: 14,
+        traits: ["Elemental", "Aquatic"],
+        abilities: [
+          "Tidal Wave: Push and damage all in area",
+          "Whirlpool: Pull targets toward center",
+          "Fluid Form: Immune to physical conditions"
+        ]
+      },
+      {
+        name: "Demon of Wrath",
+        tier: 2,
+        type: "Bruiser",
+        themes: ["demons"],
+        difficulty: 15,
+        thresholds: { major: 11, severe: 20 },
+        hp: 9,
+        stress: 5,
+        attack: "+3 (2d10+3 physical)",
+        defense: 15,
+        traits: ["Demon", "Wrathful"],
+        abilities: [
+          "Rage: Increased damage when hurt",
+          "Cleave: Attack all adjacent targets",
+          "Momentum: Gain Fear on successful attack"
+        ]
+      },
+      {
+        name: "Huge Green Ooze",
+        tier: 2,
+        type: "Solo",
+        themes: ["oozes"],
+        difficulty: 14,
+        thresholds: { major: 12, severe: 24 },
+        hp: 12,
+        stress: 4,
+        attack: "+2 (2d8+4 acid)",
+        defense: 14,
+        traits: ["Ooze", "Massive", "Acidic"],
+        abilities: [
+          "Relentless (2): Can be spotlighted twice per GM turn",
+          "Massive Engulf: Swallow multiple targets",
+          "Acid Rain: Spray acid in area",
+          "Divide: Split into smaller oozes on severe damage"
+        ]
+      },
+      {
+        name: "Pirate Captain",
+        tier: 2,
+        type: "Leader",
+        themes: ["pirates"],
+        difficulty: 15,
+        thresholds: { major: 10, severe: 18 },
+        hp: 8,
+        stress: 4,
+        attack: "+3 (2d8+3 physical)",
+        defense: 15,
+        traits: ["Captain", "Cunning", "Charismatic"],
+        abilities: [
+          "Rally the Crew: Spotlight self and allies",
+          "Dirty Trick: Impose disadvantage on target",
+          "Parry and Riposte: Counter attacks",
+          "Momentum: Gain Fear on successful attack"
+        ]
+      },
+      {
+        name: "Dryad",
+        tier: 2,
+        type: "Support",
+        themes: ["nature"],
+        difficulty: 14,
+        thresholds: { major: 8, severe: 16 },
+        hp: 6,
+        stress: 5,
+        attack: "+2 (2d6+2 magic)",
+        defense: 14,
+        traits: ["Fey", "Nature Spirit"],
+        abilities: [
+          "Entangle: Root targets in place",
+          "Charm: Befriend or confuse targets",
+          "Tree Stride: Teleport between trees"
+        ]
+      },
+      {
+        name: "Oak Treant",
+        tier: 2,
+        type: "Bruiser",
+        themes: ["nature"],
+        difficulty: 14,
+        thresholds: { major: 12, severe: 22 },
+        hp: 10,
+        stress: 3,
+        attack: "+2 (2d10+4 physical)",
+        defense: 14,
+        traits: ["Plant", "Ancient", "Massive"],
+        abilities: [
+          "Sweep: Attack all in front",
+          "Root Network: Communicate and sense through ground",
+          "Bark Armor: High damage resistance to physical"
+        ]
+      },
+      // TIER 3 ADVERSARIES
+      {
+        name: "Hydra",
+        tier: 3,
+        type: "Solo",
+        themes: ["beasts"],
+        difficulty: 18,
+        thresholds: { major: 22, severe: 36 },
+        hp: 14,
+        stress: 5,
+        attack: "+4 (3d8+5 physical)",
+        defense: 18,
+        traits: ["Multi-Headed", "Regenerating"],
+        abilities: [
+          "Relentless (3): Can be spotlighted three times per GM turn",
+          "Multiple Heads: Attack multiple targets",
+          "Regeneration: Regrow heads unless burned",
+          "Tail Sweep: Knock back all nearby"
+        ]
+      },
+      {
+        name: "Head Vampire",
+        tier: 3,
+        type: "Solo",
+        themes: ["undead"],
+        difficulty: 18,
+        thresholds: { major: 22, severe: 36 },
+        hp: 12,
+        stress: 6,
+        attack: "+4 (3d8+4 magic)",
+        defense: 18,
+        traits: ["Undead", "Vampire", "Noble"],
+        abilities: [
+          "Relentless (2): Can be spotlighted twice per GM turn",
+          "Dominate: Control target's actions",
+          "Life Drain: Heal when dealing damage",
+          "Mist Form: Become incorporeal",
+          "Summon Spawn: Call vampire minions"
+        ]
+      },
+      {
+        name: "Young Ice Dragon",
+        tier: 3,
+        type: "Solo",
+        themes: ["beasts"],
+        difficulty: 18,
+        thresholds: { major: 24, severe: 38 },
+        hp: 14,
+        stress: 5,
+        attack: "+4 (3d10+5 physical)",
+        defense: 18,
+        traits: ["Dragon", "Ice"],
+        abilities: [
+          "Relentless (3): Can be spotlighted three times per GM turn",
+          "Frost Breath: Cone of freezing damage",
+          "Wing Buffet: Knock back all nearby",
+          "Tail Sweep: Attack targets behind",
+          "Frightful Presence: Force fear saves"
+        ]
+      },
+      {
+        name: "Demon of Despair",
+        tier: 3,
+        type: "Support",
+        themes: ["demons"],
+        difficulty: 17,
+        thresholds: { major: 18, severe: 30 },
+        hp: 10,
+        stress: 6,
+        attack: "+3 (3d6+3 magic)",
+        defense: 17,
+        traits: ["Demon", "Psychic"],
+        abilities: [
+          "Aura of Despair: Enemies have disadvantage",
+          "Mind Crush: Psychic damage and stun",
+          "Hopeless: Prevent Hope generation"
+        ]
+      },
+      {
+        name: "Elemental Spark",
+        tier: 3,
+        type: "Standard",
+        themes: ["elementals"],
+        difficulty: 17,
+        thresholds: { major: 16, severe: 28 },
+        hp: 9,
+        stress: 5,
+        attack: "+4 (3d8+4 magic)",
+        defense: 17,
+        traits: ["Elemental", "Lightning"],
+        abilities: [
+          "Chain Lightning: Jump between targets",
+          "Static Field: Damage nearby creatures",
+          "Thunder Step: Teleport with damaging effect"
+        ]
+      },
+      // TIER 4 ADVERSARIES
+      {
+        name: "Arch-Necromancer",
+        tier: 4,
+        type: "Leader",
+        themes: ["undead"],
+        difficulty: 21,
+        thresholds: { major: 28, severe: 48 },
+        hp: 14,
+        stress: 8,
+        attack: "+5 (4d8+12 magic)",
+        defense: 21,
+        traits: ["Undead", "Spellcaster", "Commander"],
+        abilities: [
+          "Raise Dead: Summon undead minions",
+          "Death Bolt: High damage magic attack",
+          "Soul Harvest: Heal from defeated creatures",
+          "Undying Will: Return from death once"
+        ]
+      },
+      {
+        name: "Volcanic Dragon: Ashen Tyrant",
+        tier: 4,
+        type: "Solo",
+        themes: ["beasts"],
+        difficulty: 22,
+        thresholds: { major: 30, severe: 50 },
+        hp: 18,
+        stress: 7,
+        attack: "+5 (4d12+15 physical)",
+        defense: 22,
+        traits: ["Dragon", "Fire", "Ancient"],
+        abilities: [
+          "Relentless (4): Can be spotlighted four times per GM turn",
+          "Volcanic Breath: Massive fire cone",
+          "Magma Body: Damage attackers",
+          "Wing Hurricane: Massive knockback",
+          "Tail Crusher: Devastating physical attack",
+          "Legendary Resistance: Negate failed saves"
+        ]
+      },
+      {
+        name: "Kraken",
+        tier: 4,
+        type: "Solo",
+        themes: ["beasts"],
+        difficulty: 21,
+        thresholds: { major: 28, severe: 48 },
+        hp: 16,
+        stress: 6,
+        attack: "+5 (4d10+12 physical)",
+        defense: 21,
+        traits: ["Massive", "Aquatic", "Legendary"],
+        abilities: [
+          "Relentless (4): Can be spotlighted four times per GM turn",
+          "Tentacle Swarm: Attack up to 8 targets",
+          "Ink Cloud: Obscure and escape",
+          "Crush: Devastating grapple damage",
+          "Whirlpool: Pull in all nearby"
+        ]
+      },
+      {
+        name: "High Seraph",
+        tier: 4,
+        type: "Solo",
+        themes: ["elementals"],
+        difficulty: 22,
+        thresholds: { major: 30, severe: 50 },
+        hp: 16,
+        stress: 8,
+        attack: "+5 (4d10+14 magic)",
+        defense: 22,
+        traits: ["Celestial", "Radiant", "Flying"],
+        abilities: [
+          "Relentless (3): Can be spotlighted three times per GM turn",
+          "Divine Smite: Devastating radiant damage",
+          "Healing Light: Restore ally HP",
+          "Wings of Light: High mobility",
+          "Judgment: Mark target for increased damage"
+        ]
+      }
+    ];
+
+    // Battle point costs by type
+    const battlePointCosts = {
+      "Minion": 1, // per group equal to party size
+      "Social": 1,
+      "Support": 1,
+      "Horde": 2,
+      "Ranged": 2,
+      "Skulk": 2,
+      "Standard": 2,
+      "Leader": 3,
+      "Bruiser": 4,
+      "Solo": 5
+    };
+
+    // Encounter name generators
+    const encounterNamePrefixes = [
+      "The", "A", "An Unexpected", "The Dreaded", "The Final", "A Desperate",
+      "The Hidden", "A Sudden", "The Ancient", "The Cursed"
+    ];
+
+    const encounterNameThemes = {
+      undead: ["Graveyard", "Crypt", "Tomb", "Necropolis", "Mausoleum", "Catacomb"],
+      beasts: ["Forest", "Wilderness", "Cave", "Hunting Ground", "Den", "Lair"],
+      bandits: ["Roadside", "Hideout", "Ambush Point", "Camp", "Stronghold"],
+      guards: ["Checkpoint", "Tower", "Gate", "Patrol Route", "Garrison"],
+      demons: ["Rift", "Portal", "Summoning Circle", "Corrupted Ground", "Abyss"],
+      elementals: ["Elemental Nexus", "Storm Front", "Volcanic Vent", "Tidal Pool"],
+      nature: ["Grove", "Thicket", "Ancient Tree", "Sacred Glade", "Wild Garden"],
+      giants: ["Mountain Pass", "Boulder Field", "Giant's Territory", "Highlands"],
+      oozes: ["Sewer", "Swamp", "Alchemist's Ruin", "Toxic Waste", "Slime Pit"],
+      constructs: ["Workshop", "Forge", "Ancient Ruins", "Clockwork Tower"],
+      pirates: ["Ship Deck", "Harbor", "Coastal Cave", "Smuggler's Cove"],
+      social: ["Court", "Tavern", "Market Square", "Noble Estate", "Council Chamber"]
+    };
+
+    const encounterNameSuffixes = [
+      "Ambush", "Battle", "Confrontation", "Encounter", "Skirmish",
+      "Assault", "Defense", "Showdown", "Stand", "Challenge"
+    ];
+
+    // State
+    let selectedThemes = [];
+    let currentEncounter = null;
+
+    // Theme pill handling
+    document.querySelectorAll('.theme-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const theme = pill.dataset.theme;
+        if (selectedThemes.includes(theme)) {
+          selectedThemes = selectedThemes.filter(t => t !== theme);
+          pill.classList.remove('selected');
+        } else {
+          selectedThemes.push(theme);
+          pill.classList.add('selected');
+        }
+      });
+    });
+
+    function getSelectedTypes() {
+      const types = [];
+      if (document.getElementById('typeBruiser').checked) types.push('Bruiser');
+      if (document.getElementById('typeHorde').checked) types.push('Horde');
+      if (document.getElementById('typeLeader').checked) types.push('Leader');
+      if (document.getElementById('typeMinion').checked) types.push('Minion');
+      if (document.getElementById('typeRanged').checked) types.push('Ranged');
+      if (document.getElementById('typeSkulk').checked) types.push('Skulk');
+      if (document.getElementById('typeSocial').checked) types.push('Social');
+      if (document.getElementById('typeSolo').checked) types.push('Solo');
+      if (document.getElementById('typeStandard').checked) types.push('Standard');
+      if (document.getElementById('typeSupport').checked) types.push('Support');
+      return types;
+    }
+
+    function calculateBattlePoints() {
+      const partySize = parseInt(document.getElementById('partySize').value) || 4;
+      const difficulty = document.getElementById('difficulty').value;
+
+      let points = (3 * partySize) + 2;
+
+      if (difficulty === 'easier') points -= 1;
+      if (difficulty === 'harder') points += 2;
+
+      return points;
+    }
+
+    function getFilteredAdversaries() {
+      const tier = parseInt(document.getElementById('partyTier').value);
+      const types = getSelectedTypes();
+
+      return adversaryDatabase.filter(adv => {
+        // Match tier (allow tier-1 for variety)
+        if (adv.tier > tier || adv.tier < tier - 1) return false;
+
+        // Match types
+        if (!types.includes(adv.type)) return false;
+
+        // Match themes (if any selected)
+        if (selectedThemes.length > 0) {
+          if (!adv.themes.some(t => selectedThemes.includes(t))) return false;
+        }
+
+        return true;
+      });
+    }
+
+    function generateEncounterName() {
+      const customName = document.getElementById('encounterName').value.trim();
+      if (customName) return customName;
+
+      const prefix = encounterNamePrefixes[Math.floor(Math.random() * encounterNamePrefixes.length)];
+      const suffix = encounterNameSuffixes[Math.floor(Math.random() * encounterNameSuffixes.length)];
+
+      let location = "Dangerous";
+      if (selectedThemes.length > 0) {
+        const theme = selectedThemes[Math.floor(Math.random() * selectedThemes.length)];
+        const locations = encounterNameThemes[theme] || ["Dangerous"];
+        location = locations[Math.floor(Math.random() * locations.length)];
+      } else {
+        const allLocations = Object.values(encounterNameThemes).flat();
+        location = allLocations[Math.floor(Math.random() * allLocations.length)];
+      }
+
+      return `${prefix} ${location} ${suffix}`;
+    }
+
+    function generateEncounter() {
+      const partySize = parseInt(document.getElementById('partySize').value) || 4;
+      const tier = parseInt(document.getElementById('partyTier').value);
+      let battlePoints = calculateBattlePoints();
+      const maxPoints = battlePoints;
+
+      const available = getFilteredAdversaries();
+      if (available.length === 0) {
+        alert('No adversaries match your criteria. Try adjusting your filters.');
+        return;
+      }
+
+      const encounter = {
+        name: generateEncounterName(),
+        adversaries: []
+      };
+
+      let pointsSpent = 0;
+      let attempts = 0;
+      const maxAttempts = 100;
+      let soloCount = 0;
+
+      // Try to build a balanced encounter
+      while (battlePoints > 0 && attempts < maxAttempts) {
+        attempts++;
+
+        // Filter to affordable adversaries
+        const affordable = available.filter(adv => {
+          const cost = battlePointCosts[adv.type];
+          if (cost > battlePoints) return false;
+
+          // Limit solos
+          if (adv.type === 'Solo' && soloCount >= 1) return false;
+
+          return true;
+        });
+
+        if (affordable.length === 0) break;
+
+        // Pick random adversary
+        const chosen = affordable[Math.floor(Math.random() * affordable.length)];
+        const cost = battlePointCosts[chosen.type];
+
+        // For minions, add group equal to party size
+        if (chosen.type === 'Minion') {
+          for (let i = 0; i < partySize; i++) {
+            encounter.adversaries.push(createAdversaryInstance(chosen));
+          }
+        } else {
+          encounter.adversaries.push(createAdversaryInstance(chosen));
+        }
+
+        if (chosen.type === 'Solo') soloCount++;
+
+        battlePoints -= cost;
+        pointsSpent += cost;
+      }
+
+      // Shuffle adversaries
+      encounter.adversaries.sort(() => Math.random() - 0.5);
+
+      currentEncounter = encounter;
+
+      // Display results
+      displayEncounter(encounter, pointsSpent, maxPoints);
+    }
+
+    function createAdversaryInstance(template) {
+      return {
+        id: generateId(),
+        name: template.name,
+        tier: template.tier,
+        hp: template.hp,
+        stress: template.stress,
+        attack: template.attack,
+        defense: template.difficulty,
+        portrait: "",
+        traits: [...template.traits],
+        abilities: [...template.abilities],
+        conditions: {
+          hidden: false,
+          restrained: false,
+          vulnerable: false
+        },
+        // Extra data for display
+        _type: template.type,
+        _thresholds: template.thresholds
+      };
+    }
+
+    function generateId() {
+      return 'adv-' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function displayEncounter(encounter, pointsSpent, maxPoints) {
+      document.getElementById('encounterResult').style.display = 'block';
+      document.getElementById('resultName').textContent = encounter.name;
+      document.getElementById('resultBattlePoints').textContent = `Battle Points: ${pointsSpent}/${maxPoints}`;
+
+      const list = document.getElementById('adversaryList');
+      list.innerHTML = '';
+
+      // Group minions
+      const grouped = {};
+      const nonMinions = [];
+
+      encounter.adversaries.forEach(adv => {
+        if (adv._type === 'Minion') {
+          if (!grouped[adv.name]) {
+            grouped[adv.name] = { template: adv, count: 0 };
+          }
+          grouped[adv.name].count++;
+        } else {
+          nonMinions.push(adv);
+        }
+      });
+
+      // Display minion groups
+      Object.entries(grouped).forEach(([name, data]) => {
+        const card = document.createElement('div');
+        card.className = 'adversary-card';
+        card.innerHTML = `
+          <div class="minion-note">Minion Group: ${data.count}x ${name}</div>
+          ${renderAdversaryCard(data.template, true)}
+        `;
+        list.appendChild(card);
+      });
+
+      // Display other adversaries
+      nonMinions.forEach(adv => {
+        const card = document.createElement('div');
+        card.className = 'adversary-card';
+        card.innerHTML = renderAdversaryCard(adv, false);
+        list.appendChild(card);
+      });
+
+      // Update JSON output
+      updateJsonOutput();
+    }
+
+    function renderAdversaryCard(adv, isMinion) {
+      const traitsHtml = adv.traits.map(t => `<span class="trait-tag">${t}</span>`).join('');
+      const abilitiesHtml = adv.abilities.map(a => `<div class="ability-item">${a}</div>`).join('');
+
+      return `
+        <div class="adversary-header">
+          <span class="adversary-name">${adv.name}</span>
+          <span class="adversary-type-tier">Tier ${adv.tier} ${adv._type}</span>
+        </div>
+        <div class="adversary-stats">
+          <div class="stat-item">
+            <div class="stat-label">HP</div>
+            <div class="stat-value">${adv.hp}</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Stress</div>
+            <div class="stat-value">${adv.stress}</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Defense</div>
+            <div class="stat-value">${adv.defense}</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Attack</div>
+            <div class="stat-value">${adv.attack}</div>
+          </div>
+          ${adv._thresholds ? `
+          <div class="stat-item">
+            <div class="stat-label">Thresholds</div>
+            <div class="stat-value">${adv._thresholds.major}/${adv._thresholds.severe}</div>
+          </div>
+          ` : ''}
+        </div>
+        <div class="adversary-traits">${traitsHtml}</div>
+        <div class="adversary-abilities">${abilitiesHtml}</div>
+      `;
+    }
+
+    function regenerateEncounter() {
+      generateEncounter();
+    }
+
+    function getExportEncounter() {
+      if (!currentEncounter) return null;
+
+      // Create clean export format
+      return {
+        name: currentEncounter.name,
+        adversaries: currentEncounter.adversaries.map(adv => ({
+          id: adv.id,
+          name: adv.name,
+          tier: adv.tier,
+          hp: adv.hp,
+          stress: adv.stress,
+          attack: adv.attack,
+          defense: adv.defense,
+          portrait: adv.portrait,
+          traits: adv.traits,
+          abilities: adv.abilities,
+          conditions: adv.conditions
+        }))
+      };
+    }
+
+    function updateJsonOutput() {
+      const output = document.getElementById('jsonOutput');
+      const exportData = getExportEncounter();
+      output.textContent = JSON.stringify(exportData, null, 2);
+    }
+
+    function toggleJson() {
+      const output = document.getElementById('jsonOutput');
+      output.style.display = output.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function downloadJson() {
+      const exportData = getExportEncounter();
+      if (!exportData) return;
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${exportData.name.toLowerCase().replace(/\s+/g, '-')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function copyJson() {
+      const exportData = getExportEncounter();
+      if (!exportData) return;
+
+      navigator.clipboard.writeText(JSON.stringify(exportData, null, 2)).then(() => {
+        alert('JSON copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+      });
+    }
+  </script>
+</body>
+</html>
