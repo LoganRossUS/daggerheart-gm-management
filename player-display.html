@@ -144,25 +144,212 @@
       inset: 0;
       pointer-events: none;
       overflow: hidden;
+      perspective: 1200px;
     }
-    
-    .die {
+
+    /* 3D Dice Container */
+    .die-container {
       position: absolute;
-      font-family: 'Cinzel Decorative', serif;
-      font-weight: 900;
+      transform-style: preserve-3d;
+      filter: drop-shadow(0 20px 30px rgba(0,0,0,0.6));
+    }
+
+    .die {
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.1s linear;
+    }
+
+    .die-face {
+      position: absolute;
       display: flex;
       align-items: center;
       justify-content: center;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+      font-family: 'Cinzel Decorative', serif;
+      font-weight: 900;
+      backface-visibility: visible;
+      border: 2px solid rgba(0,0,0,0.3);
     }
-    
-    .die.d4 { font-size: 3rem; }
-    .die.d6 { font-size: 3.5rem; }
-    .die.d8 { font-size: 3.5rem; }
-    .die.d10 { font-size: 3.5rem; }
-    .die.d12 { font-size: 4rem; }
-    .die.d20 { font-size: 5rem; color: #ffd700; }
+
+    /* D6 Cube Dice */
+    .die.d6 {
+      width: 80px;
+      height: 80px;
+    }
+
+    .die.d6 .die-face {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(145deg, #f0f0f0, #d0d0d0);
+      border-radius: 12px;
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    .die.d6 .die-face.front  { transform: translateZ(40px); }
+    .die.d6 .die-face.back   { transform: rotateY(180deg) translateZ(40px); }
+    .die.d6 .die-face.right  { transform: rotateY(90deg) translateZ(40px); }
+    .die.d6 .die-face.left   { transform: rotateY(-90deg) translateZ(40px); }
+    .die.d6 .die-face.top    { transform: rotateX(90deg) translateZ(40px); }
+    .die.d6 .die-face.bottom { transform: rotateX(-90deg) translateZ(40px); }
+
+    /* D6 Pips */
+    .pip-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      width: 60px;
+      height: 60px;
+      gap: 2px;
+    }
+
+    .pip {
+      width: 14px;
+      height: 14px;
+      background: radial-gradient(circle at 30% 30%, #333, #111);
+      border-radius: 50%;
+      margin: auto;
+      box-shadow: inset 0 2px 3px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .pip.hidden { visibility: hidden; }
+
+    /* D20 Icosahedron (simplified as larger die with number) */
+    .die.d20 {
+      width: 100px;
+      height: 100px;
+    }
+
+    .die.d20 .die-face {
+      width: 100px;
+      height: 100px;
+      font-size: 2.5rem;
+      color: #1a1a1a;
+      background: linear-gradient(145deg, #ffd700, #b8860b);
+      clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+      border: none;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .die.d20 .die-face.front  { transform: translateZ(50px); }
+    .die.d20 .die-face.back   { transform: rotateY(180deg) translateZ(50px); }
+    .die.d20 .die-face.right  { transform: rotateY(72deg) translateZ(50px); }
+    .die.d20 .die-face.left   { transform: rotateY(-72deg) translateZ(50px); }
+    .die.d20 .die-face.top    { transform: rotateX(72deg) translateZ(50px); }
+    .die.d20 .die-face.bottom { transform: rotateX(-72deg) translateZ(50px); }
+
+    /* D12 Dodecahedron */
+    .die.d12 {
+      width: 90px;
+      height: 90px;
+    }
+
+    .die.d12 .die-face {
+      width: 90px;
+      height: 90px;
+      font-size: 2rem;
+      color: #1a1a1a;
+      background: linear-gradient(145deg, #e8d5ff, #9c7cc4);
+      clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+      border: none;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .die.d12 .die-face.front  { transform: translateZ(45px); }
+    .die.d12 .die-face.back   { transform: rotateY(180deg) translateZ(45px); }
+    .die.d12 .die-face.right  { transform: rotateY(72deg) translateZ(45px); }
+    .die.d12 .die-face.left   { transform: rotateY(-72deg) translateZ(45px); }
+    .die.d12 .die-face.top    { transform: rotateX(72deg) translateZ(45px); }
+    .die.d12 .die-face.bottom { transform: rotateX(-72deg) translateZ(45px); }
+
+    /* D12 Hope (Gold) */
+    .die.d12.hope .die-face {
+      background: linear-gradient(145deg, #ffd700, #b8860b);
+    }
+
+    /* D12 Fear (Purple) */
+    .die.d12.fear .die-face {
+      background: linear-gradient(145deg, #b388ff, #7c4dff);
+    }
+
+    /* D10 */
+    .die.d10 {
+      width: 75px;
+      height: 75px;
+    }
+
+    .die.d10 .die-face {
+      width: 75px;
+      height: 75px;
+      font-size: 1.8rem;
+      color: #1a1a1a;
+      background: linear-gradient(145deg, #90caf9, #42a5f5);
+      clip-path: polygon(50% 0%, 95% 35%, 80% 100%, 20% 100%, 5% 35%);
+      border: none;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .die.d10 .die-face.front  { transform: translateZ(38px); }
+    .die.d10 .die-face.back   { transform: rotateY(180deg) translateZ(38px); }
+    .die.d10 .die-face.right  { transform: rotateY(72deg) translateZ(38px); }
+    .die.d10 .die-face.left   { transform: rotateY(-72deg) translateZ(38px); }
+    .die.d10 .die-face.top    { transform: rotateX(72deg) translateZ(38px); }
+    .die.d10 .die-face.bottom { transform: rotateX(-72deg) translateZ(38px); }
+
+    /* D8 Octahedron */
+    .die.d8 {
+      width: 70px;
+      height: 70px;
+    }
+
+    .die.d8 .die-face {
+      width: 70px;
+      height: 70px;
+      font-size: 1.6rem;
+      color: #1a1a1a;
+      background: linear-gradient(145deg, #a5d6a7, #66bb6a);
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+      border: none;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .die.d8 .die-face.front  { transform: translateZ(35px); }
+    .die.d8 .die-face.back   { transform: rotateY(180deg) translateZ(35px); }
+    .die.d8 .die-face.right  { transform: rotateY(90deg) translateZ(35px); }
+    .die.d8 .die-face.left   { transform: rotateY(-90deg) translateZ(35px); }
+    .die.d8 .die-face.top    { transform: rotateX(90deg) translateZ(35px); }
+    .die.d8 .die-face.bottom { transform: rotateX(-90deg) translateZ(35px); }
+
+    /* D4 Tetrahedron */
+    .die.d4 {
+      width: 70px;
+      height: 70px;
+    }
+
+    .die.d4 .die-face {
+      width: 70px;
+      height: 70px;
+      font-size: 1.5rem;
+      color: #1a1a1a;
+      background: linear-gradient(145deg, #ffcc80, #ff9800);
+      clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+      border: none;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .die.d4 .die-face.front  { transform: translateZ(35px) rotateX(19.5deg); }
+    .die.d4 .die-face.back   { transform: rotateY(180deg) translateZ(35px) rotateX(19.5deg); }
+    .die.d4 .die-face.right  { transform: rotateY(120deg) translateZ(35px) rotateX(19.5deg); }
+    .die.d4 .die-face.left   { transform: rotateY(-120deg) translateZ(35px) rotateX(19.5deg); }
+
+    /* Rolling glow effect */
+    .die-container.rolling {
+      filter: drop-shadow(0 20px 30px rgba(0,0,0,0.6)) drop-shadow(0 0 20px rgba(255,215,0,0.3));
+    }
+
+    /* Settled state */
+    .die-container.settled .die {
+      transition: transform 0.3s ease-out;
+    }
     
     /* Result Display */
     #resultDisplay {
@@ -408,19 +595,113 @@
       }
     }
     
-    // Dice shapes for visual
-    function getDieShape(sides) {
-      const shapes = {
-        4: '▲',
-        6: '⬢',
-        8: '◆',
-        10: '⬡',
-        12: '⬟',
-        20: '⬣'
-      };
-      return shapes[sides] || '●';
+    // Create 3D die HTML with all faces
+    function create3DDie(sides, extraClass = '') {
+      const container = document.createElement('div');
+      container.className = 'die-container rolling';
+
+      const die = document.createElement('div');
+      die.className = `die d${sides} ${extraClass}`;
+
+      if (sides === 6) {
+        // D6 with pips
+        const faces = ['front', 'back', 'right', 'left', 'top', 'bottom'];
+        const faceValues = [1, 6, 3, 4, 2, 5]; // Opposite faces sum to 7
+
+        faces.forEach((faceName, idx) => {
+          const face = document.createElement('div');
+          face.className = `die-face ${faceName}`;
+          face.appendChild(createPips(faceValues[idx]));
+          face.dataset.value = faceValues[idx];
+          die.appendChild(face);
+        });
+      } else {
+        // Other dice with numbers on faces
+        const faces = ['front', 'back', 'right', 'left', 'top', 'bottom'];
+        const faceCount = sides === 4 ? 4 : 6;
+
+        for (let i = 0; i < faceCount; i++) {
+          const face = document.createElement('div');
+          face.className = `die-face ${faces[i] || 'extra'}`;
+          face.textContent = '?';
+          face.dataset.value = (i % sides) + 1;
+          die.appendChild(face);
+        }
+      }
+
+      container.appendChild(die);
+      return container;
     }
-    
+
+    // Create pip pattern for d6 faces
+    function createPips(value) {
+      const container = document.createElement('div');
+      container.className = 'pip-container';
+
+      // Grid positions: 0-8 for 3x3 grid
+      const patterns = {
+        1: [4],
+        2: [0, 8],
+        3: [0, 4, 8],
+        4: [0, 2, 6, 8],
+        5: [0, 2, 4, 6, 8],
+        6: [0, 2, 3, 5, 6, 8]
+      };
+
+      const positions = patterns[value] || [];
+
+      for (let i = 0; i < 9; i++) {
+        const pip = document.createElement('div');
+        pip.className = positions.includes(i) ? 'pip' : 'pip hidden';
+        container.appendChild(pip);
+      }
+
+      return container;
+    }
+
+    // Update die faces with random or final values
+    function updateDieFaces(die, value, sides, isRolling = false) {
+      const faces = die.querySelectorAll('.die-face');
+
+      if (sides === 6) {
+        // D6 uses pips, no text update needed during rolling
+        return;
+      }
+
+      faces.forEach((face, idx) => {
+        if (isRolling) {
+          face.textContent = Math.floor(Math.random() * sides) + 1;
+        } else {
+          // Show value on front face, complementary values on others
+          if (idx === 0) {
+            face.textContent = value;
+          } else {
+            face.textContent = ((value + idx - 1) % sides) + 1;
+          }
+        }
+      });
+    }
+
+    // Get final rotation to show result
+    function getFinalRotation(result, sides) {
+      // Calculate rotation to show the result on top
+      if (sides === 6) {
+        // For d6 with pips, map result to correct face orientation
+        const rotations = {
+          1: { x: 0, y: 0 },
+          2: { x: -90, y: 0 },
+          3: { x: 0, y: -90 },
+          4: { x: 0, y: 90 },
+          5: { x: 90, y: 0 },
+          6: { x: 180, y: 0 }
+        };
+        return rotations[result] || { x: 0, y: 0 };
+      }
+
+      // For other dice, use front face (rotateX and Y to 0)
+      return { x: 0, y: 0 };
+    }
+
     // Animate dice roll
     function animateDiceRoll(diceData) {
       const area = document.getElementById('diceArea');
@@ -459,114 +740,158 @@
       if (allResults.length === 0) return;
 
       const dice = [];
-      const colors = ['#e0e0e0', '#ffd700', '#b388ff', '#ff6b6b', '#4CAF50', '#2196F3'];
 
       for (let i = 0; i < allResults.length; i++) {
-        const die = document.createElement('div');
-        die.className = `die d${allSides[i]}`;
-        die.textContent = '?';
-        die.style.color = colors[i % colors.length];
+        const container = create3DDie(allSides[i]);
+        const dieEl = container.querySelector('.die');
 
         // Random starting position (off screen)
         const startSide = Math.random() > 0.5 ? -1 : 1;
-        die.style.left = startSide > 0 ? '-100px' : (window.innerWidth + 100) + 'px';
-        die.style.top = (Math.random() * (window.innerHeight * 0.4) + 100) + 'px';
+        container.style.left = startSide > 0 ? '-120px' : (window.innerWidth + 120) + 'px';
+        container.style.top = (Math.random() * (window.innerHeight * 0.3) + 100) + 'px';
 
-        area.appendChild(die);
+        area.appendChild(container);
+
         dice.push({
-          el: die,
-          x: parseFloat(die.style.left),
-          y: parseFloat(die.style.top),
-          vx: startSide > 0 ? (15 + Math.random() * 10) : -(15 + Math.random() * 10),
-          vy: -5 + Math.random() * 10,
-          rotation: 0,
-          vr: (Math.random() - 0.5) * 30,
+          container: container,
+          die: dieEl,
+          x: parseFloat(container.style.left),
+          y: parseFloat(container.style.top),
+          vx: startSide > 0 ? (12 + Math.random() * 8) : -(12 + Math.random() * 8),
+          vy: -3 + Math.random() * 6,
+          rotX: Math.random() * 360,
+          rotY: Math.random() * 360,
+          rotZ: Math.random() * 360,
+          vrX: (Math.random() - 0.5) * 25,
+          vrY: (Math.random() - 0.5) * 25,
+          vrZ: (Math.random() - 0.5) * 15,
           result: allResults[i],
           sides: allSides[i],
-          settled: false
+          settled: false,
+          settleFrame: 0
         });
       }
 
-      const gravity = 0.5;
-      const friction = 0.98;
-      const bounceFactor = 0.6;
-      const floor = window.innerHeight * 0.6;
-      let allSettled = false;
+      const gravity = 0.4;
+      const friction = 0.985;
+      const bounceFactor = 0.55;
+      const floor = window.innerHeight * 0.55;
       let settleTime = 0;
 
       function animate() {
-        allSettled = true;
+        let allSettled = true;
 
         dice.forEach(d => {
-          if (d.settled) return;
+          if (d.settled && d.settleFrame > 30) return;
 
           // Physics
           d.vy += gravity;
           d.x += d.vx;
           d.y += d.vy;
-          d.rotation += d.vr;
+
+          // 3D rotation
+          d.rotX += d.vrX;
+          d.rotY += d.vrY;
+          d.rotZ += d.vrZ;
 
           // Bounce off floor
           if (d.y > floor) {
             d.y = floor;
             d.vy *= -bounceFactor;
             d.vx *= friction;
-            d.vr *= 0.8;
+            d.vrX *= 0.7;
+            d.vrY *= 0.7;
+            d.vrZ *= 0.7;
+
+            // Add some random spin on bounce
+            d.vrX += (Math.random() - 0.5) * 5;
+            d.vrY += (Math.random() - 0.5) * 5;
           }
 
           // Bounce off walls
-          if (d.x < 50) { d.x = 50; d.vx *= -bounceFactor; }
-          if (d.x > window.innerWidth - 50) { d.x = window.innerWidth - 50; d.vx *= -bounceFactor; }
+          if (d.x < 80) {
+            d.x = 80;
+            d.vx *= -bounceFactor;
+            d.vrY += (Math.random() - 0.5) * 10;
+          }
+          if (d.x > window.innerWidth - 80) {
+            d.x = window.innerWidth - 80;
+            d.vx *= -bounceFactor;
+            d.vrY += (Math.random() - 0.5) * 10;
+          }
 
           // Apply friction
           d.vx *= friction;
+          d.vrX *= 0.99;
+          d.vrY *= 0.99;
+          d.vrZ *= 0.99;
 
           // Check if settled
-          if (Math.abs(d.vy) < 1 && Math.abs(d.vx) < 0.5 && d.y >= floor - 5) {
+          const isSettling = Math.abs(d.vy) < 2 && Math.abs(d.vx) < 1 && d.y >= floor - 5;
+
+          if (isSettling && !d.settled) {
             d.settled = true;
-            d.el.textContent = d.result;
+            d.container.classList.remove('rolling');
+            d.container.classList.add('settled');
+
+            // Calculate final rotation to show result
+            const finalRot = getFinalRotation(d.result, d.sides);
+            d.targetRotX = finalRot.x;
+            d.targetRotY = finalRot.y;
+
+            // Update die faces with final values
+            updateDieFaces(d.die, d.result, d.sides, false);
+          }
+
+          if (d.settled) {
+            d.settleFrame++;
+            // Smoothly interpolate to final rotation
+            d.rotX += (d.targetRotX - (d.rotX % 360)) * 0.15;
+            d.rotY += (d.targetRotY - (d.rotY % 360)) * 0.15;
+            d.rotZ *= 0.85;
+            d.vrX = 0;
+            d.vrY = 0;
+            d.vrZ = 0;
           } else {
             allSettled = false;
-            // Randomize display while rolling
-            d.el.textContent = Math.floor(Math.random() * d.sides) + 1;
+            // Update die faces with random values while rolling
+            if (Math.random() > 0.7) {
+              updateDieFaces(d.die, d.result, d.sides, true);
+            }
           }
 
-          // Update position
-          d.el.style.left = d.x + 'px';
-          d.el.style.top = d.y + 'px';
-          d.el.style.transform = `translate(-50%, -50%) rotate(${d.rotation}deg)`;
+          // Update position and rotation
+          d.container.style.left = d.x + 'px';
+          d.container.style.top = d.y + 'px';
+          d.die.style.transform = `rotateX(${d.rotX}deg) rotateY(${d.rotY}deg) rotateZ(${d.rotZ}deg)`;
         });
 
-        if (!allSettled) {
+        if (!allSettled || settleTime < 60) {
+          if (allSettled) settleTime++;
           requestAnimationFrame(animate);
         } else {
-          settleTime++;
-          if (settleTime < 30) {
-            requestAnimationFrame(animate);
-          } else {
-            // Show final result
+          // Show final result
+          setTimeout(() => {
+            // Fade out dice slightly
+            dice.forEach(d => d.container.style.opacity = '0.4');
+
+            // Show result - use notation format if available
+            resultValue.textContent = diceData.total;
+            if (diceData.notation) {
+              resultDetail.textContent = diceData.notation;
+            } else if (diceData.count > 1) {
+              resultDetail.textContent = `${diceData.results.join(' + ')}`;
+            } else {
+              resultDetail.textContent = `d${diceData.sides}`;
+            }
+            resultDisplay.classList.add('visible');
+
+            // Hide after delay
             setTimeout(() => {
-              // Fade out dice
-              dice.forEach(d => d.el.style.opacity = '0.3');
-
-              // Show result - use notation format if available
-              resultValue.textContent = diceData.total;
-              if (diceData.notation) {
-                resultDetail.textContent = diceData.notation;
-              } else if (diceData.count > 1) {
-                resultDetail.textContent = `${diceData.results.join(' + ')}`;
-              } else {
-                resultDetail.textContent = `d${diceData.sides}`;
-              }
-              resultDisplay.classList.add('visible');
-
-              // Hide after delay
-              setTimeout(() => {
-                resultDisplay.classList.remove('visible');
-                setTimeout(() => { area.innerHTML = ''; }, 500);
-              }, 3000);
-            }, 500);
-          }
+              resultDisplay.classList.remove('visible');
+              setTimeout(() => { area.innerHTML = ''; }, 500);
+            }, 3000);
+          }, 300);
         }
       }
 
@@ -579,95 +904,171 @@
       const resultDisplay = document.getElementById('resultDisplay');
       const resultValue = document.getElementById('resultValue');
       const resultDetail = document.getElementById('resultDetail');
-      
-      // Create two dice - gold (hope) and purple (fear)
-      const hopeDie = document.createElement('div');
-      hopeDie.className = 'die d12';
-      hopeDie.textContent = '?';
-      hopeDie.style.color = '#ffd700';
-      hopeDie.style.left = '-100px';
-      hopeDie.style.top = '200px';
-      
-      const fearDie = document.createElement('div');
-      fearDie.className = 'die d12';
-      fearDie.textContent = '?';
-      fearDie.style.color = '#b388ff';
-      fearDie.style.left = (window.innerWidth + 100) + 'px';
-      fearDie.style.top = '200px';
-      
-      area.appendChild(hopeDie);
-      area.appendChild(fearDie);
-      
+
+      // Create two 3D d12 dice - hope (gold) and fear (purple)
+      const hopeContainer = create3DDie(12, 'hope');
+      const fearContainer = create3DDie(12, 'fear');
+
+      hopeContainer.style.left = '-120px';
+      hopeContainer.style.top = '180px';
+
+      fearContainer.style.left = (window.innerWidth + 120) + 'px';
+      fearContainer.style.top = '180px';
+
+      area.appendChild(hopeContainer);
+      area.appendChild(fearContainer);
+
       const dice = [
-        { el: hopeDie, x: -100, y: 200, vx: 18, vy: -3, rotation: 0, vr: 15, result: data.hope, type: 'hope', settled: false },
-        { el: fearDie, x: window.innerWidth + 100, y: 200, vx: -18, vy: -3, rotation: 0, vr: -15, result: data.fear, type: 'fear', settled: false }
+        {
+          container: hopeContainer,
+          die: hopeContainer.querySelector('.die'),
+          x: -120,
+          y: 180,
+          vx: 14,
+          vy: -2,
+          rotX: Math.random() * 360,
+          rotY: Math.random() * 360,
+          rotZ: Math.random() * 360,
+          vrX: 18,
+          vrY: 12,
+          vrZ: 8,
+          result: data.hope,
+          type: 'hope',
+          sides: 12,
+          settled: false,
+          settleFrame: 0
+        },
+        {
+          container: fearContainer,
+          die: fearContainer.querySelector('.die'),
+          x: window.innerWidth + 120,
+          y: 180,
+          vx: -14,
+          vy: -2,
+          rotX: Math.random() * 360,
+          rotY: Math.random() * 360,
+          rotZ: Math.random() * 360,
+          vrX: -18,
+          vrY: -12,
+          vrZ: -8,
+          result: data.fear,
+          type: 'fear',
+          sides: 12,
+          settled: false,
+          settleFrame: 0
+        }
       ];
-      
-      const gravity = 0.5;
-      const friction = 0.98;
-      const bounceFactor = 0.6;
-      const floor = window.innerHeight * 0.6;
+
+      const gravity = 0.4;
+      const friction = 0.985;
+      const bounceFactor = 0.55;
+      const floor = window.innerHeight * 0.55;
       let settleTime = 0;
-      
+
       function animate() {
         let allSettled = true;
-        
+
         dice.forEach(d => {
-          if (d.settled) return;
-          
+          if (d.settled && d.settleFrame > 30) return;
+
+          // Physics
           d.vy += gravity;
           d.x += d.vx;
           d.y += d.vy;
-          d.rotation += d.vr;
-          
+
+          // 3D rotation
+          d.rotX += d.vrX;
+          d.rotY += d.vrY;
+          d.rotZ += d.vrZ;
+
+          // Bounce off floor
           if (d.y > floor) {
             d.y = floor;
             d.vy *= -bounceFactor;
             d.vx *= friction;
-            d.vr *= 0.8;
+            d.vrX *= 0.7;
+            d.vrY *= 0.7;
+            d.vrZ *= 0.7;
+
+            d.vrX += (Math.random() - 0.5) * 5;
+            d.vrY += (Math.random() - 0.5) * 5;
           }
-          
-          if (d.x < 100) { d.x = 100; d.vx *= -bounceFactor; }
-          if (d.x > window.innerWidth - 100) { d.x = window.innerWidth - 100; d.vx *= -bounceFactor; }
-          
+
+          // Bounce off walls
+          if (d.x < 100) {
+            d.x = 100;
+            d.vx *= -bounceFactor;
+            d.vrY += (Math.random() - 0.5) * 10;
+          }
+          if (d.x > window.innerWidth - 100) {
+            d.x = window.innerWidth - 100;
+            d.vx *= -bounceFactor;
+            d.vrY += (Math.random() - 0.5) * 10;
+          }
+
+          // Apply friction
           d.vx *= friction;
-          
-          if (Math.abs(d.vy) < 1 && Math.abs(d.vx) < 0.5 && d.y >= floor - 5) {
+          d.vrX *= 0.99;
+          d.vrY *= 0.99;
+          d.vrZ *= 0.99;
+
+          // Check if settled
+          const isSettling = Math.abs(d.vy) < 2 && Math.abs(d.vx) < 1 && d.y >= floor - 5;
+
+          if (isSettling && !d.settled) {
             d.settled = true;
-            d.el.textContent = d.result;
+            d.container.classList.remove('rolling');
+            d.container.classList.add('settled');
+
+            // Calculate final rotation
+            const finalRot = getFinalRotation(d.result, d.sides);
+            d.targetRotX = finalRot.x;
+            d.targetRotY = finalRot.y;
+
+            // Update die faces
+            updateDieFaces(d.die, d.result, d.sides, false);
+          }
+
+          if (d.settled) {
+            d.settleFrame++;
+            d.rotX += (d.targetRotX - (d.rotX % 360)) * 0.15;
+            d.rotY += (d.targetRotY - (d.rotY % 360)) * 0.15;
+            d.rotZ *= 0.85;
+            d.vrX = 0;
+            d.vrY = 0;
+            d.vrZ = 0;
           } else {
             allSettled = false;
-            d.el.textContent = Math.floor(Math.random() * 12) + 1;
+            if (Math.random() > 0.7) {
+              updateDieFaces(d.die, d.result, d.sides, true);
+            }
           }
-          
-          d.el.style.left = d.x + 'px';
-          d.el.style.top = d.y + 'px';
-          d.el.style.transform = `translate(-50%, -50%) rotate(${d.rotation}deg)`;
+
+          // Update position and rotation
+          d.container.style.left = d.x + 'px';
+          d.container.style.top = d.y + 'px';
+          d.die.style.transform = `rotateX(${d.rotX}deg) rotateY(${d.rotY}deg) rotateZ(${d.rotZ}deg)`;
         });
-        
-        if (!allSettled) {
+
+        if (!allSettled || settleTime < 60) {
+          if (allSettled) settleTime++;
           requestAnimationFrame(animate);
         } else {
-          settleTime++;
-          if (settleTime < 30) {
-            requestAnimationFrame(animate);
-          } else {
+          setTimeout(() => {
+            dice.forEach(d => d.container.style.opacity = '0.4');
+
+            resultValue.textContent = data.winner;
+            resultDetail.textContent = `Hope: ${data.hope}  |  Fear: ${data.fear}`;
+            resultDisplay.classList.add('visible', data.winner.toLowerCase());
+
             setTimeout(() => {
-              dice.forEach(d => d.el.style.opacity = '0.3');
-              
-              resultValue.textContent = data.winner;
-              resultDetail.textContent = `Hope: ${data.hope}  |  Fear: ${data.fear}`;
-              resultDisplay.classList.add('visible', data.winner.toLowerCase());
-              
-              setTimeout(() => {
-                resultDisplay.classList.remove('visible', 'hope', 'fear');
-                setTimeout(() => { area.innerHTML = ''; }, 500);
-              }, 4000);
-            }, 500);
-          }
+              resultDisplay.classList.remove('visible', 'hope', 'fear');
+              setTimeout(() => { area.innerHTML = ''; }, 500);
+            }, 4000);
+          }, 300);
         }
       }
-      
+
       requestAnimationFrame(animate);
     }
     
