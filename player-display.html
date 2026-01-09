@@ -511,6 +511,78 @@
     #npcPortrait.visible .npc-frame {
       animation: portraitGlow 3s ease-in-out infinite;
     }
+
+    /* Defeated Stamp Overlay */
+    .defeated-stamp {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-15deg);
+      padding: 15px 40px;
+      border: 6px solid #cc0000;
+      border-radius: 12px;
+      background: rgba(180, 0, 0, 0.15);
+      color: #cc0000;
+      font-family: 'Cinzel', serif;
+      font-size: 3.5rem;
+      font-weight: 900;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      text-shadow:
+        2px 2px 0 rgba(0, 0, 0, 0.5),
+        -1px -1px 0 rgba(0, 0, 0, 0.3);
+      box-shadow:
+        0 0 20px rgba(200, 0, 0, 0.4),
+        inset 0 0 20px rgba(200, 0, 0, 0.2);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+      z-index: 200;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .defeated-stamp.visible {
+      opacity: 1;
+      visibility: visible;
+      animation: stampAppear 0.3s ease-out;
+    }
+
+    @keyframes stampAppear {
+      0% {
+        transform: translate(-50%, -50%) rotate(-15deg) scale(1.5);
+        opacity: 0;
+      }
+      50% {
+        transform: translate(-50%, -50%) rotate(-15deg) scale(0.95);
+      }
+      100% {
+        transform: translate(-50%, -50%) rotate(-15deg) scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* Red tint on defeated portrait */
+    #npcPortrait.defeated .npc-inner-frame::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(100, 0, 0, 0.3);
+      pointer-events: none;
+      border-radius: 6px;
+    }
+
+    #npcPortrait.defeated .npc-frame {
+      animation: none;
+      box-shadow:
+        0 0 40px rgba(150, 0, 0, 0.5),
+        0 0 80px rgba(100, 0, 0, 0.3),
+        inset 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    #npcPortrait.defeated .npc-frame::before {
+      background: linear-gradient(145deg, #cc0000, #800000, #4a0000, #800000);
+    }
   </style>
 </head>
 <body>
@@ -554,6 +626,8 @@
         <img id="npcImage" src="" alt="NPC Portrait">
       </div>
     </div>
+    <!-- Defeated Stamp -->
+    <div id="defeatedStamp" class="defeated-stamp">DEFEATED</div>
   </div>
   
   <!-- Fear Tracker Pike -->
@@ -1236,6 +1310,7 @@
     function updateSpotlight(spotlightData) {
       const portrait = document.getElementById('npcPortrait');
       const npcImage = document.getElementById('npcImage');
+      const defeatedStamp = document.getElementById('defeatedStamp');
 
       if (spotlightData && spotlightData.visible && spotlightData.image) {
         // Show the spotlighted adversary
@@ -1248,10 +1323,20 @@
           // Hide NPC portrait state since spotlight takes priority
           currentNpcVisible = false;
         }
+
+        // Handle defeated state
+        if (spotlightData.defeated) {
+          portrait.classList.add('defeated');
+          defeatedStamp.classList.add('visible');
+        } else {
+          portrait.classList.remove('defeated');
+          defeatedStamp.classList.remove('visible');
+        }
       } else {
         // Hide the spotlight
         if (currentSpotlightVisible) {
-          portrait.classList.remove('visible');
+          portrait.classList.remove('visible', 'defeated');
+          defeatedStamp.classList.remove('visible');
           currentSpotlightVisible = false;
 
           // Check if NPC portrait should be shown instead
