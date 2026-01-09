@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GM Control Panel - Daggerheart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      font-family: 'Cinzel', serif;
+      color: #e0e0e0;
+      padding: 20px;
+    }
+    
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      background: linear-gradient(180deg, #ffd700, #b8860b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 30px;
+    }
+    
+    .section {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .section h2 {
+      font-size: 1.1rem;
+      color: #b388ff;
+      margin-bottom: 15px;
+      border-bottom: 1px solid rgba(179, 136, 255, 0.3);
+      padding-bottom: 8px;
+    }
+    
+    /* Fear Controls */
+    .fear-controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .fear-display {
+      font-size: 2.5rem;
+      font-weight: 900;
+      min-width: 100px;
+      text-align: center;
+    }
+    
+    .fear-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .fear-btn {
+      width: 50px;
+      height: 50px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .fear-btn.add {
+      background: linear-gradient(135deg, #7c4dff, #4a0e4e);
+      color: white;
+    }
+    
+    .fear-btn.remove {
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      color: #1a1a2e;
+    }
+    
+    .fear-btn:hover {
+      transform: scale(1.1);
+    }
+    
+    .fear-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .fear-btn.reset {
+      width: auto;
+      padding: 0 20px;
+      font-size: 0.9rem;
+      background: #333;
+      color: #aaa;
+    }
+    
+    /* Dice Controls */
+    .dice-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 10px;
+    }
+    
+    .dice-btn {
+      padding: 15px 10px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .dice-btn:hover {
+      background: rgba(179, 136, 255, 0.2);
+      border-color: #b388ff;
+      transform: translateY(-2px);
+    }
+    
+    .dice-btn:active {
+      transform: translateY(0);
+    }
+    
+    .dice-btn.d20 {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(184, 134, 11, 0.2));
+      border-color: #ffd700;
+    }
+    
+    .dice-btn.hope-fear {
+      grid-column: span 2;
+      background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), rgba(123, 45, 142, 0.2));
+      border-color: #b388ff;
+    }
+    
+    /* Last Roll Display */
+    .last-roll {
+      margin-top: 15px;
+      padding: 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    .last-roll-label {
+      font-size: 0.8rem;
+      color: #888;
+    }
+    
+    .last-roll-result {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ffd700;
+    }
+    
+    /* Open Display Button */
+    .open-display-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #4a0e4e, #7c4dff);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .open-display-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 5px 20px rgba(123, 45, 142, 0.4);
+    }
+    
+    .status {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #4CAF50;
+    }
+    
+    /* Multiple Dice */
+    .dice-count {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .dice-count label {
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+    
+    .dice-count select {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>⚔️ GM Control Panel</h1>
+  <p class="subtitle">Your players don't see this screen</p>
+  
+  <!-- Open Player Display -->
+  <div class="section">
+    <button class="open-display-btn" onclick="openPlayerDisplay()">
+      🖥️ Open Player Display Window
+    </button>
+    <p class="status" id="status">Click above to open the player-facing display</p>
+  </div>
+  
+  <!-- Fear Tracker -->
+  <div class="section">
+    <h2>☠️ Fear Tracker</h2>
+    <div class="fear-controls">
+      <div class="fear-display" id="fearDisplay">0</div>
+      <div class="fear-buttons">
+        <button class="fear-btn remove" onclick="adjustFear(-1)">−</button>
+        <button class="fear-btn add" onclick="adjustFear(1)">+</button>
+        <button class="fear-btn reset" onclick="resetFear()">Reset</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Dice Roller -->
+  <div class="section">
+    <h2>🎲 Dice Roller</h2>
+    
+    <div class="dice-count">
+      <label>Number of dice:</label>
+      <select id="diceCount">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+      </select>
+    </div>
+    
+    <div class="dice-grid">
+      <button class="dice-btn" onclick="rollDice(4)">d4</button>
+      <button class="dice-btn" onclick="rollDice(6)">d6</button>
+      <button class="dice-btn" onclick="rollDice(8)">d8</button>
+      <button class="dice-btn" onclick="rollDice(10)">d10</button>
+      <button class="dice-btn" onclick="rollDice(12)">d12</button>
+      <button class="dice-btn d20" onclick="rollDice(20)">d20</button>
+      <button class="dice-btn hope-fear" onclick="rollHopeFear()">⚔️ Hope / Fear</button>
+    </div>
+    
+    <div class="last-roll">
+      <div class="last-roll-label">Last Roll</div>
+      <div class="last-roll-result" id="lastRoll">—</div>
+    </div>
+  </div>
+
+  <script>
+    let currentFear = 0;
+    
+    // Initialize from localStorage
+    function init() {
+      const stored = localStorage.getItem('daggerheart-fear');
+      if (stored) {
+        currentFear = parseInt(stored) || 0;
+        updateFearDisplay();
+      }
+    }
+    
+    function updateFearDisplay() {
+      const display = document.getElementById('fearDisplay');
+      display.textContent = currentFear;
+      display.style.color = currentFear > 8 ? '#ff4444' : currentFear > 4 ? '#b388ff' : '#ffd700';
+    }
+    
+    function adjustFear(amount) {
+      currentFear = Math.max(0, Math.min(12, currentFear + amount));
+      updateFearDisplay();
+      
+      // Send to player display
+      localStorage.setItem('daggerheart-fear', currentFear);
+      localStorage.setItem('daggerheart-update', Date.now()); // Trigger update
+    }
+    
+    function resetFear() {
+      currentFear = 0;
+      updateFearDisplay();
+      localStorage.setItem('daggerheart-fear', 0);
+      localStorage.setItem('daggerheart-update', Date.now());
+    }
+    
+    function rollDice(sides) {
+      const count = parseInt(document.getElementById('diceCount').value);
+      const results = [];
+      
+      for (let i = 0; i < count; i++) {
+        results.push(Math.floor(Math.random() * sides) + 1);
+      }
+      
+      const total = results.reduce((a, b) => a + b, 0);
+      const displayText = count > 1 ? `${results.join(' + ')} = ${total}` : `${total}`;
+      
+      document.getElementById('lastRoll').textContent = `${count}d${sides}: ${displayText}`;
+      
+      // Send to player display
+      localStorage.setItem('daggerheart-dice', JSON.stringify({
+        type: 'standard',
+        sides: sides,
+        count: count,
+        results: results,
+        total: total,
+        timestamp: Date.now()
+      }));
+    }
+    
+    function rollHopeFear() {
+      const hope = Math.floor(Math.random() * 12) + 1;
+      const fear = Math.floor(Math.random() * 12) + 1;
+      const winner = hope >= fear ? 'HOPE' : 'FEAR';
+      
+      document.getElementById('lastRoll').textContent = `Hope: ${hope} | Fear: ${fear} → ${winner}!`;
+      
+      // Send to player display
+      localStorage.setItem('daggerheart-dice', JSON.stringify({
+        type: 'hopefear',
+        hope: hope,
+        fear: fear,
+        winner: winner,
+        timestamp: Date.now()
+      }));
+    }
+    
+    function openPlayerDisplay() {
+      const playerWindow = window.open('player-display.html', 'PlayerDisplay', 
+        'width=1920,height=1080,menubar=no,toolbar=no,location=no,status=no');
+      
+      if (playerWindow) {
+        document.getElementById('status').textContent = '✓ Player display opened! Drag it to your player-facing monitor.';
+      } else {
+        document.getElementById('status').textContent = '⚠️ Pop-up blocked. Please allow pop-ups or open player-display.html manually.';
+        document.getElementById('status').style.color = '#ff6b6b';
+      }
+    }
+    
+    init();
+  </script>
+</body>
+</html>

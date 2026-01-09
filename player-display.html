@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daggerheart - Player Display</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: 
+        radial-gradient(ellipse at 30% 20%, rgba(123, 45, 142, 0.3) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 80%, rgba(75, 0, 130, 0.4) 0%, transparent 50%),
+        linear-gradient(180deg, #12061a 0%, #1a0d24 50%, #0d0610 100%);
+      font-family: 'Cinzel', serif;
+      cursor: none;
+    }
+    
+    /* Fear Tracker - Bottom of screen */
+    #fearTracker {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 1200px;
+    }
+    
+    .pike-container {
+      position: relative;
+      height: 120px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .pike-labels {
+      position: absolute;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      top: -25px;
+      padding: 0 30px;
+    }
+    
+    .pike-labels span {
+      font-size: 0.9rem;
+      letter-spacing: 3px;
+    }
+    
+    .pike-labels .hope {
+      color: #ffd700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+    
+    .pike-labels .fear-label {
+      color: #b388ff;
+      text-shadow: 0 0 10px rgba(179, 136, 255, 0.5);
+    }
+    
+    .pike {
+      position: absolute;
+      left: 30px;
+      right: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 14px;
+      background: linear-gradient(180deg, #8B5A2B 0%, #6B4423 15%, #5D3A1A 30%, #4A2F15 50%, #5D3A1A 70%, #6B4423 85%, #8B5A2B 100%);
+      border-radius: 7px;
+      box-shadow: inset 0 2px 3px rgba(255,255,255,0.15), inset 0 -2px 3px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.6);
+    }
+    
+    .pike::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(90deg, transparent 0px, rgba(0,0,0,0.08) 1px, transparent 2px, transparent 8px);
+      border-radius: 7px;
+    }
+    
+    .pike-point-left {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-right: 22px solid #b8860b;
+      filter: drop-shadow(-2px 0 3px rgba(0,0,0,0.5));
+    }
+    
+    .pike-point-right {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 22px solid #4a0e4e;
+      filter: drop-shadow(2px 0 5px rgba(75, 0, 130, 0.8));
+    }
+    
+    .skull {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 65px;
+      transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 10;
+    }
+    
+    /* Fear Counter */
+    #fearCounter {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      text-align: right;
+    }
+    
+    #fearCounter .label {
+      font-size: 1rem;
+      color: #888;
+      letter-spacing: 2px;
+    }
+    
+    #fearCounter .value {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 4rem;
+      font-weight: 900;
+      transition: all 0.3s ease;
+    }
+    
+    /* Dice Animation Area */
+    #diceArea {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    
+    .die {
+      position: absolute;
+      font-family: 'Cinzel Decorative', serif;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+    }
+    
+    .die.d4 { font-size: 3rem; }
+    .die.d6 { font-size: 3.5rem; }
+    .die.d8 { font-size: 3.5rem; }
+    .die.d10 { font-size: 3.5rem; }
+    .die.d12 { font-size: 4rem; }
+    .die.d20 { font-size: 5rem; color: #ffd700; }
+    
+    /* Result Display */
+    #resultDisplay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
+    
+    #resultDisplay.visible {
+      opacity: 1;
+    }
+    
+    #resultDisplay .result-value {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 12rem;
+      font-weight: 900;
+      color: #ffd700;
+      text-shadow: 0 0 60px rgba(255, 215, 0, 0.8), 0 0 120px rgba(255, 215, 0, 0.4);
+    }
+    
+    #resultDisplay .result-detail {
+      font-size: 2rem;
+      color: #b388ff;
+      margin-top: -20px;
+    }
+    
+    /* Hope/Fear Specific */
+    #resultDisplay.hope .result-value {
+      color: #ffd700;
+      text-shadow: 0 0 60px rgba(255, 215, 0, 0.8);
+    }
+    
+    #resultDisplay.fear .result-value {
+      color: #b388ff;
+      text-shadow: 0 0 60px rgba(179, 136, 255, 0.8);
+    }
+    
+    /* Title */
+    #title {
+      position: absolute;
+      top: 20px;
+      left: 30px;
+    }
+    
+    #title h1 {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 2rem;
+      background: linear-gradient(180deg, #ffd700, #b8860b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <!-- Title -->
+  <div id="title">
+    <h1>DAGGERHEART</h1>
+  </div>
+  
+  <!-- Fear Counter -->
+  <div id="fearCounter">
+    <div class="label">FEAR</div>
+    <div class="value" id="fearValue">0</div>
+  </div>
+  
+  <!-- Dice Animation Area -->
+  <div id="diceArea"></div>
+  
+  <!-- Result Display -->
+  <div id="resultDisplay">
+    <div class="result-value" id="resultValue"></div>
+    <div class="result-detail" id="resultDetail"></div>
+  </div>
+  
+  <!-- Fear Tracker Pike -->
+  <div id="fearTracker">
+    <div class="pike-container">
+      <div class="pike-labels">
+        <span class="hope">✦ HOPE ✦</span>
+        <span class="fear-label">✦ FEAR ✦</span>
+      </div>
+      <div class="pike-point-left"></div>
+      <div class="pike"></div>
+      <div class="pike-point-right"></div>
+      <div id="skulls"></div>
+    </div>
+  </div>
+
+  <script>
+    // Skull SVG generator
+    function createSkullSVG(level, isActive) {
+      const baseColor = isActive ? '#e8d5ff' : '#f5f0e6';
+      const shadowColor = isActive ? '#6b3d7a' : '#a09080';
+      const highlightColor = isActive ? '#fff' : '#fffef8';
+      const boneColor = isActive ? '#d4c4e8' : '#e8e0d4';
+      
+      const eyeAnger = Math.min(level * 1.5, 15);
+      const jawOpen = level > 6 ? (level - 6) * 1.5 : 0;
+      const teethSharpness = level > 3 ? Math.min((level - 3) * 0.5, 3) : 0;
+      const crackOpacity = level > 4 ? Math.min((level - 4) * 0.12, 0.7) : 0;
+      const hornLength = level > 9 ? (level - 9) * 6 : 0;
+      const eyeGlow = level > 7 || isActive;
+      const flameEyes = level > 10;
+      
+      let svg = `<svg viewBox="0 0 40 50" style="width:100%;height:100%;overflow:visible">
+        <defs>
+          <radialGradient id="skullMain-${level}-${isActive}" cx="40%" cy="30%" r="60%">
+            <stop offset="0%" stop-color="${highlightColor}"/>
+            <stop offset="60%" stop-color="${baseColor}"/>
+            <stop offset="100%" stop-color="${shadowColor}"/>
+          </radialGradient>
+          <radialGradient id="jawGrad-${level}-${isActive}" cx="50%" cy="20%" r="70%">
+            <stop offset="0%" stop-color="${baseColor}"/>
+            <stop offset="100%" stop-color="${shadowColor}"/>
+          </radialGradient>
+          <radialGradient id="eyeGlow-${level}" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="${isActive ? '#b388ff' : '#ff6b35'}"/>
+            <stop offset="100%" stop-color="${isActive ? '#7c4dff' : '#d32f2f'}"/>
+          </radialGradient>
+        </defs>`;
+      
+      // Horns
+      if (hornLength > 0) {
+        svg += `<path d="M8,8 Q2,${4-hornLength*0.5} 4,${-hornLength}" fill="none" stroke="${isActive ? '#4a3050' : '#3d3530'}" stroke-width="4" stroke-linecap="round"/>`;
+        svg += `<path d="M32,8 Q38,${4-hornLength*0.5} 36,${-hornLength}" fill="none" stroke="${isActive ? '#4a3050' : '#3d3530'}" stroke-width="4" stroke-linecap="round"/>`;
+      }
+      
+      // Cranium
+      svg += `<ellipse cx="20" cy="18" rx="16" ry="17" fill="url(#skullMain-${level}-${isActive})" stroke="${shadowColor}" stroke-width="0.5"/>`;
+      
+      // Cheekbones
+      svg += `<ellipse cx="8" cy="26" rx="5" ry="4" fill="${boneColor}" opacity="0.5"/>`;
+      svg += `<ellipse cx="32" cy="26" rx="5" ry="4" fill="${boneColor}" opacity="0.5"/>`;
+      
+      // Brow ridge
+      svg += `<path d="M6,14 Q12,${12-eyeAnger*0.3} 20,14 Q28,${12-eyeAnger*0.3} 34,14" fill="none" stroke="${shadowColor}" stroke-width="2" stroke-linecap="round" opacity="0.6"/>`;
+      
+      // Eye sockets
+      svg += `<ellipse cx="12" cy="20" rx="5" ry="6" fill="#1a1015" transform="rotate(${-eyeAnger}, 12, 20)"/>`;
+      svg += `<ellipse cx="28" cy="20" rx="5" ry="6" fill="#1a1015" transform="rotate(${eyeAnger}, 28, 20)"/>`;
+      
+      // Eye glow
+      if (eyeGlow && !flameEyes) {
+        svg += `<ellipse cx="12" cy="20" rx="3" ry="4" fill="url(#eyeGlow-${level})" opacity="0.8"><animate attributeName="opacity" values="0.6;0.9;0.6" dur="2s" repeatCount="indefinite"/></ellipse>`;
+        svg += `<ellipse cx="28" cy="20" rx="3" ry="4" fill="url(#eyeGlow-${level})" opacity="0.8"><animate attributeName="opacity" values="0.6;0.9;0.6" dur="2s" repeatCount="indefinite"/></ellipse>`;
+      }
+      
+      // Flame eyes
+      if (flameEyes) {
+        svg += `<ellipse cx="12" cy="18" rx="4" ry="7" fill="#ff4500" opacity="0.9"><animate attributeName="ry" values="6;8;6" dur="0.2s" repeatCount="indefinite"/></ellipse>`;
+        svg += `<ellipse cx="12" cy="18" rx="2" ry="5" fill="#ffff00" opacity="0.8"><animate attributeName="ry" values="4;6;4" dur="0.15s" repeatCount="indefinite"/></ellipse>`;
+        svg += `<ellipse cx="28" cy="18" rx="4" ry="7" fill="#ff4500" opacity="0.9"><animate attributeName="ry" values="6;8;6" dur="0.2s" repeatCount="indefinite"/></ellipse>`;
+        svg += `<ellipse cx="28" cy="18" rx="2" ry="5" fill="#ffff00" opacity="0.8"><animate attributeName="ry" values="4;6;4" dur="0.15s" repeatCount="indefinite"/></ellipse>`;
+      }
+      
+      // Nose
+      svg += `<path d="M20,26 L17,32 L20,31 L23,32 Z" fill="#1a1015"/>`;
+      
+      // Jaws
+      svg += `<path d="M8,30 Q20,${34+jawOpen*0.3} 32,30 L32,36 Q20,38 8,36 Z" fill="url(#jawGrad-${level}-${isActive})" stroke="${shadowColor}" stroke-width="0.5"/>`;
+      svg += `<path d="M10,${36+jawOpen} Q20,${42+jawOpen*1.2} 30,${36+jawOpen} L28,${40+jawOpen} Q20,${44+jawOpen*1.3} 12,${40+jawOpen} Z" fill="url(#jawGrad-${level}-${isActive})" stroke="${shadowColor}" stroke-width="0.5"/>`;
+      
+      // Teeth
+      for (let i = 0; i < 6; i++) {
+        const x = 11 + i * 3;
+        const height = 3 + teethSharpness + ((i === 1 || i === 4) ? teethSharpness * 0.5 : 0);
+        svg += `<path d="M${x},35 L${x + 1.5},${35 + height} L${x + 3},35" fill="${highlightColor}" stroke="${shadowColor}" stroke-width="0.3"/>`;
+      }
+      for (let i = 0; i < 5; i++) {
+        const x = 12.5 + i * 3;
+        const height = 2 + teethSharpness * 0.7;
+        svg += `<path d="M${x},${37+jawOpen} L${x + 1.5},${37+jawOpen - height} L${x + 3},${37+jawOpen}" fill="${highlightColor}" stroke="${shadowColor}" stroke-width="0.3"/>`;
+      }
+      
+      // Cracks
+      if (crackOpacity > 0) {
+        svg += `<path d="M14,6 L16,12 L14,15" fill="none" stroke="#2a2020" stroke-width="0.8" opacity="${crackOpacity}"/>`;
+        svg += `<path d="M16,12 L18,14" fill="none" stroke="#2a2020" stroke-width="0.5" opacity="${crackOpacity}"/>`;
+        svg += `<path d="M26,8 L24,13 L26,16" fill="none" stroke="#2a2020" stroke-width="0.8" opacity="${crackOpacity * 0.8}"/>`;
+      }
+      
+      // Pike hole
+      svg += `<ellipse cx="20" cy="24" rx="2.5" ry="1.5" fill="#1a1015"/>`;
+      svg += `<ellipse cx="20" cy="24" rx="2" ry="1" fill="#0d0a0a"/>`;
+      
+      // Smile for friendly skulls
+      if (level <= 2) {
+        svg += `<path d="M14,${38+jawOpen} Q20,${41+jawOpen} 26,${38+jawOpen}" fill="none" stroke="${shadowColor}" stroke-width="1" stroke-linecap="round" opacity="0.5"/>`;
+      }
+      
+      svg += `</svg>`;
+      return svg;
+    }
+    
+    // Initialize skulls
+    function initSkulls() {
+      const container = document.getElementById('skulls');
+      container.innerHTML = '';
+      
+      for (let i = 0; i < 12; i++) {
+        const skull = document.createElement('div');
+        skull.className = 'skull';
+        skull.id = `skull-${i}`;
+        skull.innerHTML = createSkullSVG(12 - i, false);
+        skull.style.left = `${(30 + (i * 4))}px`;
+        skull.style.filter = `drop-shadow(0 0 6px rgba(255, 215, 0, 0.3))`;
+        container.appendChild(skull);
+      }
+    }
+    
+    // Update fear display
+    function updateFear(fearCount) {
+      // Update counter
+      const counter = document.getElementById('fearValue');
+      counter.textContent = fearCount;
+      counter.style.color = fearCount > 8 ? '#ff4444' : fearCount > 4 ? '#b388ff' : '#ffd700';
+      counter.style.textShadow = `0 0 30px ${fearCount > 8 ? 'rgba(255,68,68,0.6)' : fearCount > 4 ? 'rgba(179,136,255,0.6)' : 'rgba(255,215,0,0.5)'}`;
+      
+      // Update skulls
+      const pikeContainer = document.querySelector('.pike-container');
+      const pikeWidth = pikeContainer.offsetWidth - 80; // Account for points
+      
+      for (let i = 0; i < 12; i++) {
+        const skull = document.getElementById(`skull-${i}`);
+        const isActive = i < fearCount;
+        const spacing = pikeWidth / 24;
+        
+        // Hope side: left half, Fear side: right half
+        const hopePos = 40 + (i * spacing);
+        const fearPos = (pikeWidth / 2) + 40 + (i * spacing);
+        
+        skull.style.left = `${isActive ? fearPos : hopePos}px`;
+        skull.innerHTML = createSkullSVG(12 - i, isActive);
+        skull.style.filter = `drop-shadow(0 0 ${isActive ? 12 : 6}px ${isActive ? 'rgba(179, 136, 255, 0.6)' : 'rgba(255, 215, 0, 0.3)'})`;
+      }
+    }
+    
+    // Dice shapes for visual
+    function getDieShape(sides) {
+      const shapes = {
+        4: '▲',
+        6: '⬢',
+        8: '◆',
+        10: '⬡',
+        12: '⬟',
+        20: '⬣'
+      };
+      return shapes[sides] || '●';
+    }
+    
+    // Animate dice roll
+    function animateDiceRoll(diceData) {
+      const area = document.getElementById('diceArea');
+      const resultDisplay = document.getElementById('resultDisplay');
+      const resultValue = document.getElementById('resultValue');
+      const resultDetail = document.getElementById('resultDetail');
+      
+      // Clear previous
+      area.innerHTML = '';
+      resultDisplay.classList.remove('visible', 'hope', 'fear');
+      
+      if (diceData.type === 'hopefear') {
+        // Hope/Fear roll - two dice
+        animateHopeFearRoll(diceData);
+        return;
+      }
+      
+      // Standard dice roll
+      const dice = [];
+      const colors = ['#e0e0e0', '#ffd700', '#b388ff', '#ff6b6b', '#4CAF50', '#2196F3'];
+      
+      for (let i = 0; i < diceData.results.length; i++) {
+        const die = document.createElement('div');
+        die.className = `die d${diceData.sides}`;
+        die.textContent = '?';
+        die.style.color = colors[i % colors.length];
+        
+        // Random starting position (off screen)
+        const startSide = Math.random() > 0.5 ? -1 : 1;
+        die.style.left = startSide > 0 ? '-100px' : (window.innerWidth + 100) + 'px';
+        die.style.top = (Math.random() * (window.innerHeight * 0.4) + 100) + 'px';
+        
+        area.appendChild(die);
+        dice.push({
+          el: die,
+          x: parseFloat(die.style.left),
+          y: parseFloat(die.style.top),
+          vx: startSide > 0 ? (15 + Math.random() * 10) : -(15 + Math.random() * 10),
+          vy: -5 + Math.random() * 10,
+          rotation: 0,
+          vr: (Math.random() - 0.5) * 30,
+          result: diceData.results[i],
+          settled: false
+        });
+      }
+      
+      const gravity = 0.5;
+      const friction = 0.98;
+      const bounceFactor = 0.6;
+      const floor = window.innerHeight * 0.6;
+      let allSettled = false;
+      let settleTime = 0;
+      
+      function animate() {
+        allSettled = true;
+        
+        dice.forEach(d => {
+          if (d.settled) return;
+          
+          // Physics
+          d.vy += gravity;
+          d.x += d.vx;
+          d.y += d.vy;
+          d.rotation += d.vr;
+          
+          // Bounce off floor
+          if (d.y > floor) {
+            d.y = floor;
+            d.vy *= -bounceFactor;
+            d.vx *= friction;
+            d.vr *= 0.8;
+          }
+          
+          // Bounce off walls
+          if (d.x < 50) { d.x = 50; d.vx *= -bounceFactor; }
+          if (d.x > window.innerWidth - 50) { d.x = window.innerWidth - 50; d.vx *= -bounceFactor; }
+          
+          // Apply friction
+          d.vx *= friction;
+          
+          // Check if settled
+          if (Math.abs(d.vy) < 1 && Math.abs(d.vx) < 0.5 && d.y >= floor - 5) {
+            d.settled = true;
+            d.el.textContent = d.result;
+          } else {
+            allSettled = false;
+            // Randomize display while rolling
+            d.el.textContent = Math.floor(Math.random() * diceData.sides) + 1;
+          }
+          
+          // Update position
+          d.el.style.left = d.x + 'px';
+          d.el.style.top = d.y + 'px';
+          d.el.style.transform = `translate(-50%, -50%) rotate(${d.rotation}deg)`;
+        });
+        
+        if (!allSettled) {
+          requestAnimationFrame(animate);
+        } else {
+          settleTime++;
+          if (settleTime < 30) {
+            requestAnimationFrame(animate);
+          } else {
+            // Show final result
+            setTimeout(() => {
+              // Fade out dice
+              dice.forEach(d => d.el.style.opacity = '0.3');
+              
+              // Show result
+              if (diceData.count > 1) {
+                resultValue.textContent = diceData.total;
+                resultDetail.textContent = `${diceData.results.join(' + ')}`;
+              } else {
+                resultValue.textContent = diceData.results[0];
+                resultDetail.textContent = `d${diceData.sides}`;
+              }
+              resultDisplay.classList.add('visible');
+              
+              // Hide after delay
+              setTimeout(() => {
+                resultDisplay.classList.remove('visible');
+                setTimeout(() => { area.innerHTML = ''; }, 500);
+              }, 3000);
+            }, 500);
+          }
+        }
+      }
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // Hope/Fear roll animation
+    function animateHopeFearRoll(data) {
+      const area = document.getElementById('diceArea');
+      const resultDisplay = document.getElementById('resultDisplay');
+      const resultValue = document.getElementById('resultValue');
+      const resultDetail = document.getElementById('resultDetail');
+      
+      // Create two dice - gold (hope) and purple (fear)
+      const hopeDie = document.createElement('div');
+      hopeDie.className = 'die d12';
+      hopeDie.textContent = '?';
+      hopeDie.style.color = '#ffd700';
+      hopeDie.style.left = '-100px';
+      hopeDie.style.top = '200px';
+      
+      const fearDie = document.createElement('div');
+      fearDie.className = 'die d12';
+      fearDie.textContent = '?';
+      fearDie.style.color = '#b388ff';
+      fearDie.style.left = (window.innerWidth + 100) + 'px';
+      fearDie.style.top = '200px';
+      
+      area.appendChild(hopeDie);
+      area.appendChild(fearDie);
+      
+      const dice = [
+        { el: hopeDie, x: -100, y: 200, vx: 18, vy: -3, rotation: 0, vr: 15, result: data.hope, type: 'hope', settled: false },
+        { el: fearDie, x: window.innerWidth + 100, y: 200, vx: -18, vy: -3, rotation: 0, vr: -15, result: data.fear, type: 'fear', settled: false }
+      ];
+      
+      const gravity = 0.5;
+      const friction = 0.98;
+      const bounceFactor = 0.6;
+      const floor = window.innerHeight * 0.6;
+      let settleTime = 0;
+      
+      function animate() {
+        let allSettled = true;
+        
+        dice.forEach(d => {
+          if (d.settled) return;
+          
+          d.vy += gravity;
+          d.x += d.vx;
+          d.y += d.vy;
+          d.rotation += d.vr;
+          
+          if (d.y > floor) {
+            d.y = floor;
+            d.vy *= -bounceFactor;
+            d.vx *= friction;
+            d.vr *= 0.8;
+          }
+          
+          if (d.x < 100) { d.x = 100; d.vx *= -bounceFactor; }
+          if (d.x > window.innerWidth - 100) { d.x = window.innerWidth - 100; d.vx *= -bounceFactor; }
+          
+          d.vx *= friction;
+          
+          if (Math.abs(d.vy) < 1 && Math.abs(d.vx) < 0.5 && d.y >= floor - 5) {
+            d.settled = true;
+            d.el.textContent = d.result;
+          } else {
+            allSettled = false;
+            d.el.textContent = Math.floor(Math.random() * 12) + 1;
+          }
+          
+          d.el.style.left = d.x + 'px';
+          d.el.style.top = d.y + 'px';
+          d.el.style.transform = `translate(-50%, -50%) rotate(${d.rotation}deg)`;
+        });
+        
+        if (!allSettled) {
+          requestAnimationFrame(animate);
+        } else {
+          settleTime++;
+          if (settleTime < 30) {
+            requestAnimationFrame(animate);
+          } else {
+            setTimeout(() => {
+              dice.forEach(d => d.el.style.opacity = '0.3');
+              
+              resultValue.textContent = data.winner;
+              resultDetail.textContent = `Hope: ${data.hope}  |  Fear: ${data.fear}`;
+              resultDisplay.classList.add('visible', data.winner.toLowerCase());
+              
+              setTimeout(() => {
+                resultDisplay.classList.remove('visible', 'hope', 'fear');
+                setTimeout(() => { area.innerHTML = ''; }, 500);
+              }, 4000);
+            }, 500);
+          }
+        }
+      }
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // Listen for updates from GM panel
+    let lastDiceTimestamp = 0;
+    
+    function checkForUpdates() {
+      // Check fear
+      const fear = parseInt(localStorage.getItem('daggerheart-fear')) || 0;
+      updateFear(fear);
+      
+      // Check for dice roll
+      const diceData = localStorage.getItem('daggerheart-dice');
+      if (diceData) {
+        const parsed = JSON.parse(diceData);
+        if (parsed.timestamp > lastDiceTimestamp) {
+          lastDiceTimestamp = parsed.timestamp;
+          animateDiceRoll(parsed);
+        }
+      }
+    }
+    
+    // Initialize
+    initSkulls();
+    checkForUpdates();
+    
+    // Poll for updates (localStorage events don't always fire in same window)
+    setInterval(checkForUpdates, 100);
+    
+    // Also listen for storage events (for cross-tab)
+    window.addEventListener('storage', checkForUpdates);
+    
+    // Handle resize
+    window.addEventListener('resize', () => {
+      const fear = parseInt(localStorage.getItem('daggerheart-fear')) || 0;
+      updateFear(fear);
+    });
+  </script>
+</body>
+</html>
