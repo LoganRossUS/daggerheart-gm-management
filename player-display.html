@@ -583,6 +583,122 @@
     #npcPortrait.defeated .npc-frame::before {
       background: linear-gradient(145deg, #cc0000, #800000, #4a0000, #800000);
     }
+
+    /* Condition Stamps */
+    .condition-stamps {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+      z-index: 150;
+      pointer-events: none;
+    }
+
+    .condition-stamp {
+      padding: 8px 20px;
+      border: 4px solid;
+      border-radius: 8px;
+      font-family: 'Cinzel', serif;
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .condition-stamp.visible {
+      opacity: 1;
+      visibility: visible;
+      animation: conditionAppear 0.3s ease-out;
+    }
+
+    @keyframes conditionAppear {
+      0% {
+        transform: scale(1.3);
+        opacity: 0;
+      }
+      60% {
+        transform: scale(0.95);
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* Hidden Condition - Shadowy purple/blue */
+    .condition-stamp.hidden-condition {
+      border-color: #6a5acd;
+      background: rgba(106, 90, 205, 0.2);
+      color: #9370db;
+      box-shadow: 0 0 15px rgba(106, 90, 205, 0.4), inset 0 0 15px rgba(106, 90, 205, 0.15);
+    }
+
+    /* Restrained Condition - Iron/chain gray */
+    .condition-stamp.restrained-condition {
+      border-color: #708090;
+      background: rgba(112, 128, 144, 0.2);
+      color: #b0c4de;
+      box-shadow: 0 0 15px rgba(112, 128, 144, 0.4), inset 0 0 15px rgba(112, 128, 144, 0.15);
+    }
+
+    /* Vulnerable Condition - Warning yellow/gold */
+    .condition-stamp.vulnerable-condition {
+      border-color: #daa520;
+      background: rgba(218, 165, 32, 0.2);
+      color: #ffd700;
+      box-shadow: 0 0 15px rgba(218, 165, 32, 0.4), inset 0 0 15px rgba(218, 165, 32, 0.15);
+    }
+
+    /* Condition Tint Overlays on Portrait */
+    #npcPortrait.has-hidden .npc-inner-frame::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(106, 90, 205, 0.15);
+      pointer-events: none;
+      border-radius: 6px;
+      z-index: 1;
+    }
+
+    #npcPortrait.has-restrained .npc-inner-frame::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(112, 128, 144, 0.15);
+      pointer-events: none;
+      border-radius: 6px;
+      z-index: 1;
+    }
+
+    #npcPortrait.has-vulnerable .npc-inner-frame::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(218, 165, 32, 0.15);
+      pointer-events: none;
+      border-radius: 6px;
+      z-index: 1;
+    }
+
+    /* Multiple conditions - combine effects */
+    #npcPortrait.has-hidden.has-vulnerable .npc-inner-frame::before {
+      background: linear-gradient(135deg, rgba(106, 90, 205, 0.15), rgba(218, 165, 32, 0.15));
+    }
+
+    #npcPortrait.has-hidden.has-restrained .npc-inner-frame::before {
+      background: linear-gradient(135deg, rgba(106, 90, 205, 0.15), rgba(112, 128, 144, 0.15));
+    }
+
+    #npcPortrait.has-restrained.has-vulnerable .npc-inner-frame::before {
+      background: linear-gradient(135deg, rgba(112, 128, 144, 0.15), rgba(218, 165, 32, 0.15));
+    }
   </style>
 </head>
 <body>
@@ -628,6 +744,12 @@
     </div>
     <!-- Defeated Stamp -->
     <div id="defeatedStamp" class="defeated-stamp">DEFEATED</div>
+    <!-- Condition Stamps -->
+    <div class="condition-stamps">
+      <div id="hiddenStamp" class="condition-stamp hidden-condition">HIDDEN</div>
+      <div id="restrainedStamp" class="condition-stamp restrained-condition">RESTRAINED</div>
+      <div id="vulnerableStamp" class="condition-stamp vulnerable-condition">VULNERABLE</div>
+    </div>
   </div>
   
   <!-- Fear Tracker Pike -->
@@ -1311,6 +1433,9 @@
       const portrait = document.getElementById('npcPortrait');
       const npcImage = document.getElementById('npcImage');
       const defeatedStamp = document.getElementById('defeatedStamp');
+      const hiddenStamp = document.getElementById('hiddenStamp');
+      const restrainedStamp = document.getElementById('restrainedStamp');
+      const vulnerableStamp = document.getElementById('vulnerableStamp');
 
       if (spotlightData && spotlightData.visible && spotlightData.image) {
         // Show the spotlighted adversary
@@ -1332,11 +1457,44 @@
           portrait.classList.remove('defeated');
           defeatedStamp.classList.remove('visible');
         }
+
+        // Handle conditions
+        const conditions = spotlightData.conditions || {};
+
+        // Hidden condition
+        if (conditions.hidden) {
+          portrait.classList.add('has-hidden');
+          hiddenStamp.classList.add('visible');
+        } else {
+          portrait.classList.remove('has-hidden');
+          hiddenStamp.classList.remove('visible');
+        }
+
+        // Restrained condition
+        if (conditions.restrained) {
+          portrait.classList.add('has-restrained');
+          restrainedStamp.classList.add('visible');
+        } else {
+          portrait.classList.remove('has-restrained');
+          restrainedStamp.classList.remove('visible');
+        }
+
+        // Vulnerable condition
+        if (conditions.vulnerable) {
+          portrait.classList.add('has-vulnerable');
+          vulnerableStamp.classList.add('visible');
+        } else {
+          portrait.classList.remove('has-vulnerable');
+          vulnerableStamp.classList.remove('visible');
+        }
       } else {
         // Hide the spotlight
         if (currentSpotlightVisible) {
-          portrait.classList.remove('visible', 'defeated');
+          portrait.classList.remove('visible', 'defeated', 'has-hidden', 'has-restrained', 'has-vulnerable');
           defeatedStamp.classList.remove('visible');
+          hiddenStamp.classList.remove('visible');
+          restrainedStamp.classList.remove('visible');
+          vulnerableStamp.classList.remove('visible');
           currentSpotlightVisible = false;
 
           // Check if NPC portrait should be shown instead
