@@ -2236,6 +2236,68 @@
       document.getElementById('adversaryImageInput').click();
     }
 
+    // Compress/resize image if too large for localStorage
+    // Target: max 800KB base64 (leaves room for other data in localStorage)
+    const MAX_IMAGE_SIZE = 800 * 1024; // 800KB target for base64 output
+    const MAX_DIMENSION = 1024; // Max width/height in pixels
+
+    function compressImage(dataUrl, callback) {
+      const img = new Image();
+      img.onload = function() {
+        let { width, height } = img;
+
+        // Check if we need to resize based on dimensions
+        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+
+        // Check if original is small enough (estimate base64 size)
+        const estimatedSize = dataUrl.length;
+        if (estimatedSize < MAX_IMAGE_SIZE && img.width <= MAX_DIMENSION && img.height <= MAX_DIMENSION) {
+          callback(dataUrl); // No compression needed
+          return;
+        }
+
+        // Create canvas and draw resized image
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Try JPEG first (better compression for photos)
+        let quality = 0.85;
+        let compressed = canvas.toDataURL('image/jpeg', quality);
+
+        // If still too large, reduce quality further
+        while (compressed.length > MAX_IMAGE_SIZE && quality > 0.3) {
+          quality -= 0.1;
+          compressed = canvas.toDataURL('image/jpeg', quality);
+        }
+
+        // If JPEG at low quality is still too big, reduce dimensions more
+        if (compressed.length > MAX_IMAGE_SIZE) {
+          const scaleFactor = Math.sqrt(MAX_IMAGE_SIZE / compressed.length);
+          width = Math.round(width * scaleFactor);
+          height = Math.round(height * scaleFactor);
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          compressed = canvas.toDataURL('image/jpeg', 0.7);
+        }
+
+        console.log(`Image compressed: ${(dataUrl.length / 1024).toFixed(0)}KB -> ${(compressed.length / 1024).toFixed(0)}KB`);
+        callback(compressed);
+      };
+      img.onerror = function() {
+        console.error('Failed to load image for compression');
+        callback(dataUrl); // Return original on error
+      };
+      img.src = dataUrl;
+    }
+
     // Handle adversary portrait image upload
     function handleAdversaryImageUpload(event) {
       const files = event.target.files;
@@ -2244,10 +2306,10 @@
       const adversary = currentEncounter.adversaries.find(a => a.id === pendingImageUploadAdversaryId);
       if (!adversary) return;
 
-      // Filter valid files first (under 5MB)
+      // Filter valid files first (under 10MB raw - will be compressed)
       const validFiles = Array.from(files).filter(file => {
-        if (file.size > 5 * 1024 * 1024) {
-          alert(`Image "${file.name}" is too large. Please select images under 5MB.`);
+        if (file.size > 10 * 1024 * 1024) {
+          alert(`Image "${file.name}" is too large. Please select images under 10MB.`);
           return false;
         }
         return true;
@@ -2260,30 +2322,28 @@
       }
 
       // Process each valid file
-      let processedCount = 0;
-      const totalToProcess = validFiles.length;
-
       validFiles.forEach(file => {
         const reader = new FileReader();
         reader.onload = function(e) {
-          if (!adversary.portraits) {
-            adversary.portraits = [];
-          }
-          adversary.portraits.push(e.target.result);
-          adversary.activePortraitIndex = adversary.portraits.length - 1;
-          processedCount++;
+          // Compress/resize the image before storing
+          compressImage(e.target.result, function(compressedDataUrl) {
+            if (!adversary.portraits) {
+              adversary.portraits = [];
+            }
+            adversary.portraits.push(compressedDataUrl);
+            adversary.activePortraitIndex = adversary.portraits.length - 1;
 
-          // Update UI after each file loads for immediate feedback
-          renderEncounter();
-          syncEncounterToStorage();
+            // Update UI after each file loads for immediate feedback
+            renderEncounter();
+            syncEncounterToStorage();
 
-          // If this adversary is spotlighted, update the spotlight
-          if (spotlightedAdversary === adversary.id) {
-            syncSpotlightToStorage();
-          }
+            // If this adversary is spotlighted, update the spotlight
+            if (spotlightedAdversary === adversary.id) {
+              syncSpotlightToStorage();
+            }
+          });
         };
         reader.onerror = function() {
-          processedCount++;
           console.error(`Failed to read file: ${file.name}`);
         };
         reader.readAsDataURL(file);
@@ -2383,8 +2443,16 @@
             conditions: adversary.conditions || {},
             timestamp: Date.now()
           };
-          localStorage.setItem('daggerheart-spotlight', JSON.stringify(spotlightData));
-          document.getElementById('hideSpotlightBtn').disabled = false;
+
+          try {
+            localStorage.setItem('daggerheart-spotlight', JSON.stringify(spotlightData));
+            document.getElementById('hideSpotlightBtn').disabled = false;
+          } catch (e) {
+            console.error('Failed to sync spotlight to localStorage:', e);
+            if (e.name === 'QuotaExceededError' || e.code === 22) {
+              alert('Image is too large to display on player screen. Please use a smaller image (under 1MB recommended) or compress the current image.');
+            }
+          }
           return;
         }
       }
@@ -2394,7 +2462,11 @@
         visible: false,
         timestamp: Date.now()
       };
-      localStorage.setItem('daggerheart-spotlight', JSON.stringify(spotlightData));
+      try {
+        localStorage.setItem('daggerheart-spotlight', JSON.stringify(spotlightData));
+      } catch (e) {
+        console.error('Failed to clear spotlight in localStorage:', e);
+      }
       document.getElementById('hideSpotlightBtn').disabled = true;
     }
 
