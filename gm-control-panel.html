@@ -192,27 +192,79 @@
       color: #4CAF50;
     }
     
-    /* Multiple Dice */
-    .dice-count {
+    /* Dice Notation Input */
+    .dice-input-row {
       display: flex;
-      align-items: center;
       gap: 10px;
       margin-bottom: 15px;
     }
-    
-    .dice-count label {
-      font-size: 0.9rem;
-      color: #aaa;
-    }
-    
-    .dice-count select {
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: 1px solid #444;
+
+    .dice-notation-input {
+      flex: 1;
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: 2px solid #444;
       background: #2a2a3e;
       color: #e0e0e0;
       font-family: 'Cinzel', serif;
-      font-size: 0.9rem;
+      font-size: 1.1rem;
+      transition: border-color 0.2s;
+    }
+
+    .dice-notation-input:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
+    .dice-notation-input::placeholder {
+      color: #666;
+    }
+
+    .roll-btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      color: #1a1a2e;
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .roll-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+    }
+
+    .roll-btn:active {
+      transform: scale(0.98);
+    }
+
+    .quick-dice {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .quick-dice-btn {
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.05);
+      color: #aaa;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-dice-btn:hover {
+      background: rgba(179, 136, 255, 0.2);
+      border-color: #b388ff;
+      color: #e0e0e0;
     }
   </style>
 </head>
@@ -244,29 +296,27 @@
   <!-- Dice Roller -->
   <div class="section">
     <h2>🎲 Dice Roller</h2>
-    
-    <div class="dice-count">
-      <label>Number of dice:</label>
-      <select id="diceCount">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-      </select>
+
+    <div class="dice-input-row">
+      <input type="text" id="diceNotation" class="dice-notation-input" placeholder="e.g. 1d20+1d6+2" value="1d20">
+      <button class="roll-btn" onclick="rollNotation()">Roll</button>
     </div>
-    
+
+    <div class="quick-dice">
+      <button class="quick-dice-btn" onclick="setNotation('1d4')">d4</button>
+      <button class="quick-dice-btn" onclick="setNotation('1d6')">d6</button>
+      <button class="quick-dice-btn" onclick="setNotation('1d8')">d8</button>
+      <button class="quick-dice-btn" onclick="setNotation('1d10')">d10</button>
+      <button class="quick-dice-btn" onclick="setNotation('1d12')">d12</button>
+      <button class="quick-dice-btn" onclick="setNotation('1d20')">d20</button>
+      <button class="quick-dice-btn" onclick="setNotation('2d6')">2d6</button>
+      <button class="quick-dice-btn" onclick="setNotation('1d20+5')">d20+5</button>
+    </div>
+
     <div class="dice-grid">
-      <button class="dice-btn" onclick="rollDice(4)">d4</button>
-      <button class="dice-btn" onclick="rollDice(6)">d6</button>
-      <button class="dice-btn" onclick="rollDice(8)">d8</button>
-      <button class="dice-btn" onclick="rollDice(10)">d10</button>
-      <button class="dice-btn" onclick="rollDice(12)">d12</button>
-      <button class="dice-btn d20" onclick="rollDice(20)">d20</button>
       <button class="dice-btn hope-fear" onclick="rollHopeFear()">⚔️ Hope / Fear</button>
     </div>
-    
+
     <div class="last-roll">
       <div class="last-roll-label">Last Roll</div>
       <div class="last-roll-result" id="lastRoll">—</div>
@@ -307,29 +357,96 @@
       localStorage.setItem('daggerheart-update', Date.now());
     }
     
-    function rollDice(sides) {
-      const count = parseInt(document.getElementById('diceCount').value);
-      const results = [];
-      
-      for (let i = 0; i < count; i++) {
-        results.push(Math.floor(Math.random() * sides) + 1);
+    function setNotation(notation) {
+      document.getElementById('diceNotation').value = notation;
+    }
+
+    function parseAndRollNotation(notation) {
+      // Parse notation like "1d20+2d6+5" or "2d8-1"
+      const cleanNotation = notation.replace(/\s/g, '').toLowerCase();
+
+      // Split by + and - while keeping the operators
+      const parts = cleanNotation.split(/(?=[+-])/);
+
+      const diceRolls = []; // Array of {sides, count, results}
+      let modifier = 0;
+      let total = 0;
+      const breakdown = [];
+
+      for (const part of parts) {
+        const trimmed = part.replace(/^\+/, ''); // Remove leading +
+
+        // Check if it's a dice roll (contains 'd')
+        const diceMatch = trimmed.match(/^(-?)(\d*)d(\d+)$/);
+
+        if (diceMatch) {
+          const negative = diceMatch[1] === '-';
+          const count = parseInt(diceMatch[2]) || 1;
+          const sides = parseInt(diceMatch[3]);
+          const results = [];
+
+          for (let i = 0; i < count; i++) {
+            results.push(Math.floor(Math.random() * sides) + 1);
+          }
+
+          const subtotal = results.reduce((a, b) => a + b, 0) * (negative ? -1 : 1);
+          total += subtotal;
+
+          diceRolls.push({ sides, count, results, negative });
+
+          if (count === 1) {
+            breakdown.push((negative ? '-' : (breakdown.length > 0 ? '+' : '')) + results[0]);
+          } else {
+            breakdown.push((negative ? '-(' : (breakdown.length > 0 ? '+(' : '(')) + results.join('+') + ')');
+          }
+        } else {
+          // It's a flat modifier
+          const num = parseInt(trimmed);
+          if (!isNaN(num)) {
+            modifier += num;
+            total += num;
+            if (num >= 0 && breakdown.length > 0) {
+              breakdown.push('+' + num);
+            } else {
+              breakdown.push(num.toString());
+            }
+          }
+        }
       }
-      
-      const total = results.reduce((a, b) => a + b, 0);
-      const displayText = count > 1 ? `${results.join(' + ')} = ${total}` : `${total}`;
-      
-      document.getElementById('lastRoll').textContent = `${count}d${sides}: ${displayText}`;
-      
+
+      return { diceRolls, modifier, total, breakdown, notation: cleanNotation };
+    }
+
+    function rollNotation() {
+      const notation = document.getElementById('diceNotation').value.trim();
+      if (!notation) return;
+
+      const result = parseAndRollNotation(notation);
+
+      // Display result
+      const breakdownStr = result.breakdown.join('');
+      document.getElementById('lastRoll').textContent = `${notation}: ${breakdownStr} = ${result.total}`;
+
       // Send to player display
       localStorage.setItem('daggerheart-dice', JSON.stringify({
-        type: 'standard',
-        sides: sides,
-        count: count,
-        results: results,
-        total: total,
+        type: 'notation',
+        notation: result.notation,
+        diceRolls: result.diceRolls,
+        modifier: result.modifier,
+        total: result.total,
+        breakdown: result.breakdown,
         timestamp: Date.now()
       }));
     }
+
+    // Allow Enter key to roll
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('diceNotation').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          rollNotation();
+        }
+      });
+    });
     
     function rollHopeFear() {
       const hope = Math.floor(Math.random() * 12) + 1;
