@@ -476,10 +476,20 @@
       display: block;
       max-width: 70vw;
       max-height: 65vh;
+      min-width: 300px;
+      min-height: 300px;
       width: auto;
       height: auto;
       object-fit: contain;
       border-radius: 6px;
+    }
+
+    /* Ensure SVG/default images scale properly */
+    #npcImage[src^="data:image/svg"] {
+      width: 50vw;
+      height: 50vh;
+      min-width: 400px;
+      min-height: 400px;
     }
 
     /* Corner decorations */
