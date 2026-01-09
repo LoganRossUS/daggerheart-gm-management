@@ -10,6 +10,7 @@
       "attack": "+2 (2d6+2 physical)",
       "defense": 10,
       "traits": ["Undead", "Fearless"],
+      "themes": ["undead"],
       "abilities": [
         "Bone Strike: Melee attack dealing 2d6+2 physical damage",
         "Reassemble: Once per encounter, regain 1d6 HP when reduced to 0"
@@ -24,6 +25,7 @@
       "attack": "+3 (2d6+1 physical, ranged)",
       "defense": 8,
       "traits": ["Undead", "Fearless"],
+      "themes": ["undead"],
       "abilities": [
         "Arrow Volley: Ranged attack dealing 2d6+1 physical damage",
         "Bone Shield: Reaction - reduce incoming damage by 2"
@@ -38,6 +40,7 @@
       "attack": "+1 (2d8 acid)",
       "defense": 6,
       "traits": ["Ooze", "Acidic", "Slow"],
+      "themes": ["oozes"],
       "abilities": [
         "Engulf: Melee attack dealing 2d8 acid damage. On hit, target is grappled",
         "Split: When reduced to half HP, split into two smaller oozes with 4 HP each",
