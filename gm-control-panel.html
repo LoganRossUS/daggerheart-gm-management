@@ -2244,14 +2244,26 @@
       const adversary = currentEncounter.adversaries.find(a => a.id === pendingImageUploadAdversaryId);
       if (!adversary) return;
 
-      // Process each file
-      let loadedCount = 0;
-      Array.from(files).forEach(file => {
+      // Filter valid files first (under 5MB)
+      const validFiles = Array.from(files).filter(file => {
         if (file.size > 5 * 1024 * 1024) {
           alert(`Image "${file.name}" is too large. Please select images under 5MB.`);
-          return;
+          return false;
         }
+        return true;
+      });
 
+      if (validFiles.length === 0) {
+        event.target.value = '';
+        pendingImageUploadAdversaryId = null;
+        return;
+      }
+
+      // Process each valid file
+      let processedCount = 0;
+      const totalToProcess = validFiles.length;
+
+      validFiles.forEach(file => {
         const reader = new FileReader();
         reader.onload = function(e) {
           if (!adversary.portraits) {
@@ -2259,18 +2271,20 @@
           }
           adversary.portraits.push(e.target.result);
           adversary.activePortraitIndex = adversary.portraits.length - 1;
-          loadedCount++;
+          processedCount++;
 
-          // After all files are loaded, update UI
-          if (loadedCount === files.length) {
-            renderEncounter();
-            syncEncounterToStorage();
+          // Update UI after each file loads for immediate feedback
+          renderEncounter();
+          syncEncounterToStorage();
 
-            // If this adversary is spotlighted, update the spotlight
-            if (spotlightedAdversary === adversary.id) {
-              syncSpotlightToStorage();
-            }
+          // If this adversary is spotlighted, update the spotlight
+          if (spotlightedAdversary === adversary.id) {
+            syncSpotlightToStorage();
           }
+        };
+        reader.onerror = function() {
+          processedCount++;
+          console.error(`Failed to read file: ${file.name}`);
         };
         reader.readAsDataURL(file);
       });

@@ -1406,11 +1406,42 @@
     }
     
     // Listen for updates from GM panel
-    let lastDiceTimestamp = 0;
-    let lastNpcTimestamp = 0;
-    let lastSpotlightTimestamp = 0;
+    // Initialize timestamps from localStorage to prevent triggering animations on page refresh
+    let lastDiceTimestamp = (() => {
+      const data = localStorage.getItem('daggerheart-dice');
+      return data ? (JSON.parse(data).timestamp || 0) : 0;
+    })();
+    let lastNpcTimestamp = (() => {
+      const data = localStorage.getItem('daggerheart-npc');
+      return data ? (JSON.parse(data).timestamp || 0) : 0;
+    })();
+    let lastSpotlightTimestamp = (() => {
+      const data = localStorage.getItem('daggerheart-spotlight');
+      return data ? (JSON.parse(data).timestamp || 0) : 0;
+    })();
     let currentNpcVisible = false;
     let currentSpotlightVisible = false;
+
+    // Default silhouette image for fallback
+    const DEFAULT_SILHOUETTE = `data:image/svg+xml,${encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+        <defs>
+          <radialGradient id="shadowGrad" cx="50%" cy="40%" r="50%">
+            <stop offset="0%" stop-color="#2a1a35"/>
+            <stop offset="100%" stop-color="#0d0610"/>
+          </radialGradient>
+        </defs>
+        <rect width="200" height="200" fill="url(#shadowGrad)"/>
+        <circle cx="100" cy="60" r="35" fill="#15151f" opacity="0.7"/>
+        <path d="M100 25 C70 25 55 50 55 80 C55 100 70 110 100 110 C130 110 145 100 145 80 C145 50 130 25 100 25" fill="#15151f" opacity="0.7"/>
+        <path d="M50 200 L50 130 C50 100 70 90 100 90 C130 90 150 100 150 130 L150 200 Z" fill="#15151f" opacity="0.7"/>
+        <text x="100" y="120" font-family="serif" font-size="48" fill="#6b5b95" text-anchor="middle" opacity="0.6">?</text>
+      </svg>
+    `)}`;
+
+    // Track current images to avoid unnecessary updates
+    let currentNpcImage = '';
+    let currentSpotlightImage = '';
 
     // Update NPC portrait display
     function updateNpcPortrait(npcData) {
@@ -1421,8 +1452,13 @@
       const npcImage = document.getElementById('npcImage');
 
       if (npcData && npcData.visible && npcData.image) {
-        // Show the portrait
-        if (npcImage.src !== npcData.image) {
+        // Show the portrait - only update if image changed
+        if (currentNpcImage !== npcData.image) {
+          currentNpcImage = npcData.image;
+          npcImage.onerror = function() {
+            console.error('Failed to load NPC image, using fallback');
+            npcImage.src = DEFAULT_SILHOUETTE;
+          };
           npcImage.src = npcData.image;
         }
         if (!currentNpcVisible) {
@@ -1434,6 +1470,7 @@
         if (currentNpcVisible) {
           portrait.classList.remove('visible');
           currentNpcVisible = false;
+          currentNpcImage = ''; // Reset so image can be shown again
         }
       }
     }
@@ -1449,7 +1486,14 @@
 
       if (spotlightData && spotlightData.visible && spotlightData.image) {
         // Show the spotlighted adversary
-        if (npcImage.src !== spotlightData.image) {
+        // Only update src if the image actually changed (compare by reference/content hash)
+        if (currentSpotlightImage !== spotlightData.image) {
+          currentSpotlightImage = spotlightData.image;
+          npcImage.onerror = function() {
+            // Fall back to default silhouette if image fails to load
+            console.error('Failed to load spotlight image, using fallback');
+            npcImage.src = DEFAULT_SILHOUETTE;
+          };
           npcImage.src = spotlightData.image;
         }
         if (!currentSpotlightVisible) {
@@ -1506,12 +1550,18 @@
           restrainedStamp.classList.remove('visible');
           vulnerableStamp.classList.remove('visible');
           currentSpotlightVisible = false;
+          currentSpotlightImage = ''; // Reset so image can be shown again
 
           // Check if NPC portrait should be shown instead
           const npcData = localStorage.getItem('daggerheart-npc');
           if (npcData) {
             const parsed = JSON.parse(npcData);
             if (parsed.visible && parsed.image) {
+              currentNpcImage = parsed.image;
+              npcImage.onerror = function() {
+                console.error('Failed to load NPC image, using fallback');
+                npcImage.src = DEFAULT_SILHOUETTE;
+              };
               npcImage.src = parsed.image;
               portrait.classList.add('visible');
               currentNpcVisible = true;
