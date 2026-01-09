@@ -1309,14 +1309,18 @@
     // Map of creature types/themes to default image filenames
     // Users can add images like 'undead.png', 'beast.png', etc. to images/npcs/
     const DEFAULT_NPC_IMAGE_MAP = {
-      // Add creature type mappings here - these will be matched against
-      // creature names, themes, or traits to find appropriate default images
-      // Example: 'undead': 'undead.png', 'beast': 'beast.png'
+      // Creature type mappings - matched against names, themes, or traits
+      // Add your own images to images/npcs/ and map them here
+      'skeleton': 'skeleton_archer.png',
+      'undead': 'skeleton_archer.png'
     };
 
     // Helper function to get the appropriate default image for an adversary
     function getDefaultImageForAdversary(adv) {
-      // First, check if there's a defaultPortrait specified in the adversary data
+      // First, check if there's a portrait or defaultPortrait specified in the adversary data
+      if (adv.portrait && typeof adv.portrait === 'string' && !adv.portrait.startsWith('data:')) {
+        return `${DEFAULT_NPC_IMAGES_PATH}${adv.portrait}`;
+      }
       if (adv.defaultPortrait) {
         return `${DEFAULT_NPC_IMAGES_PATH}${adv.defaultPortrait}`;
       }
