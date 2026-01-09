@@ -1,0 +1,45 @@
+{
+  "name": "Graveyard Ambush",
+  "adversaries": [
+    {
+      "name": "Skeleton Warrior",
+      "tier": 1,
+      "hp": 6,
+      "stress": 3,
+      "attack": "+2 (2d6+2 physical)",
+      "defense": 10,
+      "traits": ["Undead", "Fearless"],
+      "abilities": [
+        "Bone Strike: Melee attack dealing 2d6+2 physical damage",
+        "Reassemble: Once per encounter, regain 1d6 HP when reduced to 0"
+      ]
+    },
+    {
+      "name": "Skeleton Archer",
+      "tier": 1,
+      "hp": 4,
+      "stress": 2,
+      "attack": "+3 (2d6+1 physical, ranged)",
+      "defense": 8,
+      "traits": ["Undead", "Fearless"],
+      "abilities": [
+        "Arrow Volley: Ranged attack dealing 2d6+1 physical damage",
+        "Bone Shield: Reaction - reduce incoming damage by 2"
+      ]
+    },
+    {
+      "name": "Crimson Ooze",
+      "tier": 2,
+      "hp": 12,
+      "stress": 4,
+      "attack": "+1 (2d8 acid)",
+      "defense": 6,
+      "traits": ["Ooze", "Acidic", "Slow"],
+      "abilities": [
+        "Engulf: Melee attack dealing 2d8 acid damage. On hit, target is grappled",
+        "Split: When reduced to half HP, split into two smaller oozes with 4 HP each",
+        "Acid Trail: Leaves acidic residue that deals 1d4 damage to creatures that step in it"
+      ]
+    }
+  ]
+}
