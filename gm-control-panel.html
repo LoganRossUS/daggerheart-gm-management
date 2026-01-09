@@ -1952,6 +1952,11 @@
 
       renderEncounter();
       syncEncounterToStorage();
+
+      // Update spotlight if this adversary is spotlighted (defeated status may have changed)
+      if (spotlightedAdversary === adversaryId) {
+        syncSpotlightToStorage();
+      }
     }
 
     // Adjust Stress for an adversary
@@ -2093,11 +2098,13 @@
       if (spotlightedAdversary && currentEncounter) {
         const adversary = currentEncounter.adversaries.find(a => a.id === spotlightedAdversary);
         if (adversary && adversary.portraits && adversary.portraits.length > 0) {
+          const isDefeated = adversary.hp !== undefined && adversary.currentHp <= 0;
           const spotlightData = {
             visible: true,
             adversaryId: adversary.id,
             name: adversary.name,
             image: adversary.portraits[adversary.activePortraitIndex || 0],
+            defeated: isDefeated,
             timestamp: Date.now()
           };
           localStorage.setItem('daggerheart-spotlight', JSON.stringify(spotlightData));
