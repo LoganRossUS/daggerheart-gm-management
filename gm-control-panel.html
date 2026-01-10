@@ -1298,7 +1298,119 @@
       font-size: 0.85rem;
       margin-top: 8px;
     }
+
+    /* PeerJS Connection UI */
+    .connection-section {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .connection-input-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .connection-input-group input {
+      padding: 10px 14px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      width: 200px;
+    }
+
+    .connection-input-group input:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
+    .connection-input-group input::placeholder {
+      color: #666;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .connect-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #7c4dff, #4a0e4e);
+      color: white;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .connect-btn:hover:not(:disabled) {
+      transform: scale(1.05);
+    }
+
+    .connect-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .connect-btn.connected {
+      background: linear-gradient(135deg, #4caf50, #2e7d32);
+    }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+
+    .connection-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #666;
+    }
+
+    .connection-indicator.connecting {
+      background: #ff9800;
+      animation: pulse 1s infinite;
+    }
+
+    .connection-indicator.connected {
+      background: #4caf50;
+    }
+
+    .connection-indicator.error {
+      background: #f44336;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .disconnect-btn {
+      padding: 6px 12px;
+      border: 1px solid rgba(244, 67, 54, 0.5);
+      border-radius: 6px;
+      background: transparent;
+      color: #f44336;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .disconnect-btn:hover {
+      background: rgba(244, 67, 54, 0.2);
+    }
   </style>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
 <body>
   <h1>⚔️ GM Control Panel</h1>
@@ -1310,6 +1422,23 @@
       🖥️ Open Player Display Window
     </button>
     <p class="status" id="status">Click above to open the player-facing display</p>
+  </div>
+
+  <!-- Remote Connection -->
+  <div class="section">
+    <h2>📡 Remote Connection</h2>
+    <p style="color: #888; font-size: 0.85rem; margin-bottom: 12px;">Connect to a Player Display on another device/browser</p>
+    <div class="connection-section">
+      <div class="connection-input-group" id="connectionInputGroup">
+        <input type="text" id="roomCodeInput" placeholder="ROOM-CODE-00" maxlength="20" onkeyup="handleRoomCodeKeyup(event)">
+        <button class="connect-btn" id="connectBtn" onclick="connectToPlayerDisplay()">Connect</button>
+      </div>
+      <div class="connection-status" id="connectionStatus">
+        <div class="connection-indicator" id="connectionIndicator"></div>
+        <span id="connectionText">Not connected</span>
+        <button class="disconnect-btn" id="disconnectBtn" onclick="disconnectFromPlayerDisplay()" style="display: none;">Disconnect</button>
+      </div>
+    </div>
   </div>
   
   <!-- Fear Tracker -->
@@ -1471,6 +1600,10 @@
     let adversaryDatabase = [];
     let selectedAutocompleteIndex = -1;
 
+    // PeerJS connection state
+    let peer = null;
+    let playerConnection = null;
+
     // Default NPC image (shadowy silhouette) - embedded SVG as data URL
     const DEFAULT_NPC_IMAGE = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
       <defs>
@@ -1544,6 +1677,158 @@
 
       // Fall back to the embedded default silhouette
       return DEFAULT_NPC_IMAGE;
+    }
+
+    // ========== PeerJS Connection ==========
+
+    // Handle Enter key in room code input
+    function handleRoomCodeKeyup(event) {
+      if (event.key === 'Enter') {
+        connectToPlayerDisplay();
+      }
+    }
+
+    // Connect to player display via PeerJS
+    function connectToPlayerDisplay() {
+      const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+      if (!roomCode) {
+        alert('Please enter a room code');
+        return;
+      }
+
+      // Update UI to show connecting state
+      const indicator = document.getElementById('connectionIndicator');
+      const text = document.getElementById('connectionText');
+      const connectBtn = document.getElementById('connectBtn');
+
+      indicator.className = 'connection-indicator connecting';
+      text.textContent = 'Connecting...';
+      connectBtn.disabled = true;
+
+      // Create peer if not already created
+      if (!peer) {
+        peer = new Peer({
+          debug: 1
+        });
+
+        peer.on('error', (err) => {
+          console.error('PeerJS error:', err);
+          indicator.className = 'connection-indicator error';
+          text.textContent = 'Connection error: ' + err.type;
+          connectBtn.disabled = false;
+        });
+      }
+
+      // Wait for peer to be ready
+      const tryConnect = () => {
+        // Connect to player display using room code
+        const conn = peer.connect('dh-' + roomCode, {
+          reliable: true
+        });
+
+        conn.on('open', () => {
+          console.log('Connected to player display!');
+          playerConnection = conn;
+
+          // Update UI
+          indicator.className = 'connection-indicator connected';
+          text.textContent = 'Connected to ' + roomCode;
+          connectBtn.textContent = 'Connected';
+          connectBtn.classList.add('connected');
+          connectBtn.disabled = true;
+          document.getElementById('disconnectBtn').style.display = 'inline-block';
+          document.getElementById('roomCodeInput').disabled = true;
+
+          // Send initial sync
+          sendFullSync();
+        });
+
+        conn.on('close', () => {
+          console.log('Disconnected from player display');
+          handleDisconnect();
+        });
+
+        conn.on('error', (err) => {
+          console.error('Connection error:', err);
+          indicator.className = 'connection-indicator error';
+          text.textContent = 'Failed to connect';
+          connectBtn.disabled = false;
+        });
+      };
+
+      if (peer.open) {
+        tryConnect();
+      } else {
+        peer.on('open', tryConnect);
+      }
+    }
+
+    // Disconnect from player display
+    function disconnectFromPlayerDisplay() {
+      if (playerConnection) {
+        playerConnection.close();
+      }
+      handleDisconnect();
+    }
+
+    // Handle disconnect UI update
+    function handleDisconnect() {
+      playerConnection = null;
+
+      const indicator = document.getElementById('connectionIndicator');
+      const text = document.getElementById('connectionText');
+      const connectBtn = document.getElementById('connectBtn');
+
+      indicator.className = 'connection-indicator';
+      text.textContent = 'Not connected';
+      connectBtn.textContent = 'Connect';
+      connectBtn.classList.remove('connected');
+      connectBtn.disabled = false;
+      document.getElementById('disconnectBtn').style.display = 'none';
+      document.getElementById('roomCodeInput').disabled = false;
+    }
+
+    // Send data to player display via PeerJS
+    function sendToPlayer(data) {
+      if (playerConnection && playerConnection.open) {
+        playerConnection.send(data);
+      }
+    }
+
+    // Send full state sync to player
+    function sendFullSync() {
+      if (!playerConnection || !playerConnection.open) return;
+
+      const syncData = {
+        type: 'sync',
+        fear: currentFear,
+        spotlight: null
+      };
+
+      // Include spotlight data if there's a spotlighted adversary
+      if (spotlightedAdversary && currentEncounter) {
+        const adversary = currentEncounter.adversaries.find(a => a.id === spotlightedAdversary);
+        if (adversary) {
+          const isDefeated = adversary.hp !== undefined && adversary.currentHp <= 0;
+          const hasCustomPortrait = adversary.portraits && adversary.portraits.length > 0;
+          const imageToShow = hasCustomPortrait
+            ? adversary.portraits[adversary.activePortraitIndex || 0]
+            : getDefaultImageForAdversary(adversary);
+
+          syncData.spotlight = {
+            visible: true,
+            adversaryId: adversary.id,
+            name: adversary.name,
+            image: imageToShow,
+            isDefaultImage: !hasCustomPortrait,
+            defeated: isDefeated,
+            conditions: adversary.conditions || {},
+            timestamp: Date.now()
+          };
+        }
+      }
+
+      sendToPlayer(syncData);
     }
 
     // Initialize from localStorage
@@ -2728,7 +3013,7 @@
       }
     }
 
-    // Sync spotlight data to localStorage (this is what player display reads)
+    // Sync spotlight data to localStorage and PeerJS (this is what player display reads)
     function syncSpotlightToStorage() {
       if (spotlightedAdversary && currentEncounter) {
         const adversary = currentEncounter.adversaries.find(a => a.id === spotlightedAdversary);
@@ -2760,6 +3045,9 @@
               alert('Image is too large to display on player screen. Please use a smaller image (under 1MB recommended) or compress the current image.');
             }
           }
+
+          // Send via PeerJS (works even for large images since it's P2P)
+          sendToPlayer({ type: 'spotlight', ...spotlightData });
           return;
         }
       }
@@ -2774,6 +3062,7 @@
       } catch (e) {
         console.error('Failed to clear spotlight in localStorage:', e);
       }
+      sendToPlayer({ type: 'spotlight', ...spotlightData });
       document.getElementById('hideSpotlightBtn').disabled = true;
     }
 
@@ -2788,17 +3077,19 @@
     function adjustFear(amount) {
       currentFear = Math.max(0, Math.min(12, currentFear + amount));
       updateFearDisplay();
-      
-      // Send to player display
+
+      // Send to player display (localStorage for same-browser, PeerJS for remote)
       localStorage.setItem('daggerheart-fear', currentFear);
       localStorage.setItem('daggerheart-update', Date.now()); // Trigger update
+      sendToPlayer({ type: 'fear', value: currentFear });
     }
-    
+
     function resetFear() {
       currentFear = 0;
       updateFearDisplay();
       localStorage.setItem('daggerheart-fear', 0);
       localStorage.setItem('daggerheart-update', Date.now());
+      sendToPlayer({ type: 'fear', value: 0 });
     }
     
     function setNotation(notation) {
@@ -2871,8 +3162,8 @@
       const breakdownStr = result.breakdown.join('');
       document.getElementById('lastRoll').textContent = `${notation}: ${breakdownStr} = ${result.total}`;
 
-      // Send to player display
-      localStorage.setItem('daggerheart-dice', JSON.stringify({
+      // Send to player display (localStorage for same-browser, PeerJS for remote)
+      const diceData = {
         type: 'notation',
         notation: result.notation,
         diceRolls: result.diceRolls,
@@ -2880,7 +3171,9 @@
         total: result.total,
         breakdown: result.breakdown,
         timestamp: Date.now()
-      }));
+      };
+      localStorage.setItem('daggerheart-dice', JSON.stringify(diceData));
+      sendToPlayer({ type: 'dice', ...diceData });
     }
 
     // Allow Enter key to roll
@@ -2891,7 +3184,7 @@
         }
       });
     });
-    
+
     function rollHopeFear() {
       const hope = Math.floor(Math.random() * 12) + 1;
       const fear = Math.floor(Math.random() * 12) + 1;
@@ -2900,15 +3193,17 @@
 
       document.getElementById('lastRoll').textContent = `${sum} with ${winner} (${hope} + ${fear})`;
 
-      // Send to player display
-      localStorage.setItem('daggerheart-dice', JSON.stringify({
+      // Send to player display (localStorage for same-browser, PeerJS for remote)
+      const diceData = {
         type: 'hopefear',
         hope: hope,
         fear: fear,
         sum: sum,
         winner: winner,
         timestamp: Date.now()
-      }));
+      };
+      localStorage.setItem('daggerheart-dice', JSON.stringify(diceData));
+      sendToPlayer({ type: 'dice', ...diceData });
     }
     
     function openPlayerDisplay() {
