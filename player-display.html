@@ -1819,26 +1819,59 @@
       // Create peer if not already created
       if (!peer) {
         peer = new Peer({
-          debug: 1
+          debug: 2, // More verbose logging
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' },
+              { urls: 'stun:stun3.l.google.com:19302' },
+              { urls: 'stun:stun4.l.google.com:19302' }
+            ]
+          }
+        });
+
+        peer.on('open', (id) => {
+          console.log('Peer initialized with ID:', id);
         });
 
         peer.on('error', (err) => {
           console.error('PeerJS error:', err);
           indicator.style.background = '#f44336';
-          title.textContent = 'Connection error';
+          title.textContent = 'Connection error: ' + err.type;
           connectBtn.disabled = false;
-          connectBtn.textContent = 'Connect';
+          connectBtn.textContent = 'Retry';
           connectBtn.classList.remove('connecting');
+        });
+
+        peer.on('disconnected', () => {
+          console.log('Disconnected from signaling server');
+          if (peer && !peer.destroyed) {
+            peer.reconnect();
+          }
         });
       }
 
       // Connect to GM
       const tryConnect = () => {
         const conn = peer.connect('dh-' + roomCode, {
-          reliable: true
+          reliable: true,
+          serialization: 'json'
         });
 
+        // Timeout if connection doesn't open within 10 seconds
+        const connectionTimeout = setTimeout(() => {
+          if (!gmConnection) {
+            console.log('Connection timeout - GM not found');
+            title.textContent = 'GM not found. Check code?';
+            connectBtn.disabled = false;
+            connectBtn.textContent = 'Retry';
+            connectBtn.classList.remove('connecting');
+          }
+        }, 10000);
+
         conn.on('open', () => {
+          clearTimeout(connectionTimeout);
           console.log('Connected to GM!');
           gmConnection = conn;
 
