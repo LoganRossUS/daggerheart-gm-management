@@ -1390,8 +1390,8 @@
           setTimeout(() => {
             dice.forEach(d => d.container.style.opacity = '0.4');
 
-            resultValue.textContent = data.winner;
-            resultDetail.textContent = `Hope: ${data.hope}  |  Fear: ${data.fear}`;
+            resultValue.textContent = data.sum;
+            resultDetail.textContent = `with ${data.winner} (${data.hope} + ${data.fear})`;
             resultDisplay.classList.add('visible', data.winner.toLowerCase());
 
             setTimeout(() => {
