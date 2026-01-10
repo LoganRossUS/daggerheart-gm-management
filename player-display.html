@@ -780,16 +780,57 @@
       margin-top: 8px;
     }
 
-    .room-code {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #ffd700;
-      letter-spacing: 4px;
-      text-align: center;
-      padding: 8px 0;
-      background: rgba(255, 215, 0, 0.1);
+    .room-code-input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 2px solid rgba(255, 255, 255, 0.2);
       border-radius: 6px;
-      margin-bottom: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      color: #ffd700;
+      font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    .room-code-input:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
+    .room-code-input::placeholder {
+      color: #555;
+      font-weight: 400;
+    }
+
+    .connect-btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #7c4dff, #4a0e4e);
+      color: white;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .connect-btn:hover:not(:disabled) {
+      transform: scale(1.02);
+      filter: brightness(1.1);
+    }
+
+    .connect-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .connect-btn.connecting {
+      background: linear-gradient(135deg, #ff9800, #e65100);
     }
 
     .room-code-label {
@@ -798,12 +839,14 @@
       text-align: center;
       text-transform: uppercase;
       letter-spacing: 1px;
+      margin-bottom: 4px;
     }
 
     .connected-info {
       font-size: 0.8rem;
       color: #81c784;
       text-align: center;
+      padding: 10px 0;
     }
 
     .minimize-btn {
@@ -831,12 +874,12 @@
     <button class="minimize-btn" onclick="toggleConnectionMinimize()">−</button>
     <div class="connection-header">
       <div class="connection-indicator"></div>
-      <div class="connection-title">Waiting for GM...</div>
+      <div class="connection-title">Enter GM Room Code</div>
     </div>
     <div class="connection-details">
-      <div class="room-code-label">Room Code</div>
-      <div class="room-code" id="roomCode">----</div>
-      <div class="room-code-label">Enter this in GM Panel</div>
+      <div class="room-code-label">Room Code from GM Panel</div>
+      <input type="text" id="roomCodeInput" class="room-code-input" placeholder="FIRE-DRAGON-00" maxlength="20" onkeyup="handleRoomCodeKeyup(event)">
+      <button class="connect-btn" id="connectBtn" onclick="connectToGM()">Connect</button>
     </div>
   </div>
 
@@ -1553,7 +1596,6 @@
     // PeerJS connection state
     let peer = null;
     let gmConnection = null;
-    let roomCode = null;
 
     // Default silhouette image for fallback
     const DEFAULT_SILHOUETTE = `data:image/svg+xml,${encodeURIComponent(`
@@ -1747,69 +1789,95 @@
       }
     }
     
-    // ========== PeerJS Connection ==========
+    // ========== PeerJS Connection (Player connects to GM) ==========
 
-    // Generate a friendly room code
-    function generateRoomCode() {
-      const adjectives = ['RED', 'BLUE', 'GOLD', 'DARK', 'WILD', 'IRON', 'FIRE', 'FROST', 'STORM', 'SHADOW'];
-      const nouns = ['WOLF', 'HAWK', 'BEAR', 'LION', 'RAVEN', 'DRAGON', 'SWORD', 'CROWN', 'FLAME', 'BLADE'];
-      const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-      const noun = nouns[Math.floor(Math.random() * nouns.length)];
-      const num = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-      return `${adj}-${noun}-${num}`;
+    // Handle Enter key in room code input
+    function handleRoomCodeKeyup(event) {
+      if (event.key === 'Enter') {
+        connectToGM();
+      }
     }
 
-    // Initialize PeerJS connection
-    function initPeer() {
-      roomCode = generateRoomCode();
-      document.getElementById('roomCode').textContent = roomCode;
+    // Connect to GM via PeerJS
+    function connectToGM() {
+      const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+      if (!roomCode) {
+        return;
+      }
 
-      // Create peer with room code as ID
-      peer = new Peer('dh-' + roomCode, {
-        debug: 1
-      });
+      const statusEl = document.getElementById('connectionStatus');
+      const connectBtn = document.getElementById('connectBtn');
+      const indicator = statusEl.querySelector('.connection-indicator');
+      const title = statusEl.querySelector('.connection-title');
 
-      peer.on('open', (id) => {
-        console.log('Player display ready with room code:', roomCode);
-      });
+      // Update UI to show connecting
+      connectBtn.disabled = true;
+      connectBtn.textContent = 'Connecting...';
+      connectBtn.classList.add('connecting');
+      title.textContent = 'Connecting to GM...';
 
-      peer.on('connection', (conn) => {
-        console.log('GM connected!');
-        gmConnection = conn;
+      // Create peer if not already created
+      if (!peer) {
+        peer = new Peer({
+          debug: 1
+        });
 
-        // Update UI to show connected state
-        const statusEl = document.getElementById('connectionStatus');
-        statusEl.classList.add('connected');
-        statusEl.querySelector('.connection-title').textContent = 'GM Connected';
-        statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Receiving data from GM panel</div>';
+        peer.on('error', (err) => {
+          console.error('PeerJS error:', err);
+          indicator.style.background = '#f44336';
+          title.textContent = 'Connection error';
+          connectBtn.disabled = false;
+          connectBtn.textContent = 'Connect';
+          connectBtn.classList.remove('connecting');
+        });
+      }
+
+      // Connect to GM
+      const tryConnect = () => {
+        const conn = peer.connect('dh-' + roomCode, {
+          reliable: true
+        });
+
+        conn.on('open', () => {
+          console.log('Connected to GM!');
+          gmConnection = conn;
+
+          // Update UI to show connected
+          statusEl.classList.add('connected');
+          title.textContent = 'Connected to GM';
+          statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Receiving data from GM panel</div>';
+        });
 
         conn.on('data', (data) => {
           handleGmData(data);
         });
 
         conn.on('close', () => {
-          console.log('GM disconnected');
+          console.log('Disconnected from GM');
           gmConnection = null;
           statusEl.classList.remove('connected');
-          statusEl.querySelector('.connection-title').textContent = 'GM Disconnected';
+          title.textContent = 'Disconnected from GM';
           statusEl.querySelector('.connection-details').innerHTML = `
-            <div class="room-code-label">Room Code</div>
-            <div class="room-code" id="roomCode">${roomCode}</div>
-            <div class="room-code-label">Enter this in GM Panel</div>
+            <div class="room-code-label">Room Code from GM Panel</div>
+            <input type="text" id="roomCodeInput" class="room-code-input" placeholder="FIRE-DRAGON-00" maxlength="20" value="${roomCode}" onkeyup="handleRoomCodeKeyup(event)">
+            <button class="connect-btn" id="connectBtn" onclick="connectToGM()">Reconnect</button>
           `;
         });
-      });
 
-      peer.on('error', (err) => {
-        console.error('PeerJS error:', err);
-        if (err.type === 'unavailable-id') {
-          // Room code already taken, generate a new one
-          roomCode = generateRoomCode();
-          document.getElementById('roomCode').textContent = roomCode;
-          peer.destroy();
-          setTimeout(initPeer, 1000);
-        }
-      });
+        conn.on('error', (err) => {
+          console.error('Connection error:', err);
+          title.textContent = 'Failed to connect';
+          connectBtn.disabled = false;
+          connectBtn.textContent = 'Connect';
+          connectBtn.classList.remove('connecting');
+        });
+      };
+
+      if (peer.open) {
+        tryConnect();
+      } else {
+        peer.on('open', tryConnect);
+      }
     }
 
     // Handle incoming data from GM
@@ -1863,7 +1931,6 @@
 
     // Initialize
     initSkulls();
-    initPeer();
     checkForUpdates();
 
     // Poll for updates (localStorage events don't always fire in same window)
