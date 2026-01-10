@@ -1133,6 +1133,171 @@
       background: rgba(218, 165, 32, 0.25);
       color: #ffd700;
     }
+
+    /* Image Source Dialog */
+    .image-dialog-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-dialog-overlay.visible {
+      display: flex;
+    }
+
+    .image-dialog {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border: 2px solid rgba(179, 136, 255, 0.4);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 420px;
+      width: 90%;
+    }
+
+    .image-dialog h3 {
+      color: #b388ff;
+      margin-bottom: 16px;
+      font-size: 1.1rem;
+    }
+
+    .image-dialog-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .image-dialog-btn {
+      padding: 14px 20px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+
+    .image-dialog-btn:hover {
+      background: rgba(179, 136, 255, 0.2);
+      border-color: #b388ff;
+    }
+
+    .image-dialog-btn .btn-icon {
+      margin-right: 10px;
+    }
+
+    .image-dialog-btn .btn-subtitle {
+      display: block;
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 4px;
+      font-family: sans-serif;
+    }
+
+    .url-input-section {
+      display: none;
+      margin-top: 16px;
+    }
+
+    .url-input-section.visible {
+      display: block;
+    }
+
+    .url-input-section label {
+      display: block;
+      color: #b388ff;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    .url-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .url-input-row input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      color: #e0e0e0;
+      font-family: sans-serif;
+      font-size: 0.9rem;
+    }
+
+    .url-input-row input:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
+    .url-input-row input::placeholder {
+      color: #666;
+    }
+
+    .url-add-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #7c4dff, #4a0e4e);
+      color: white;
+      font-family: 'Cinzel', serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .url-add-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .url-add-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .image-dialog-cancel {
+      margin-top: 16px;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: #888;
+      font-family: 'Cinzel', serif;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+    }
+
+    .image-dialog-cancel:hover {
+      color: #b388ff;
+    }
+
+    .url-preview {
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    .url-preview img {
+      max-width: 150px;
+      max-height: 150px;
+      border-radius: 8px;
+      border: 2px solid rgba(179, 136, 255, 0.3);
+    }
+
+    .url-preview-error {
+      color: #ff6b6b;
+      font-size: 0.85rem;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -1264,6 +1429,32 @@
     <a href="encounter-generator.html" style="color: #b388ff; text-decoration: none; font-size: 0.95rem; padding: 10px 20px; border: 1px solid rgba(179, 136, 255, 0.3); border-radius: 8px; transition: all 0.2s;">
       Encounter Generator Tool
     </a>
+  </div>
+
+  <!-- Image Source Dialog -->
+  <div id="imageSourceDialog" class="image-dialog-overlay" onclick="closeImageDialog(event)">
+    <div class="image-dialog" onclick="event.stopPropagation()">
+      <h3>Add Portrait Image</h3>
+      <div class="image-dialog-options">
+        <button class="image-dialog-btn" onclick="chooseFileUpload()">
+          <span class="btn-icon">📁</span>Upload from Computer
+          <span class="btn-subtitle">Select an image file from your device</span>
+        </button>
+        <button class="image-dialog-btn" onclick="showUrlInput()">
+          <span class="btn-icon">🔗</span>Use Image URL
+          <span class="btn-subtitle">Paste a link to an image (CDN, web hosting, etc.)</span>
+        </button>
+      </div>
+      <div id="urlInputSection" class="url-input-section">
+        <label>Image URL:</label>
+        <div class="url-input-row">
+          <input type="url" id="imageUrlInput" placeholder="https://example.com/image.png" onkeyup="handleUrlKeyup(event)" oninput="previewUrlImage()">
+          <button class="url-add-btn" id="urlAddBtn" onclick="addUrlPortrait()" disabled>Add</button>
+        </div>
+        <div id="urlPreview" class="url-preview"></div>
+      </div>
+      <button class="image-dialog-cancel" onclick="closeImageDialog()">Cancel</button>
+    </div>
   </div>
 
   <script>
@@ -1903,6 +2094,7 @@
               };
 
               // Check for image reference in JSON (supports: portrait, image, portraits array)
+              // Can be: filename (matched to uploaded files), URL (http/https), or data URL
               const imageRefs = [];
 
               if (adv.portrait) {
@@ -1912,14 +2104,27 @@
                 imageRefs.push(adv.image);
               }
               if (Array.isArray(adv.portraits)) {
-                imageRefs.push(...adv.portraits.filter(p => typeof p === 'string' && !p.startsWith('data:')));
+                imageRefs.push(...adv.portraits.filter(p => typeof p === 'string'));
               }
 
-              // Match image references to loaded images
+              // Process image references - URLs pass through, filenames are matched
               imageRefs.forEach(ref => {
-                const filename = ref.toLowerCase();
-                if (imageMap.has(filename)) {
-                  processedAdv.portraits.push(imageMap.get(filename));
+                if (typeof ref !== 'string') return;
+
+                // Check if it's an external URL (http/https)
+                if (ref.startsWith('http://') || ref.startsWith('https://')) {
+                  processedAdv.portraits.push(ref);
+                }
+                // Check if it's already a data URL
+                else if (ref.startsWith('data:')) {
+                  processedAdv.portraits.push(ref);
+                }
+                // Otherwise treat as filename and try to match
+                else {
+                  const filename = ref.toLowerCase();
+                  if (imageMap.has(filename)) {
+                    processedAdv.portraits.push(imageMap.get(filename));
+                  }
                 }
               });
 
@@ -2024,7 +2229,8 @@
             No encounter loaded.<br>
             <small style="color: #888; display: block; margin-top: 8px;">
               Create a folder with encounter.json + images.<br>
-              Use "portrait": "filename.png" in your JSON.
+              Use "portrait": "filename.png" or a CDN URL in your JSON.<br>
+              Click adversary portraits to add images.
             </small>
           </div>
         `;
@@ -2230,10 +2436,111 @@
       }
     }
 
-    // Trigger image upload for specific adversary
+    // Trigger image upload for specific adversary - shows dialog with file/URL options
     function triggerImageUpload(adversaryId) {
       pendingImageUploadAdversaryId = adversaryId;
+      // Show the image source dialog
+      document.getElementById('imageSourceDialog').classList.add('visible');
+      // Reset the dialog state
+      document.getElementById('urlInputSection').classList.remove('visible');
+      document.getElementById('imageUrlInput').value = '';
+      document.getElementById('urlPreview').innerHTML = '';
+      document.getElementById('urlAddBtn').disabled = true;
+    }
+
+    // Close the image source dialog
+    function closeImageDialog(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('imageSourceDialog').classList.remove('visible');
+      pendingImageUploadAdversaryId = null;
+    }
+
+    // User chose to upload a file
+    function chooseFileUpload() {
+      document.getElementById('imageSourceDialog').classList.remove('visible');
       document.getElementById('adversaryImageInput').click();
+    }
+
+    // Show the URL input section
+    function showUrlInput() {
+      document.getElementById('urlInputSection').classList.add('visible');
+      document.getElementById('imageUrlInput').focus();
+    }
+
+    // Handle Enter key in URL input
+    function handleUrlKeyup(event) {
+      if (event.key === 'Enter' && !document.getElementById('urlAddBtn').disabled) {
+        addUrlPortrait();
+      }
+    }
+
+    // Preview the URL image
+    function previewUrlImage() {
+      const url = document.getElementById('imageUrlInput').value.trim();
+      const preview = document.getElementById('urlPreview');
+      const addBtn = document.getElementById('urlAddBtn');
+
+      if (!url) {
+        preview.innerHTML = '';
+        addBtn.disabled = true;
+        return;
+      }
+
+      // Basic URL validation
+      try {
+        const parsed = new URL(url);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          preview.innerHTML = '<div class="url-preview-error">URL must start with http:// or https://</div>';
+          addBtn.disabled = true;
+          return;
+        }
+      } catch (e) {
+        preview.innerHTML = '<div class="url-preview-error">Invalid URL format</div>';
+        addBtn.disabled = true;
+        return;
+      }
+
+      // Try to load the image
+      preview.innerHTML = '<div style="color: #888; font-size: 0.8rem;">Loading preview...</div>';
+      const img = new Image();
+      img.onload = function() {
+        preview.innerHTML = '';
+        preview.appendChild(img);
+        addBtn.disabled = false;
+      };
+      img.onerror = function() {
+        preview.innerHTML = '<div class="url-preview-error">Could not load image. Check the URL or try a different one.</div>';
+        addBtn.disabled = true;
+      };
+      img.src = url;
+    }
+
+    // Add URL as portrait
+    function addUrlPortrait() {
+      const url = document.getElementById('imageUrlInput').value.trim();
+      if (!url || !pendingImageUploadAdversaryId) return;
+
+      const adversary = currentEncounter.adversaries.find(a => a.id === pendingImageUploadAdversaryId);
+      if (!adversary) return;
+
+      // Add URL directly to portraits (no compression needed for external URLs)
+      if (!adversary.portraits) {
+        adversary.portraits = [];
+      }
+      adversary.portraits.push(url);
+      adversary.activePortraitIndex = adversary.portraits.length - 1;
+
+      // Update UI
+      renderEncounter();
+      syncEncounterToStorage();
+
+      // If this adversary is spotlighted, update the spotlight
+      if (spotlightedAdversary === adversary.id) {
+        syncSpotlightToStorage();
+      }
+
+      // Close dialog
+      closeImageDialog();
     }
 
     // Compress/resize image if too large for localStorage
