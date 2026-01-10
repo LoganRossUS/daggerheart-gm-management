@@ -2594,7 +2594,8 @@
       const fear = Math.floor(Math.random() * 12) + 1;
       const winner = hope >= fear ? 'HOPE' : 'FEAR';
       
-      document.getElementById('lastRoll').textContent = `Hope: ${hope} | Fear: ${fear} → ${winner}!`;
+      const total = hope + fear;
+      document.getElementById('lastRoll').textContent = `${total} with ${winner} (Hope: ${hope} | Fear: ${fear})`;
       
       // Send to player display
       localStorage.setItem('daggerheart-dice', JSON.stringify({
