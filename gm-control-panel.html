@@ -1307,59 +1307,40 @@
       flex-wrap: wrap;
     }
 
-    .connection-input-group {
+    .room-code-display {
       display: flex;
-      gap: 8px;
       align-items: center;
-    }
-
-    .connection-input-group input {
-      padding: 10px 14px;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      border-radius: 8px;
+      gap: 10px;
       background: rgba(0, 0, 0, 0.3);
-      color: #e0e0e0;
-      font-family: 'Cinzel', serif;
-      font-size: 1rem;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      width: 200px;
-    }
-
-    .connection-input-group input:focus {
-      outline: none;
-      border-color: #b388ff;
-    }
-
-    .connection-input-group input::placeholder {
-      color: #666;
-      text-transform: none;
-      letter-spacing: normal;
-    }
-
-    .connect-btn {
-      padding: 10px 20px;
-      border: none;
+      padding: 10px 16px;
       border-radius: 8px;
-      background: linear-gradient(135deg, #7c4dff, #4a0e4e);
-      color: white;
-      font-family: 'Cinzel', serif;
+      border: 2px solid rgba(179, 136, 255, 0.3);
+    }
+
+    .room-code-display .room-code-label {
+      color: #888;
       font-size: 0.9rem;
+    }
+
+    .room-code-display .room-code-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #ffd700;
+      letter-spacing: 3px;
+    }
+
+    .copy-code-btn {
+      background: none;
+      border: none;
       cursor: pointer;
-      transition: all 0.2s;
+      font-size: 1.1rem;
+      padding: 4px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
     }
 
-    .connect-btn:hover:not(:disabled) {
-      transform: scale(1.05);
-    }
-
-    .connect-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .connect-btn.connected {
-      background: linear-gradient(135deg, #4caf50, #2e7d32);
+    .copy-code-btn:hover {
+      opacity: 1;
     }
 
     .connection-status {
@@ -1373,41 +1354,23 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: #666;
-    }
-
-    .connection-indicator.connecting {
       background: #ff9800;
-      animation: pulse 1s infinite;
+      animation: pulse 2s infinite;
     }
 
     .connection-indicator.connected {
       background: #4caf50;
+      animation: none;
     }
 
     .connection-indicator.error {
       background: #f44336;
+      animation: none;
     }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
-    }
-
-    .disconnect-btn {
-      padding: 6px 12px;
-      border: 1px solid rgba(244, 67, 54, 0.5);
-      border-radius: 6px;
-      background: transparent;
-      color: #f44336;
-      font-family: 'Cinzel', serif;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .disconnect-btn:hover {
-      background: rgba(244, 67, 54, 0.2);
     }
   </style>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -1427,16 +1390,16 @@
   <!-- Remote Connection -->
   <div class="section">
     <h2>📡 Remote Connection</h2>
-    <p style="color: #888; font-size: 0.85rem; margin-bottom: 12px;">Connect to a Player Display on another device/browser</p>
+    <p style="color: #888; font-size: 0.85rem; margin-bottom: 12px;">Share this code with your Player Display</p>
     <div class="connection-section">
-      <div class="connection-input-group" id="connectionInputGroup">
-        <input type="text" id="roomCodeInput" placeholder="ROOM-CODE-00" maxlength="20" onkeyup="handleRoomCodeKeyup(event)">
-        <button class="connect-btn" id="connectBtn" onclick="connectToPlayerDisplay()">Connect</button>
+      <div class="room-code-display">
+        <span class="room-code-label">Room Code:</span>
+        <span class="room-code-value" id="roomCodeDisplay">----</span>
+        <button class="copy-code-btn" onclick="copyRoomCode()" title="Copy to clipboard">📋</button>
       </div>
       <div class="connection-status" id="connectionStatus">
         <div class="connection-indicator" id="connectionIndicator"></div>
-        <span id="connectionText">Not connected</span>
-        <button class="disconnect-btn" id="disconnectBtn" onclick="disconnectFromPlayerDisplay()" style="display: none;">Disconnect</button>
+        <span id="connectionText">Waiting for Player Display...</span>
       </div>
     </div>
   </div>
@@ -1679,113 +1642,84 @@
       return DEFAULT_NPC_IMAGE;
     }
 
-    // ========== PeerJS Connection ==========
+    // ========== PeerJS Connection (GM hosts, Player connects) ==========
 
-    // Handle Enter key in room code input
-    function handleRoomCodeKeyup(event) {
-      if (event.key === 'Enter') {
-        connectToPlayerDisplay();
+    let roomCode = null;
+
+    // Generate a friendly room code
+    function generateRoomCode() {
+      const adjectives = ['RED', 'BLUE', 'GOLD', 'DARK', 'WILD', 'IRON', 'FIRE', 'FROST', 'STORM', 'SHADOW'];
+      const nouns = ['WOLF', 'HAWK', 'BEAR', 'LION', 'RAVEN', 'DRAGON', 'SWORD', 'CROWN', 'FLAME', 'BLADE'];
+      const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+      const noun = nouns[Math.floor(Math.random() * nouns.length)];
+      const num = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+      return `${adj}-${noun}-${num}`;
+    }
+
+    // Copy room code to clipboard
+    function copyRoomCode() {
+      if (roomCode) {
+        navigator.clipboard.writeText(roomCode).then(() => {
+          const btn = document.querySelector('.copy-code-btn');
+          btn.textContent = '✓';
+          setTimeout(() => { btn.textContent = '📋'; }, 1500);
+        });
       }
     }
 
-    // Connect to player display via PeerJS
-    function connectToPlayerDisplay() {
-      const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
-      if (!roomCode) {
-        alert('Please enter a room code');
-        return;
-      }
+    // Initialize PeerJS as host
+    function initPeerHost() {
+      roomCode = generateRoomCode();
+      document.getElementById('roomCodeDisplay').textContent = roomCode;
 
-      // Update UI to show connecting state
-      const indicator = document.getElementById('connectionIndicator');
-      const text = document.getElementById('connectionText');
-      const connectBtn = document.getElementById('connectBtn');
+      // Create peer with room code as ID (GM hosts)
+      peer = new Peer('dh-' + roomCode, {
+        debug: 1
+      });
 
-      indicator.className = 'connection-indicator connecting';
-      text.textContent = 'Connecting...';
-      connectBtn.disabled = true;
+      peer.on('open', (id) => {
+        console.log('GM hosting with room code:', roomCode);
+      });
 
-      // Create peer if not already created
-      if (!peer) {
-        peer = new Peer({
-          debug: 1
-        });
+      peer.on('connection', (conn) => {
+        console.log('Player Display connected!');
+        playerConnection = conn;
 
-        peer.on('error', (err) => {
-          console.error('PeerJS error:', err);
-          indicator.className = 'connection-indicator error';
-          text.textContent = 'Connection error: ' + err.type;
-          connectBtn.disabled = false;
-        });
-      }
-
-      // Wait for peer to be ready
-      const tryConnect = () => {
-        // Connect to player display using room code
-        const conn = peer.connect('dh-' + roomCode, {
-          reliable: true
-        });
+        // Update UI to show connected state
+        const indicator = document.getElementById('connectionIndicator');
+        const text = document.getElementById('connectionText');
+        indicator.className = 'connection-indicator connected';
+        text.textContent = 'Player Display connected!';
 
         conn.on('open', () => {
-          console.log('Connected to player display!');
-          playerConnection = conn;
-
-          // Update UI
-          indicator.className = 'connection-indicator connected';
-          text.textContent = 'Connected to ' + roomCode;
-          connectBtn.textContent = 'Connected';
-          connectBtn.classList.add('connected');
-          connectBtn.disabled = true;
-          document.getElementById('disconnectBtn').style.display = 'inline-block';
-          document.getElementById('roomCodeInput').disabled = true;
-
-          // Send initial sync
+          // Send initial sync when connection opens
           sendFullSync();
         });
 
         conn.on('close', () => {
-          console.log('Disconnected from player display');
-          handleDisconnect();
+          console.log('Player Display disconnected');
+          playerConnection = null;
+          indicator.className = 'connection-indicator';
+          text.textContent = 'Waiting for Player Display...';
         });
+      });
 
-        conn.on('error', (err) => {
-          console.error('Connection error:', err);
+      peer.on('error', (err) => {
+        console.error('PeerJS error:', err);
+        const indicator = document.getElementById('connectionIndicator');
+        const text = document.getElementById('connectionText');
+
+        if (err.type === 'unavailable-id') {
+          // Room code already taken, generate a new one
+          roomCode = generateRoomCode();
+          document.getElementById('roomCodeDisplay').textContent = roomCode;
+          peer.destroy();
+          setTimeout(initPeerHost, 1000);
+        } else {
           indicator.className = 'connection-indicator error';
-          text.textContent = 'Failed to connect';
-          connectBtn.disabled = false;
-        });
-      };
-
-      if (peer.open) {
-        tryConnect();
-      } else {
-        peer.on('open', tryConnect);
-      }
-    }
-
-    // Disconnect from player display
-    function disconnectFromPlayerDisplay() {
-      if (playerConnection) {
-        playerConnection.close();
-      }
-      handleDisconnect();
-    }
-
-    // Handle disconnect UI update
-    function handleDisconnect() {
-      playerConnection = null;
-
-      const indicator = document.getElementById('connectionIndicator');
-      const text = document.getElementById('connectionText');
-      const connectBtn = document.getElementById('connectBtn');
-
-      indicator.className = 'connection-indicator';
-      text.textContent = 'Not connected';
-      connectBtn.textContent = 'Connect';
-      connectBtn.classList.remove('connected');
-      connectBtn.disabled = false;
-      document.getElementById('disconnectBtn').style.display = 'none';
-      document.getElementById('roomCodeInput').disabled = false;
+          text.textContent = 'Connection error';
+        }
+      });
     }
 
     // Send data to player display via PeerJS
@@ -1873,6 +1807,9 @@
 
       // Initialize autocomplete
       initAdversarySearch();
+
+      // Initialize PeerJS host for remote connections
+      initPeerHost();
     }
 
     // Handle image file selection
