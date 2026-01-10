@@ -1672,13 +1672,27 @@
       roomCode = generateRoomCode();
       document.getElementById('roomCodeDisplay').textContent = roomCode;
 
+      const indicator = document.getElementById('connectionIndicator');
+      const text = document.getElementById('connectionText');
+
       // Create peer with room code as ID (GM hosts)
+      // Using explicit config for better reliability
       peer = new Peer('dh-' + roomCode, {
-        debug: 1
+        debug: 2, // More verbose logging
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' }
+          ]
+        }
       });
 
       peer.on('open', (id) => {
         console.log('GM hosting with room code:', roomCode);
+        text.textContent = 'Ready - Waiting for Player Display...';
       });
 
       peer.on('connection', (conn) => {
@@ -1686,8 +1700,6 @@
         playerConnection = conn;
 
         // Update UI to show connected state
-        const indicator = document.getElementById('connectionIndicator');
-        const text = document.getElementById('connectionText');
         indicator.className = 'connection-indicator connected';
         text.textContent = 'Player Display connected!';
 
@@ -1702,6 +1714,21 @@
           indicator.className = 'connection-indicator';
           text.textContent = 'Waiting for Player Display...';
         });
+
+        conn.on('error', (err) => {
+          console.error('Connection error:', err);
+        });
+      });
+
+      peer.on('disconnected', () => {
+        console.log('Disconnected from signaling server, attempting reconnect...');
+        text.textContent = 'Reconnecting to server...';
+        // Try to reconnect
+        setTimeout(() => {
+          if (peer && !peer.destroyed) {
+            peer.reconnect();
+          }
+        }, 2000);
       });
 
       peer.on('error', (err) => {
