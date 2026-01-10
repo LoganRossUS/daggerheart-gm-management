@@ -2588,15 +2588,17 @@
     function rollHopeFear() {
       const hope = Math.floor(Math.random() * 12) + 1;
       const fear = Math.floor(Math.random() * 12) + 1;
-      const winner = hope >= fear ? 'HOPE' : 'FEAR';
-      
-      document.getElementById('lastRoll').textContent = `Hope: ${hope} | Fear: ${fear} → ${winner}!`;
-      
+      const sum = hope + fear;
+      const winner = hope >= fear ? 'Hope' : 'Fear';
+
+      document.getElementById('lastRoll').textContent = `${sum} with ${winner} (${hope} + ${fear})`;
+
       // Send to player display
       localStorage.setItem('daggerheart-dice', JSON.stringify({
         type: 'hopefear',
         hope: hope,
         fear: fear,
+        sum: sum,
         winner: winner,
         timestamp: Date.now()
       }));
