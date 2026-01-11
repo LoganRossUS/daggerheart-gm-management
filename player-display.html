@@ -1864,7 +1864,7 @@
       const tryConnect = () => {
         const conn = peer.connect('dh-' + roomCode, {
           reliable: true,
-          serialization: 'json'
+          serialization: 'binary'  // Binary handles larger payloads than JSON
         });
 
         // Timeout if connection doesn't open within 10 seconds
