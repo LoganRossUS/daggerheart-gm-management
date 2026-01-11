@@ -1552,6 +1552,166 @@
       border: 2px dashed rgba(255,255,255,0.1);
       border-radius: 8px;
     }
+
+    /* Token positioning modal */
+    .positioning-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .positioning-modal.visible {
+      display: flex;
+    }
+
+    .positioning-container {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      background: #1a1a2e;
+      border: 2px solid #b388ff;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .positioning-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .positioning-title {
+      color: #b388ff;
+      font-size: 1.1rem;
+    }
+
+    .positioning-close {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 5px 10px;
+    }
+
+    .positioning-close:hover {
+      color: #b388ff;
+    }
+
+    .positioning-map {
+      position: relative;
+      max-width: 80vw;
+      max-height: 70vh;
+      overflow: auto;
+      border: 2px solid rgba(179, 136, 255, 0.3);
+      border-radius: 8px;
+      cursor: crosshair;
+    }
+
+    .positioning-map img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .positioning-marker {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 3px solid;
+      background-size: cover;
+      background-position: center;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+
+    .positioning-marker.player {
+      border-color: #4CAF50;
+      box-shadow: 0 0 15px rgba(76, 175, 80, 0.8);
+    }
+
+    .positioning-marker.adversary {
+      border-color: #f44336;
+      box-shadow: 0 0 15px rgba(244, 67, 54, 0.8);
+    }
+
+    .positioning-grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+    .token-actions {
+      display: flex;
+      gap: 5px;
+      flex-direction: column;
+    }
+
+    .token-position-btn {
+      padding: 4px 8px;
+      background: rgba(179, 136, 255, 0.2);
+      border: 1px solid rgba(179, 136, 255, 0.5);
+      border-radius: 4px;
+      color: #b388ff;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .token-position-btn:hover {
+      background: rgba(179, 136, 255, 0.3);
+    }
+
+    .token-upload-btn {
+      padding: 4px 8px;
+      background: rgba(76, 175, 80, 0.2);
+      border: 1px solid rgba(76, 175, 80, 0.5);
+      border-radius: 4px;
+      color: #4CAF50;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .token-upload-btn:hover {
+      background: rgba(76, 175, 80, 0.3);
+    }
+
+    .token-visibility-btn {
+      padding: 4px 8px;
+      background: rgba(255, 193, 7, 0.2);
+      border: 1px solid rgba(255, 193, 7, 0.5);
+      border-radius: 4px;
+      color: #ffc107;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .token-visibility-btn:hover {
+      background: rgba(255, 193, 7, 0.3);
+    }
+
+    .token-visibility-btn.hidden {
+      background: rgba(158, 158, 158, 0.2);
+      border-color: rgba(158, 158, 158, 0.5);
+      color: #9e9e9e;
+    }
+
+    .token-item.hidden {
+      opacity: 0.5;
+    }
   </style>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -1746,6 +1906,23 @@
     </div>
   </div>
 
+  <!-- Token Positioning Modal -->
+  <div id="positioningModal" class="positioning-modal" onclick="closePositioningModal(event)">
+    <div class="positioning-container" onclick="event.stopPropagation()">
+      <div class="positioning-header">
+        <div class="positioning-title" id="positioningTitle">Position Token</div>
+        <button class="positioning-close" onclick="closePositioningModal()">×</button>
+      </div>
+      <div class="positioning-map" id="positioningMapContainer">
+        <img id="positioningMapImage" src="" alt="Map">
+        <canvas id="positioningGrid" class="positioning-grid"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Token Image Upload -->
+  <input type="file" id="playerTokenImageInput" accept="image/*" style="display: none;" onchange="handlePlayerTokenImageUpload(event)">
+
   <!-- Footer -->
   <div class="footer" style="text-align: center; padding: 30px 20px; margin-top: 20px; border-top: 1px solid rgba(179, 136, 255, 0.2);">
     <a href="encounter-generator.html" style="color: #b388ff; text-decoration: none; font-size: 0.95rem; padding: 10px 20px; border: 1px solid rgba(179, 136, 255, 0.3); border-radius: 8px; transition: all 0.2s;">
@@ -1795,6 +1972,8 @@
     let battleMapTokens = [];
     let gridVisible = false;
     let nextPlayerTokenId = 1;
+    let positioningTokenId = null;
+    let pendingPlayerTokenImageId = null;
 
     // Adversary database (parsed from markdown)
     let adversaryDatabase = [];
@@ -3545,9 +3724,12 @@
     }
 
     function syncTokensToBattleMap() {
+      // Only send visible tokens to the battle map
+      const visibleTokens = battleMapTokens.filter(t => t.visible !== false);
+
       const data = {
         type: 'tokens',
-        tokens: battleMapTokens,
+        tokens: visibleTokens,
         timestamp: Date.now()
       };
 
@@ -3595,7 +3777,8 @@
         x: 5,
         y: 5,
         image: null,
-        conditions: {}
+        conditions: {},
+        visible: true
       };
 
       battleMapTokens.push(token);
@@ -3624,7 +3807,8 @@
         x: 10,
         y: 10,
         image: image,
-        conditions: adversary.conditions || {}
+        conditions: adversary.conditions || {},
+        visible: false // Adversaries start hidden, GM can show them
       };
 
       battleMapTokens.push(token);
@@ -3656,11 +3840,14 @@
 
       tokenList.innerHTML = battleMapTokens.map(token => {
         const tokenTypeClass = token.type;
+        const isVisible = token.visible !== false;
         const thumbStyle = token.image ? `background-image: url(${token.image})` : `background-color: ${token.type === 'player' ? '#4CAF50' : '#f44336'}`;
+        const visibilityBtnClass = isVisible ? '' : 'hidden';
+        const visibilityText = isVisible ? '👁 Visible' : '👁 Hidden';
 
         return `
-          <div class="token-item ${tokenTypeClass}">
-            <div class="token-thumb ${tokenTypeClass}" style="${thumbStyle}"></div>
+          <div class="token-item ${tokenTypeClass} ${isVisible ? '' : 'hidden'}">
+            <div class="token-thumb ${tokenTypeClass}" style="${thumbStyle}" ${token.type === 'player' && !token.image ? `onclick="uploadPlayerTokenImage('${token.id}')"` : ''} title="${token.type === 'player' && !token.image ? 'Click to add image' : ''}"></div>
             <div class="token-info">
               <div class="token-name">${token.name}</div>
               <div class="token-position">
@@ -3674,7 +3861,12 @@
                        min="0" step="1">
               </div>
             </div>
-            <button class="token-remove-btn" onclick="removeToken('${token.id}')">Remove</button>
+            <div class="token-actions">
+              <button class="token-position-btn" onclick="openPositioningModal('${token.id}')" ${!currentMap ? 'disabled title="Upload a map first"' : ''}>📍 Position</button>
+              ${token.type === 'player' ? `<button class="token-upload-btn" onclick="uploadPlayerTokenImage('${token.id}')">🖼 Image</button>` : ''}
+              <button class="token-visibility-btn ${visibilityBtnClass}" onclick="toggleTokenVisibility('${token.id}')">${visibilityText}</button>
+              <button class="token-remove-btn" onclick="removeToken('${token.id}')">Remove</button>
+            </div>
           </div>
         `;
       }).join('');
@@ -3703,7 +3895,149 @@
       renderTokenList();
       syncTokensToBattleMap();
     }
-    
+
+    // Upload image for player token
+    function uploadPlayerTokenImage(tokenId) {
+      pendingPlayerTokenImageId = tokenId;
+      document.getElementById('playerTokenImageInput').click();
+    }
+
+    function handlePlayerTokenImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file || !pendingPlayerTokenImageId) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const token = battleMapTokens.find(t => t.id === pendingPlayerTokenImageId);
+        if (token) {
+          token.image = e.target.result;
+          renderTokenList();
+          syncTokensToBattleMap();
+        }
+        pendingPlayerTokenImageId = null;
+      };
+      reader.readAsDataURL(file);
+
+      // Clear the input so the same file can be selected again
+      event.target.value = '';
+    }
+
+    // Toggle token visibility
+    function toggleTokenVisibility(tokenId) {
+      const token = battleMapTokens.find(t => t.id === tokenId);
+      if (token) {
+        token.visible = token.visible === false ? true : false;
+        renderTokenList();
+        syncTokensToBattleMap();
+      }
+    }
+
+    // Position token on map via click interface
+    function openPositioningModal(tokenId) {
+      if (!currentMap || !currentMap.mapImage) {
+        alert('Please upload a map first!');
+        return;
+      }
+
+      positioningTokenId = tokenId;
+      const token = battleMapTokens.find(t => t.id === tokenId);
+      if (!token) return;
+
+      const modal = document.getElementById('positioningModal');
+      const mapImg = document.getElementById('positioningMapImage');
+      const title = document.getElementById('positioningTitle');
+      const container = document.getElementById('positioningMapContainer');
+
+      title.textContent = `Position: ${token.name}`;
+      mapImg.src = currentMap.mapImage;
+
+      // Wait for image to load, then set up click handler
+      mapImg.onload = () => {
+        // Remove previous click handler
+        container.replaceWith(container.cloneNode(true));
+        const newContainer = document.getElementById('positioningMapContainer');
+        const newMapImg = document.getElementById('positioningMapImage');
+
+        // Draw existing tokens
+        drawPositioningTokens(newMapImg);
+
+        // Add click handler
+        newContainer.addEventListener('click', (e) => {
+          const rect = newMapImg.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          // Calculate grid position
+          const gridX = Math.floor(x / gridSize);
+          const gridY = Math.floor(y / gridSize);
+
+          // Update token position
+          updateTokenPosition(positioningTokenId, gridX, gridY);
+
+          // Redraw tokens with new position
+          drawPositioningTokens(newMapImg);
+        });
+      };
+
+      modal.classList.add('visible');
+    }
+
+    function closePositioningModal(event) {
+      if (event && event.target !== event.currentTarget && !event.target.classList.contains('positioning-close')) {
+        return;
+      }
+
+      const modal = document.getElementById('positioningModal');
+      modal.classList.remove('visible');
+      positioningTokenId = null;
+    }
+
+    function drawPositioningTokens(mapImg) {
+      // Remove existing markers
+      const container = document.getElementById('positioningMapContainer');
+      const existingMarkers = container.querySelectorAll('.positioning-marker');
+      existingMarkers.forEach(m => m.remove());
+
+      // Get map image dimensions
+      const rect = mapImg.getBoundingClientRect();
+      const mapWidth = mapImg.naturalWidth;
+      const mapHeight = mapImg.naturalHeight;
+      const displayWidth = rect.width;
+      const displayHeight = rect.height;
+
+      // Calculate scale
+      const scale = displayWidth / mapWidth;
+
+      // Draw all visible tokens
+      battleMapTokens.filter(t => t.visible !== false).forEach(token => {
+        const marker = document.createElement('div');
+        marker.className = `positioning-marker ${token.type}`;
+
+        // Position marker
+        const pixelX = (token.x * gridSize * scale);
+        const pixelY = (token.y * gridSize * scale);
+
+        marker.style.left = `${pixelX}px`;
+        marker.style.top = `${pixelY}px`;
+
+        // Set background image
+        if (token.image) {
+          marker.style.backgroundImage = `url(${token.image})`;
+        } else {
+          marker.style.backgroundColor = token.type === 'player' ? '#4CAF50' : '#f44336';
+        }
+
+        // Highlight the token being positioned
+        if (token.id === positioningTokenId) {
+          marker.style.boxShadow = '0 0 25px rgba(255, 215, 0, 1)';
+          marker.style.borderColor = '#ffd700';
+          marker.style.borderWidth = '4px';
+        }
+
+        container.appendChild(marker);
+      });
+    }
+
     init();
   </script>
 </body>
