@@ -3729,8 +3729,19 @@
         timestamp: Date.now()
       };
 
-      // Send via PeerJS (localStorage removed - images too large)
+      // Send via PeerJS (handles large images via binary serialization)
       sendToBattleMap(data);
+
+      // Don't store map image in localStorage (too large), just visibility state
+      try {
+        localStorage.setItem('daggerheart-battle-map-state', JSON.stringify({
+          visible: mapVisible,
+          gridSize: currentMap ? currentMap.gridSize : 50,
+          timestamp: Date.now()
+        }));
+      } catch (err) {
+        console.warn('Could not save map state to localStorage:', err);
+      }
     }
 
     function syncGridToBattleMap() {
@@ -3741,6 +3752,13 @@
       };
 
       sendToBattleMap(data);
+
+      // Small data, safe for localStorage fallback
+      try {
+        localStorage.setItem('daggerheart-battle-grid', JSON.stringify(data));
+      } catch (err) {
+        console.warn('Could not save grid to localStorage:', err);
+      }
     }
 
     function syncTokensToBattleMap() {
@@ -3754,6 +3772,13 @@
       };
 
       sendToBattleMap(data);
+
+      // Tokens are small, safe for localStorage fallback
+      try {
+        localStorage.setItem('daggerheart-battle-tokens', JSON.stringify(data));
+      } catch (err) {
+        console.warn('Could not save tokens to localStorage:', err);
+      }
     }
 
     function sendToBattleMap(data) {

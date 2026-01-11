@@ -627,6 +627,56 @@
         }
       }
     });
+
+    // localStorage fallback for same-machine setup (grid and tokens only, not map images)
+    function checkLocalStorage() {
+      // Skip if connected via PeerJS
+      if (gmConnection && gmConnection.open) {
+        return;
+      }
+
+      // Check for grid data
+      try {
+        const gridData = localStorage.getItem('daggerheart-battle-grid');
+        if (gridData) {
+          const parsed = JSON.parse(gridData);
+          updateGrid(parsed);
+        }
+      } catch (err) {
+        console.error('Error parsing grid data:', err);
+      }
+
+      // Check for token data
+      try {
+        const tokenData = localStorage.getItem('daggerheart-battle-tokens');
+        if (tokenData) {
+          const parsed = JSON.parse(tokenData);
+          updateTokens(parsed);
+        }
+      } catch (err) {
+        console.error('Error parsing token data:', err);
+      }
+    }
+
+    // Poll localStorage every 100ms as fallback (when not connected via PeerJS)
+    setInterval(checkLocalStorage, 100);
+
+    // Listen for storage events (cross-tab) for same-machine setup
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'daggerheart-battle-grid' && e.newValue) {
+        try {
+          updateGrid(JSON.parse(e.newValue));
+        } catch (err) {
+          console.error('Error parsing grid event:', err);
+        }
+      } else if (e.key === 'daggerheart-battle-tokens' && e.newValue) {
+        try {
+          updateTokens(JSON.parse(e.newValue));
+        } catch (err) {
+          console.error('Error parsing tokens event:', err);
+        }
+      }
+    });
   </script>
 </body>
 </html>
