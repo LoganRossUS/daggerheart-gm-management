@@ -4008,8 +4008,8 @@
       // Calculate scale
       const scale = displayWidth / mapWidth;
 
-      // Draw all visible tokens
-      battleMapTokens.filter(t => t.visible !== false).forEach(token => {
+      // Draw ALL tokens (both visible and hidden) so GM can position them before revealing
+      battleMapTokens.forEach(token => {
         const marker = document.createElement('div');
         marker.className = `positioning-marker ${token.type}`;
 
@@ -4027,11 +4027,17 @@
           marker.style.backgroundColor = token.type === 'player' ? '#4CAF50' : '#f44336';
         }
 
+        // Show hidden tokens with reduced opacity (for GM planning)
+        if (token.visible === false) {
+          marker.style.opacity = '0.4';
+        }
+
         // Highlight the token being positioned
         if (token.id === positioningTokenId) {
           marker.style.boxShadow = '0 0 25px rgba(255, 215, 0, 1)';
           marker.style.borderColor = '#ffd700';
           marker.style.borderWidth = '4px';
+          marker.style.opacity = '1'; // Full opacity for the one being positioned
         }
 
         container.appendChild(marker);
