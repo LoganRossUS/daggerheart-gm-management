@@ -1752,6 +1752,9 @@
             <span class="toggle-slider"></span>
           </label>
         </div>
+        <button class="encounter-clear-btn" id="clearMapBtn" onclick="clearMap()" style="margin-top: 10px; width: 100%;">
+          Clear Map
+        </button>
       </div>
 
       <div id="mapPlaceholder" class="map-placeholder">
@@ -3696,6 +3699,24 @@
     function toggleGrid() {
       gridVisible = document.getElementById('gridToggle').checked;
       syncGridToBattleMap();
+    }
+
+    function clearMap() {
+      // Clear the current map
+      currentMap = null;
+      mapVisible = false;
+
+      // Update UI
+      document.getElementById('mapPreview').src = '';
+      document.getElementById('mapPreviewContainer').style.display = 'none';
+      document.getElementById('mapPlaceholder').style.display = 'block';
+      document.getElementById('mapVisibilityToggle').checked = false;
+
+      // Clear from battle map
+      syncMapToBattleMap();
+
+      // Clear file input so same file can be uploaded again
+      document.getElementById('mapImageInput').value = '';
     }
 
     function syncMapToBattleMap() {
