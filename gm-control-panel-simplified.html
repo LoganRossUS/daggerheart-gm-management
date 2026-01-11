@@ -1686,11 +1686,21 @@
 
       sendToBattleMap(mapData);
 
+      // Store state in localStorage but strip large base64 images
       localStorage.setItem('daggerheart-battle-map-state', JSON.stringify({
         visible: mapVisible,
         gridSize: gridSize
       }));
-      localStorage.setItem('daggerheart-battle-tokens', JSON.stringify(battleMapTokens));
+
+      // Strip base64 images from tokens before storing (keep URL images)
+      const tokensForStorage = battleMapTokens.map(token => ({
+        ...token,
+        image: token.image && (token.image.startsWith('http://') || token.image.startsWith('https://'))
+          ? token.image
+          : null
+      }));
+      localStorage.setItem('daggerheart-battle-tokens', JSON.stringify(tokensForStorage));
+
       localStorage.setItem('daggerheart-battle-grid', JSON.stringify({ visible: gridVisible }));
       localStorage.setItem('daggerheart-update', Date.now().toString());
     }
@@ -2232,12 +2242,22 @@
     function saveEncounterState() {
       if (currentEncounter) {
         try {
-          localStorage.setItem('daggerheart-encounter', JSON.stringify({ encounter: currentEncounter }));
+          // Strip large image data before saving to localStorage to avoid quota issues
+          // Images are sent via PeerJS only (which handles binary data well)
+          const encounterForStorage = {
+            name: currentEncounter.name,
+            adversaries: currentEncounter.adversaries.map(adv => ({
+              ...adv,
+              // Don't store base64 portraits in localStorage - they're too large
+              // Only store URL-based portraits (they're small strings)
+              portraits: (adv.portraits || []).filter(p =>
+                typeof p === 'string' && (p.startsWith('http://') || p.startsWith('https://'))
+              )
+            }))
+          };
+          localStorage.setItem('daggerheart-encounter', JSON.stringify({ encounter: encounterForStorage }));
         } catch (e) {
           console.error('Failed to save encounter to localStorage:', e);
-          if (e.name === 'QuotaExceededError' || e.code === 22) {
-            console.warn('Encounter has large images - may not persist on page refresh, but spotlight should still work via PeerJS');
-          }
         }
       }
       updateTabBadges();
