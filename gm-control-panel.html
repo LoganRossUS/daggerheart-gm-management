@@ -3729,11 +3729,8 @@
         timestamp: Date.now()
       };
 
-      // Send via PeerJS
+      // Send via PeerJS (localStorage removed - images too large)
       sendToBattleMap(data);
-
-      // Also save to localStorage as fallback
-      localStorage.setItem('daggerheart-battle-map', JSON.stringify(data));
     }
 
     function syncGridToBattleMap() {
@@ -3744,7 +3741,6 @@
       };
 
       sendToBattleMap(data);
-      localStorage.setItem('daggerheart-battle-grid', JSON.stringify(data));
     }
 
     function syncTokensToBattleMap() {
@@ -3758,7 +3754,6 @@
       };
 
       sendToBattleMap(data);
-      localStorage.setItem('daggerheart-battle-tokens', JSON.stringify(data));
     }
 
     function sendToBattleMap(data) {
