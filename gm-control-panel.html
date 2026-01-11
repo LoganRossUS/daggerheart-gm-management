@@ -3945,43 +3945,64 @@
       const token = battleMapTokens.find(t => t.id === tokenId);
       if (!token) return;
 
+      console.log('Opening positioning modal for token:', token);
+
       const modal = document.getElementById('positioningModal');
       const mapImg = document.getElementById('positioningMapImage');
       const title = document.getElementById('positioningTitle');
       const container = document.getElementById('positioningMapContainer');
 
       title.textContent = `Position: ${token.name}`;
+
+      // Show modal first
+      modal.classList.add('visible');
+
+      // Set image source
       mapImg.src = currentMap.mapImage;
 
-      // Wait for image to load, then set up click handler
+      // Wait for image to load, then set up
       mapImg.onload = () => {
-        // Remove previous click handler
-        container.replaceWith(container.cloneNode(true));
-        const newContainer = document.getElementById('positioningMapContainer');
-        const newMapImg = document.getElementById('positioningMapImage');
+        console.log('Map image loaded, setting up positioning');
 
-        // Draw existing tokens
-        drawPositioningTokens(newMapImg);
+        // Small delay to ensure DOM is ready
+        setTimeout(() => {
+          // Draw existing tokens
+          drawPositioningTokens();
 
-        // Add click handler
-        newContainer.addEventListener('click', (e) => {
-          const rect = newMapImg.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
+          // Set up click handler on container (remove old handlers by cloning)
+          const newContainer = container.cloneNode(true);
+          container.parentNode.replaceChild(newContainer, container);
 
-          // Calculate grid position
-          const gridX = Math.floor(x / gridSize);
-          const gridY = Math.floor(y / gridSize);
+          const finalContainer = document.getElementById('positioningMapContainer');
+          const finalMapImg = document.getElementById('positioningMapImage');
 
-          // Update token position
-          updateTokenPosition(positioningTokenId, gridX, gridY);
+          finalContainer.addEventListener('click', (e) => {
+            // Only handle clicks on the image
+            if (e.target !== finalMapImg) return;
 
-          // Redraw tokens with new position
-          drawPositioningTokens(newMapImg);
-        });
+            const rect = finalMapImg.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            console.log('Click at pixel:', x, y);
+
+            // Calculate scale
+            const scale = rect.width / finalMapImg.naturalWidth;
+
+            // Calculate grid position
+            const gridX = Math.floor(x / (gridSize * scale));
+            const gridY = Math.floor(y / (gridSize * scale));
+
+            console.log('Grid position:', gridX, gridY);
+
+            // Update token position
+            updateTokenPosition(positioningTokenId, gridX, gridY);
+
+            // Redraw tokens with new position
+            drawPositioningTokens();
+          });
+        }, 100);
       };
-
-      modal.classList.add('visible');
     }
 
     function closePositioningModal(event) {
@@ -3994,14 +4015,27 @@
       positioningTokenId = null;
     }
 
-    function drawPositioningTokens(mapImg) {
-      // Remove existing markers
-      const container = document.getElementById('positioningMapContainer');
-      const existingMarkers = container.querySelectorAll('.positioning-marker');
-      existingMarkers.forEach(m => m.remove());
-
-      console.log('Drawing tokens. Total tokens:', battleMapTokens.length);
+    function drawPositioningTokens() {
+      console.log('=== Drawing tokens ===');
+      console.log('Total tokens:', battleMapTokens.length);
       console.log('Tokens:', battleMapTokens);
+
+      const container = document.getElementById('positioningMapContainer');
+      if (!container) {
+        console.error('Container not found!');
+        return;
+      }
+
+      const mapImg = document.getElementById('positioningMapImage');
+      if (!mapImg) {
+        console.error('Map image not found!');
+        return;
+      }
+
+      // Remove existing markers
+      const existingMarkers = container.querySelectorAll('.positioning-marker');
+      console.log('Removing', existingMarkers.length, 'existing markers');
+      existingMarkers.forEach(m => m.remove());
 
       // Get map image dimensions
       const rect = mapImg.getBoundingClientRect();
@@ -4010,7 +4044,10 @@
       const displayWidth = rect.width;
       const displayHeight = rect.height;
 
-      console.log('Map dimensions:', { mapWidth, mapHeight, displayWidth, displayHeight });
+      console.log('Map dimensions:', {
+        natural: { width: mapWidth, height: mapHeight },
+        display: { width: displayWidth, height: displayHeight }
+      });
 
       // Calculate scale
       const scale = displayWidth / mapWidth;
