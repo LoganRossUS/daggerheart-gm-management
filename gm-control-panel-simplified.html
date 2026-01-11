@@ -1850,11 +1850,13 @@
 
       container.innerHTML = battleMapTokens.map(token => `
         <div class="token-item ${token.type} ${token.visible ? '' : 'hidden'}">
-          <div class="token-thumb" onclick="openPositioningModal('${token.id}')" title="Click to position">
-            ${token.image ? `<img src="${token.image}" alt="${token.name}">` : ''}
+          <div class="token-thumb" onclick="openPositioningModal('${token.id}')" title="Click to position on map">
+            ${token.image ? `<img src="${token.image}" alt="${token.name}">` : `<span style="font-size: 1.2rem;">${token.type === 'player' ? '👤' : '👹'}</span>`}
           </div>
           <span class="token-name">${token.name}</span>
+          <span class="token-pos" style="font-size: 0.65rem; color: #888;">(${token.x},${token.y})</span>
           <div class="token-actions">
+            <button class="token-action-btn" onclick="openPositioningModal('${token.id}')" title="Position on map">📍</button>
             <button class="token-action-btn ${token.visible ? 'visible-on' : ''}" onclick="toggleTokenVisibility('${token.id}')" title="${token.visible ? 'Hide' : 'Show'}">
               ${token.visible ? '👁' : '👁‍🗨'}
             </button>
@@ -2156,6 +2158,19 @@
       }
 
       spotlightedAdversary = advId;
+
+      // Debug: log the adversary being spotlighted
+      if (currentEncounter) {
+        const adv = currentEncounter.adversaries.find(a => a.id === advId);
+        if (adv) {
+          console.log('Setting spotlight on:', adv.name);
+          console.log('Portraits:', adv.portraits ? adv.portraits.length : 0);
+          if (adv.portraits && adv.portraits.length > 0) {
+            console.log('Portrait type:', typeof adv.portraits[0], adv.portraits[0].substring(0, 50) + '...');
+          }
+        }
+      }
+
       renderEncounter();
       updateSpotlightUI();
       syncSpotlight();
@@ -2198,14 +2213,32 @@
         timestamp: Date.now()
       };
 
-      localStorage.setItem('daggerheart-spotlight', JSON.stringify(spotlightData));
-      localStorage.setItem('daggerheart-update', Date.now().toString());
+      // Try localStorage first (for same-browser player display)
+      try {
+        localStorage.setItem('daggerheart-spotlight', JSON.stringify(spotlightData));
+        localStorage.setItem('daggerheart-update', Date.now().toString());
+      } catch (e) {
+        console.error('Failed to sync spotlight to localStorage:', e);
+        if (e.name === 'QuotaExceededError' || e.code === 22) {
+          alert('Image is too large for localStorage. Using PeerJS only. If player display is in another browser, it should still work.');
+        }
+      }
+
+      // Always send via PeerJS (works even for large images)
       sendToPlayer({ type: 'spotlight', ...spotlightData });
+      console.log('Spotlight sent:', adv.name, hasPortrait ? 'with portrait' : 'default image');
     }
 
     function saveEncounterState() {
       if (currentEncounter) {
-        localStorage.setItem('daggerheart-encounter', JSON.stringify({ encounter: currentEncounter }));
+        try {
+          localStorage.setItem('daggerheart-encounter', JSON.stringify({ encounter: currentEncounter }));
+        } catch (e) {
+          console.error('Failed to save encounter to localStorage:', e);
+          if (e.name === 'QuotaExceededError' || e.code === 22) {
+            console.warn('Encounter has large images - may not persist on page refresh, but spotlight should still work via PeerJS');
+          }
+        }
       }
       updateTabBadges();
     }
