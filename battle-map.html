@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daggerheart - Battle Map</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #1a0d24;
+      font-family: 'Cinzel', serif;
+      cursor: none;
+    }
+
+    /* Connection UI */
+    #connectionScreen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, #12061a 0%, #1a0d24 50%, #0d0610 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      transition: opacity 0.5s;
+    }
+
+    #connectionScreen.connected {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .connection-form {
+      background: rgba(30, 15, 40, 0.9);
+      border: 2px solid rgba(179, 136, 255, 0.3);
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+
+    .connection-form h1 {
+      color: #b388ff;
+      font-size: 2rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px rgba(179, 136, 255, 0.5);
+    }
+
+    .connection-form h2 {
+      color: #ffd700;
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+      font-weight: 400;
+      letter-spacing: 2px;
+    }
+
+    .room-code-input {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .room-code-input input {
+      width: 80px;
+      padding: 12px;
+      font-size: 1.2rem;
+      text-align: center;
+      background: rgba(20, 10, 30, 0.8);
+      border: 2px solid rgba(179, 136, 255, 0.3);
+      border-radius: 8px;
+      color: #b388ff;
+      font-family: 'Cinzel', serif;
+      text-transform: uppercase;
+      transition: all 0.3s;
+    }
+
+    .room-code-input input:focus {
+      outline: none;
+      border-color: #b388ff;
+      box-shadow: 0 0 15px rgba(179, 136, 255, 0.3);
+    }
+
+    .connect-btn {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.1rem;
+      font-family: 'Cinzel', serif;
+      background: linear-gradient(135deg, #7b2d8e 0%, #4b0082 100%);
+      border: 2px solid #b388ff;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s;
+      letter-spacing: 2px;
+    }
+
+    .connect-btn:hover {
+      background: linear-gradient(135deg, #8e3da3 0%, #5a0099 100%);
+      box-shadow: 0 0 20px rgba(179, 136, 255, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .status-message {
+      margin-top: 15px;
+      color: #b388ff;
+      font-size: 0.9rem;
+      min-height: 20px;
+    }
+
+    /* Map Display */
+    #mapContainer {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: #1a0d24;
+    }
+
+    #mapContainer.visible {
+      display: flex;
+    }
+
+    #mapImage {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      position: relative;
+    }
+
+    /* Token Layer */
+    #tokenLayer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .token {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 3px solid;
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .token.player {
+      border-color: #4CAF50;
+      box-shadow: 0 0 15px rgba(76, 175, 80, 0.6), 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    .token.adversary {
+      border-color: #f44336;
+      box-shadow: 0 0 15px rgba(244, 67, 54, 0.6), 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    .token-name {
+      position: absolute;
+      bottom: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .token-conditions {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      display: flex;
+      gap: 2px;
+    }
+
+    .condition-badge {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: bold;
+      border: 2px solid rgba(0, 0, 0, 0.8);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .condition-badge.hidden {
+      background: linear-gradient(135deg, #424242 0%, #616161 100%);
+      color: white;
+    }
+
+    .condition-badge.restrained {
+      background: linear-gradient(135deg, #1976D2 0%, #42A5F5 100%);
+      color: white;
+    }
+
+    .condition-badge.vulnerable {
+      background: linear-gradient(135deg, #D32F2F 0%, #F44336 100%);
+      color: white;
+    }
+
+    /* Grid Overlay */
+    #gridOverlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+      display: none;
+    }
+
+    #gridOverlay.visible {
+      display: block;
+    }
+
+    /* Connection Status Indicator */
+    #connectionStatus {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 8px 16px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #connectionStatus.connected {
+      border-color: #4CAF50;
+      color: #4CAF50;
+    }
+
+    #connectionStatus.disconnected {
+      border-color: #f44336;
+      color: #f44336;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    #connectionStatus.connected .status-dot {
+      background: #4CAF50;
+    }
+
+    #connectionStatus.disconnected .status-dot {
+      background: #f44336;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Connection Screen -->
+  <div id="connectionScreen">
+    <div class="connection-form">
+      <h1>BATTLE MAP</h1>
+      <h2>Enter Room Code</h2>
+      <div class="room-code-input">
+        <input type="text" id="code1" maxlength="4" placeholder="****" autocomplete="off">
+        <input type="text" id="code2" maxlength="4" placeholder="****" autocomplete="off">
+        <input type="text" id="code3" maxlength="2" placeholder="**" autocomplete="off">
+      </div>
+      <button class="connect-btn" onclick="connectToGM()">CONNECT</button>
+      <div class="status-message" id="statusMessage"></div>
+    </div>
+  </div>
+
+  <!-- Connection Status -->
+  <div id="connectionStatus" class="disconnected">
+    <div class="status-dot"></div>
+    <span id="statusText">Disconnected</span>
+  </div>
+
+  <!-- Map Container -->
+  <div id="mapContainer">
+    <img id="mapImage" src="" alt="Battle Map">
+  </div>
+
+  <!-- Grid Overlay -->
+  <canvas id="gridOverlay"></canvas>
+
+  <!-- Token Layer -->
+  <div id="tokenLayer"></div>
+
+  <!-- PeerJS Library -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <script>
+    let peer = null;
+    let gmConnection = null;
+    let currentMap = null;
+    let tokens = [];
+    let gridSize = 50;
+
+    // Room code input handling
+    const codeInputs = [
+      document.getElementById('code1'),
+      document.getElementById('code2'),
+      document.getElementById('code3')
+    ];
+
+    codeInputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        const value = e.target.value.toUpperCase();
+        e.target.value = value;
+
+        if (value.length === parseInt(e.target.maxLength)) {
+          if (index < codeInputs.length - 1) {
+            codeInputs[index + 1].focus();
+          }
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+          codeInputs[index - 1].focus();
+        } else if (e.key === 'Enter') {
+          connectToGM();
+        }
+      });
+
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pastedText = e.clipboardData.getData('text').toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+        let currentIndex = index;
+        let remainingText = pastedText;
+
+        while (remainingText && currentIndex < codeInputs.length) {
+          const maxLength = parseInt(codeInputs[currentIndex].maxLength);
+          codeInputs[currentIndex].value = remainingText.substring(0, maxLength);
+          remainingText = remainingText.substring(maxLength);
+          currentIndex++;
+        }
+
+        if (currentIndex < codeInputs.length) {
+          codeInputs[currentIndex].focus();
+        }
+      });
+    });
+
+    // Auto-focus first input
+    window.addEventListener('load', () => {
+      codeInputs[0].focus();
+    });
+
+    function showStatus(message, isError = false) {
+      const statusElement = document.getElementById('statusMessage');
+      statusElement.textContent = message;
+      statusElement.style.color = isError ? '#f44336' : '#b388ff';
+    }
+
+    function updateConnectionStatus(connected) {
+      const statusElement = document.getElementById('connectionStatus');
+      const statusText = document.getElementById('statusText');
+
+      if (connected) {
+        statusElement.className = 'connected';
+        statusText.textContent = 'Connected';
+      } else {
+        statusElement.className = 'disconnected';
+        statusText.textContent = 'Disconnected';
+      }
+    }
+
+    function connectToGM() {
+      const code1 = codeInputs[0].value.toUpperCase();
+      const code2 = codeInputs[1].value.toUpperCase();
+      const code3 = codeInputs[2].value.toUpperCase();
+
+      if (!code1 || !code2 || !code3) {
+        showStatus('Please enter complete room code', true);
+        return;
+      }
+
+      const roomCode = `${code1}-${code2}-${code3}`;
+      const peerId = `dh-${roomCode}`;
+
+      showStatus('Connecting to GM...');
+
+      try {
+        // Create peer instance
+        peer = new Peer({
+          debug: 2,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' },
+              { urls: 'stun:stun3.l.google.com:19302' },
+              { urls: 'stun:stun4.l.google.com:19302' }
+            ]
+          }
+        });
+
+        peer.on('open', () => {
+          console.log('Peer initialized, connecting to GM:', peerId);
+
+          // Connect to GM
+          gmConnection = peer.connect(peerId, {
+            serialization: 'binary',
+            reliable: true
+          });
+
+          gmConnection.on('open', () => {
+            console.log('Connected to GM');
+            showStatus('Connected! Waiting for map...');
+            updateConnectionStatus(true);
+
+            // Request full sync
+            try {
+              gmConnection.send({ type: 'battleMapConnected' });
+            } catch (err) {
+              console.error('Error sending connection message:', err);
+            }
+
+            // Hide connection screen after a short delay
+            setTimeout(() => {
+              document.getElementById('connectionScreen').classList.add('connected');
+            }, 1000);
+          });
+
+          gmConnection.on('data', (data) => {
+            handleGMData(data);
+          });
+
+          gmConnection.on('close', () => {
+            console.log('Connection to GM closed');
+            updateConnectionStatus(false);
+            showStatus('Connection lost. Refresh to reconnect.', true);
+          });
+
+          gmConnection.on('error', (err) => {
+            console.error('Connection error:', err);
+            showStatus('Connection error. Please try again.', true);
+            updateConnectionStatus(false);
+          });
+        });
+
+        peer.on('error', (err) => {
+          console.error('Peer error:', err);
+          if (err.type === 'peer-unavailable') {
+            showStatus('GM not found. Check room code.', true);
+          } else if (err.type === 'network') {
+            showStatus('Network error. Check connection.', true);
+          } else {
+            showStatus(`Error: ${err.type}`, true);
+          }
+          updateConnectionStatus(false);
+        });
+
+        // Connection timeout
+        setTimeout(() => {
+          if (!gmConnection || !gmConnection.open) {
+            showStatus('Connection timeout. Please try again.', true);
+            updateConnectionStatus(false);
+            if (peer) peer.destroy();
+          }
+        }, 10000);
+
+      } catch (err) {
+        console.error('Setup error:', err);
+        showStatus('Setup error. Please refresh.', true);
+        updateConnectionStatus(false);
+      }
+    }
+
+    function handleGMData(data) {
+      console.log('Received data from GM:', data);
+
+      if (!data || !data.type) return;
+
+      switch (data.type) {
+        case 'map':
+          updateMap(data);
+          break;
+        case 'tokens':
+          updateTokens(data);
+          break;
+        case 'grid':
+          updateGrid(data);
+          break;
+        case 'mapSync':
+          // Full sync
+          if (data.map) updateMap(data.map);
+          if (data.tokens) updateTokens(data.tokens);
+          if (data.grid) updateGrid(data.grid);
+          break;
+      }
+    }
+
+    function updateMap(data) {
+      const mapContainer = document.getElementById('mapContainer');
+      const mapImage = document.getElementById('mapImage');
+
+      if (data.visible && data.mapImage) {
+        currentMap = data;
+        mapImage.src = data.mapImage;
+        mapContainer.classList.add('visible');
+
+        if (data.gridSize) {
+          gridSize = data.gridSize;
+        }
+      } else {
+        mapContainer.classList.remove('visible');
+        currentMap = null;
+      }
+    }
+
+    function updateTokens(data) {
+      tokens = data.tokens || [];
+      renderTokens();
+    }
+
+    function renderTokens() {
+      const tokenLayer = document.getElementById('tokenLayer');
+      tokenLayer.innerHTML = '';
+
+      if (!currentMap || !tokens.length) return;
+
+      const mapImage = document.getElementById('mapImage');
+      const mapRect = mapImage.getBoundingClientRect();
+
+      tokens.forEach(token => {
+        const tokenEl = document.createElement('div');
+        tokenEl.className = `token ${token.type}`;
+        tokenEl.id = `token-${token.id}`;
+
+        // Calculate position based on grid coordinates
+        const pixelX = mapRect.left + (token.x * gridSize);
+        const pixelY = mapRect.top + (token.y * gridSize);
+
+        tokenEl.style.left = `${pixelX}px`;
+        tokenEl.style.top = `${pixelY}px`;
+
+        // Set token image
+        if (token.image) {
+          tokenEl.style.backgroundImage = `url(${token.image})`;
+        } else {
+          // Default colored circle if no image
+          tokenEl.style.backgroundColor = token.type === 'player' ? '#4CAF50' : '#f44336';
+        }
+
+        // Add token name
+        const nameEl = document.createElement('div');
+        nameEl.className = 'token-name';
+        nameEl.textContent = token.name;
+        tokenEl.appendChild(nameEl);
+
+        // Add condition badges
+        if (token.conditions && Object.keys(token.conditions).length > 0) {
+          const conditionsEl = document.createElement('div');
+          conditionsEl.className = 'token-conditions';
+
+          if (token.conditions.hidden) {
+            const badge = document.createElement('div');
+            badge.className = 'condition-badge hidden';
+            badge.textContent = 'H';
+            badge.title = 'Hidden';
+            conditionsEl.appendChild(badge);
+          }
+
+          if (token.conditions.restrained) {
+            const badge = document.createElement('div');
+            badge.className = 'condition-badge restrained';
+            badge.textContent = 'R';
+            badge.title = 'Restrained';
+            conditionsEl.appendChild(badge);
+          }
+
+          if (token.conditions.vulnerable) {
+            const badge = document.createElement('div');
+            badge.className = 'condition-badge vulnerable';
+            badge.textContent = 'V';
+            badge.title = 'Vulnerable';
+            conditionsEl.appendChild(badge);
+          }
+
+          tokenEl.appendChild(conditionsEl);
+        }
+
+        tokenLayer.appendChild(tokenEl);
+      });
+    }
+
+    function updateGrid(data) {
+      const gridOverlay = document.getElementById('gridOverlay');
+
+      if (data.visible) {
+        gridOverlay.classList.add('visible');
+        drawGrid();
+      } else {
+        gridOverlay.classList.remove('visible');
+      }
+    }
+
+    function drawGrid() {
+      const canvas = document.getElementById('gridOverlay');
+      const ctx = canvas.getContext('2d');
+
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      if (!currentMap) return;
+
+      const mapImage = document.getElementById('mapImage');
+      const mapRect = mapImage.getBoundingClientRect();
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 1;
+
+      // Draw vertical lines
+      for (let x = mapRect.left; x < mapRect.right; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, mapRect.top);
+        ctx.lineTo(x, mapRect.bottom);
+        ctx.stroke();
+      }
+
+      // Draw horizontal lines
+      for (let y = mapRect.top; y < mapRect.bottom; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(mapRect.left, y);
+        ctx.lineTo(mapRect.right, y);
+        ctx.stroke();
+      }
+    }
+
+    // Redraw grid and tokens on window resize
+    window.addEventListener('resize', () => {
+      if (currentMap) {
+        renderTokens();
+        if (document.getElementById('gridOverlay').classList.contains('visible')) {
+          drawGrid();
+        }
+      }
+    });
+
+    // localStorage fallback (for same-machine setup)
+    function checkLocalStorage() {
+      const mapData = localStorage.getItem('daggerheart-battle-map');
+      const tokenData = localStorage.getItem('daggerheart-battle-tokens');
+      const gridData = localStorage.getItem('daggerheart-battle-grid');
+
+      if (mapData) {
+        try {
+          updateMap(JSON.parse(mapData));
+        } catch (err) {
+          console.error('Error parsing map data:', err);
+        }
+      }
+
+      if (tokenData) {
+        try {
+          updateTokens(JSON.parse(tokenData));
+        } catch (err) {
+          console.error('Error parsing token data:', err);
+        }
+      }
+
+      if (gridData) {
+        try {
+          updateGrid(JSON.parse(gridData));
+        } catch (err) {
+          console.error('Error parsing grid data:', err);
+        }
+      }
+    }
+
+    // Poll localStorage every 100ms as fallback
+    setInterval(checkLocalStorage, 100);
+
+    // Listen for storage events (cross-tab)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'daggerheart-battle-map' && e.newValue) {
+        updateMap(JSON.parse(e.newValue));
+      } else if (e.key === 'daggerheart-battle-tokens' && e.newValue) {
+        updateTokens(JSON.parse(e.newValue));
+      } else if (e.key === 'daggerheart-battle-grid' && e.newValue) {
+        updateGrid(JSON.parse(e.newValue));
+      }
+    });
+  </script>
+</body>
+</html>
