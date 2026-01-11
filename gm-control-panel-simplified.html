@@ -1501,7 +1501,7 @@
 
     // ========== Fear Tracker ==========
     function adjustFear(amount) {
-      currentFear = Math.max(0, currentFear + amount);
+      currentFear = Math.max(0, Math.min(12, currentFear + amount));
       updateFearDisplay();
       syncFear();
     }
@@ -1598,23 +1598,27 @@
     }
 
     function rollHopeFear() {
-      const roll = Math.floor(Math.random() * 12) + 1;
-      const roll2 = Math.floor(Math.random() * 12) + 1;
-      const isHope = roll >= roll2;
+      const hope = Math.floor(Math.random() * 12) + 1;
+      const fear = Math.floor(Math.random() * 12) + 1;
+      const sum = hope + fear;
+      const winner = hope >= fear ? 'Hope' : 'Fear';
       const lastRollEl = document.getElementById('lastRoll');
 
-      lastRollEl.textContent = isHope ? 'HOPE' : 'FEAR';
+      lastRollEl.textContent = `${sum} ${winner}`;
       lastRollEl.style.transform = 'scale(1.3)';
-      lastRollEl.style.color = isHope ? '#4CAF50' : '#f44336';
+      lastRollEl.style.color = winner === 'Hope' ? '#4CAF50' : '#f44336';
       setTimeout(() => {
         lastRollEl.style.transform = 'scale(1)';
         lastRollEl.style.color = '#ffd700';
       }, 200);
 
+      // Send to player display (localStorage for same-browser, PeerJS for remote)
       const diceData = {
-        notation: 'Hope/Fear',
-        total: isHope ? `Hope (${roll} vs ${roll2})` : `Fear (${roll} vs ${roll2})`,
-        breakdown: [`Hope: ${roll}`, `Fear: ${roll2}`],
+        type: 'hopefear',
+        hope: hope,
+        fear: fear,
+        sum: sum,
+        winner: winner,
         timestamp: Date.now()
       };
 
@@ -1622,7 +1626,7 @@
       localStorage.setItem('daggerheart-update', Date.now().toString());
       sendToPlayer({ type: 'dice', ...diceData });
 
-      console.log('Hope/Fear roll:', roll, 'vs', roll2, '=', isHope ? 'HOPE' : 'FEAR');
+      console.log('Hope/Fear roll:', hope, '+', fear, '=', sum, winner);
     }
 
     // ========== Battle Map ==========
@@ -2486,11 +2490,17 @@
       const file = event.target.files[0];
       if (!file) return;
 
+      // Check file size (limit to 5MB for localStorage)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image too large. Please select an image under 5MB.');
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         currentNpcImage = e.target.result;
         updateNpcPreview();
-        saveNpcState();
+        syncNpcToStorage();
       };
       reader.readAsDataURL(file);
     }
@@ -2498,13 +2508,14 @@
     function clearNpcImage() {
       currentNpcImage = null;
       npcVisible = false;
+      document.getElementById('npcImageInput').value = '';
       updateNpcPreview();
-      saveNpcState();
+      syncNpcToStorage();
     }
 
     function toggleNpcVisibility() {
       npcVisible = document.getElementById('npcVisibilityToggle').checked;
-      saveNpcState();
+      syncNpcToStorage();
     }
 
     function updateNpcPreview() {
@@ -2525,14 +2536,37 @@
       }
     }
 
-    function saveNpcState() {
+    // Sync NPC data to localStorage and PeerJS
+    function syncNpcToStorage() {
       const npcData = {
         image: currentNpcImage,
-        visible: npcVisible
+        visible: npcVisible,
+        timestamp: Date.now()
       };
-      localStorage.setItem('daggerheart-npc', JSON.stringify(npcData));
+
+      // If PeerJS connected, send via binary (handles large images)
+      if (playerConnection && playerConnection.open) {
+        sendToPlayer({ type: 'npc', ...npcData });
+
+        // Save metadata only to localStorage
+        const metadataOnly = { ...npcData, image: null };
+        try {
+          localStorage.setItem('daggerheart-npc', JSON.stringify(metadataOnly));
+        } catch (e) {
+          console.error('Failed to save NPC metadata:', e);
+        }
+      } else {
+        // No PeerJS - save to localStorage (may fail for large images)
+        try {
+          localStorage.setItem('daggerheart-npc', JSON.stringify(npcData));
+        } catch (e) {
+          console.error('Failed to save NPC to localStorage:', e);
+          if (e.name === 'QuotaExceededError' || e.code === 22) {
+            alert('Image too large for localStorage. Connect via room code for remote display.');
+          }
+        }
+      }
       localStorage.setItem('daggerheart-update', Date.now().toString());
-      sendToPlayer({ type: 'npc', ...npcData });
     }
 
     // ========== Player Token Image ==========
@@ -2696,7 +2730,32 @@
     }
 
     function sendToBattleMap(data) {
-      sendToPlayer(data);
+      // Send to all connected battle map displays
+      if (peer && peer.connections) {
+        for (const peerId in peer.connections) {
+          const connections = peer.connections[peerId];
+          if (connections && connections.length > 0) {
+            connections.forEach(conn => {
+              if (conn.open && conn.metadata && conn.metadata.type === 'battleMap') {
+                try {
+                  conn.send(data);
+                } catch (err) {
+                  console.error('Error sending to battle map:', err);
+                }
+              }
+            });
+          }
+        }
+      }
+
+      // Also broadcast to all connections (battle map will filter)
+      if (playerConnection && playerConnection.open) {
+        try {
+          playerConnection.send(data);
+        } catch (err) {
+          console.error('Error broadcasting battle map data:', err);
+        }
+      }
     }
 
     function sendFullSync() {
