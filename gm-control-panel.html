@@ -1915,7 +1915,7 @@
       syncNpcToStorage();
     }
 
-    // Sync NPC data to localStorage
+    // Sync NPC data to localStorage and PeerJS
     function syncNpcToStorage() {
       const npcData = {
         image: currentNpcImage,
@@ -1923,6 +1923,7 @@
         timestamp: Date.now()
       };
       localStorage.setItem('daggerheart-npc', JSON.stringify(npcData));
+      sendToPlayer({ type: 'npc', ...npcData });
     }
 
     // ============ ADVERSARY DATABASE & SEARCH ============
