@@ -1071,8 +1071,10 @@
     
     // Update fear display
     function updateFear(fearCount) {
+      console.log('updateFear called with:', fearCount);
       // Update counter
       const counter = document.getElementById('fearValue');
+      console.log('fearValue element:', counter);
       counter.textContent = fearCount;
       counter.style.color = fearCount > 8 ? '#ff4444' : fearCount > 4 ? '#b388ff' : '#ffd700';
       counter.style.textShadow = `0 0 30px ${fearCount > 8 ? 'rgba(255,68,68,0.6)' : fearCount > 4 ? 'rgba(179,136,255,0.6)' : 'rgba(255,215,0,0.5)'}`;
@@ -1919,21 +1921,25 @@
 
       switch (data.type) {
         case 'fear':
+          console.log('Calling updateFear with:', data.value);
           updateFear(data.value);
           break;
         case 'dice':
+          console.log('Calling animateDiceRoll');
           if (data.timestamp > lastDiceTimestamp) {
             lastDiceTimestamp = data.timestamp;
             animateDiceRoll(data);
           }
           break;
         case 'spotlight':
+          console.log('Calling updateSpotlight');
           if (data.timestamp > lastSpotlightTimestamp || data.visible !== currentSpotlightVisible) {
             lastSpotlightTimestamp = data.timestamp;
             updateSpotlight(data);
           }
           break;
         case 'npc':
+          console.log('Calling updateNpcPortrait');
           if (!currentSpotlightVisible) {
             if (data.timestamp > lastNpcTimestamp || data.visible !== currentNpcVisible) {
               lastNpcTimestamp = data.timestamp;
@@ -1943,6 +1949,7 @@
           break;
         case 'sync':
           // Full state sync from GM
+          console.log('Processing sync - fear:', data.fear);
           if (data.fear !== undefined) updateFear(data.fear);
           if (data.spotlight) {
             lastSpotlightTimestamp = data.spotlight.timestamp || Date.now();
