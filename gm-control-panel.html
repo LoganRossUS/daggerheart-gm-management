@@ -1372,6 +1372,186 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
     }
+
+    /* Battle Map Controls */
+    .map-controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .map-upload-btn {
+      padding: 12px 20px;
+      border: 2px dashed rgba(179, 136, 255, 0.5);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      color: #b388ff;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .map-upload-btn:hover {
+      background: rgba(179, 136, 255, 0.15);
+      border-color: #b388ff;
+    }
+
+    .map-preview {
+      width: 100%;
+      max-height: 150px;
+      object-fit: contain;
+      border-radius: 8px;
+      margin: 10px 0;
+      background: rgba(0,0,0,0.3);
+    }
+
+    .map-toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .map-toggle-label {
+      font-size: 0.9rem;
+      color: #e0e0e0;
+    }
+
+    .token-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+
+    .token-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+      margin-bottom: 6px;
+    }
+
+    .token-item.player {
+      border-left: 3px solid #4CAF50;
+    }
+
+    .token-item.adversary {
+      border-left: 3px solid #f44336;
+    }
+
+    .token-thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+      border: 2px solid;
+      flex-shrink: 0;
+    }
+
+    .token-thumb.player {
+      border-color: #4CAF50;
+    }
+
+    .token-thumb.adversary {
+      border-color: #f44336;
+    }
+
+    .token-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .token-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .token-position {
+      display: flex;
+      gap: 5px;
+      margin-top: 4px;
+    }
+
+    .token-coord-input {
+      width: 50px;
+      padding: 4px 6px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    .token-coord-input:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
+    .token-remove-btn {
+      padding: 6px 10px;
+      background: rgba(244, 67, 54, 0.2);
+      border: 1px solid rgba(244, 67, 54, 0.5);
+      border-radius: 4px;
+      color: #f44336;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .token-remove-btn:hover {
+      background: rgba(244, 67, 54, 0.3);
+    }
+
+    .add-player-btn {
+      width: 100%;
+      padding: 10px;
+      background: rgba(76, 175, 80, 0.2);
+      border: 1px solid rgba(76, 175, 80, 0.5);
+      border-radius: 6px;
+      color: #4CAF50;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 10px;
+    }
+
+    .add-player-btn:hover {
+      background: rgba(76, 175, 80, 0.3);
+    }
+
+    .grid-toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+
+    .map-placeholder {
+      padding: 40px 20px;
+      text-align: center;
+      color: #666;
+      font-size: 0.85rem;
+      border: 2px dashed rgba(255,255,255,0.1);
+      border-radius: 8px;
+    }
   </style>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -1385,6 +1565,56 @@
       🖥️ Open Player Display Window
     </button>
     <p class="status" id="status">Click above to open the player-facing display</p>
+  </div>
+
+  <!-- Battle Map -->
+  <div class="section">
+    <button class="open-display-btn" onclick="openBattleMap()" style="background: linear-gradient(135deg, #1e88e5, #0d47a1);">
+      🗺️ Open Battle Map Window
+    </button>
+    <p class="status" id="battleMapStatus">Click above to open the battle map display</p>
+
+    <div style="margin-top: 20px;">
+      <h2>🗺️ Map Control</h2>
+
+      <input type="file" id="mapImageInput" accept="image/*" style="display: none;" onchange="handleMapUpload(event)">
+
+      <div id="mapPreviewContainer" style="display: none;">
+        <img id="mapPreview" class="map-preview" alt="Map Preview">
+        <div class="map-toggle-row">
+          <div>
+            <span class="map-toggle-label">Show Map to Players</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="mapVisibilityToggle" onchange="toggleMapVisibility()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div id="mapPlaceholder" class="map-placeholder">
+        <button class="map-upload-btn" onclick="document.getElementById('mapImageInput').click()">
+          📁 Upload Battle Map
+        </button>
+        <div style="margin-top: 10px; font-size: 0.75rem;">
+          Upload a map image to display on the battle map portal
+        </div>
+      </div>
+
+      <div class="grid-toggle-row">
+        <span style="font-size: 0.85rem; color: #e0e0e0;">Grid Overlay</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="gridToggle" onchange="toggleGrid()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <h2 style="margin-top: 20px;">🎯 Tokens</h2>
+      <div id="tokenList" class="token-list">
+        <!-- Tokens will be dynamically added here -->
+      </div>
+      <button class="add-player-btn" onclick="addPlayerToken()">+ Add Player Token</button>
+    </div>
   </div>
 
   <!-- Remote Connection -->
@@ -1559,6 +1789,13 @@
     let spotlightedAdversary = null;
     let pendingImageUploadAdversaryId = null;
 
+    // Battle Map state
+    let currentMap = null;
+    let mapVisible = false;
+    let battleMapTokens = [];
+    let gridVisible = false;
+    let nextPlayerTokenId = 1;
+
     // Adversary database (parsed from markdown)
     let adversaryDatabase = [];
     let selectedAutocompleteIndex = -1;
@@ -1710,6 +1947,14 @@
           sendFullSync();
         });
 
+        conn.on('data', (data) => {
+          // Handle incoming data from connected clients (e.g., battle map)
+          if (data && data.type === 'battleMapConnected') {
+            console.log('Battle map connected, sending full sync');
+            sendBattleMapSync();
+          }
+        });
+
         conn.on('close', () => {
           console.log('Player Display disconnected');
           playerConnection = null;
@@ -1799,6 +2044,32 @@
       }
 
       sendToPlayer(syncData);
+
+      // Also send battle map sync
+      sendBattleMapSync();
+    }
+
+    function sendBattleMapSync() {
+      const mapSyncData = {
+        type: 'mapSync',
+        map: currentMap ? {
+          type: 'map',
+          visible: mapVisible,
+          mapImage: mapVisible ? currentMap.mapImage : null,
+          gridSize: currentMap.gridSize
+        } : null,
+        tokens: {
+          type: 'tokens',
+          tokens: battleMapTokens
+        },
+        grid: {
+          type: 'grid',
+          visible: gridVisible
+        },
+        timestamp: Date.now()
+      };
+
+      sendToBattleMap(mapSyncData);
     }
 
     // Initialize from localStorage
@@ -1843,6 +2114,9 @@
 
       // Initialize autocomplete
       initAdversarySearch();
+
+      // Initialize battle map token list
+      renderTokenList();
 
       // Initialize PeerJS host for remote connections
       initPeerHost();
@@ -2621,6 +2895,9 @@
       html += '</div>';
       container.innerHTML = html;
       updateSpotlightUI();
+
+      // Sync adversary tokens to battle map
+      syncAdversaryTokens();
     }
 
     // Toggle stat block visibility
@@ -3181,15 +3458,250 @@
     }
     
     function openPlayerDisplay() {
-      const playerWindow = window.open('player-display.html', 'PlayerDisplay', 
+      const playerWindow = window.open('player-display.html', 'PlayerDisplay',
         'width=1920,height=1080,menubar=no,toolbar=no,location=no,status=no');
-      
+
       if (playerWindow) {
         document.getElementById('status').textContent = '✓ Player display opened! Drag it to your player-facing monitor.';
       } else {
         document.getElementById('status').textContent = '⚠️ Pop-up blocked. Please allow pop-ups or open player-display.html manually.';
         document.getElementById('status').style.color = '#ff6b6b';
       }
+    }
+
+    // ========== Battle Map Functions ==========
+
+    function openBattleMap() {
+      const battleMapWindow = window.open('battle-map.html', 'BattleMap',
+        'width=1920,height=1080,menubar=no,toolbar=no,location=no,status=no');
+
+      if (battleMapWindow) {
+        document.getElementById('battleMapStatus').textContent = '✓ Battle map opened! Drag it to your TV display.';
+      } else {
+        document.getElementById('battleMapStatus').textContent = '⚠️ Pop-up blocked. Please allow pop-ups or open battle-map.html manually.';
+        document.getElementById('battleMapStatus').style.color = '#ff6b6b';
+      }
+    }
+
+    function handleMapUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentMap = {
+          mapImage: e.target.result,
+          gridSize: 50 // Default grid size in pixels
+        };
+
+        // Show preview
+        document.getElementById('mapPreview').src = e.target.result;
+        document.getElementById('mapPreviewContainer').style.display = 'block';
+        document.getElementById('mapPlaceholder').style.display = 'none';
+
+        // If toggle is on, send to battle map
+        if (document.getElementById('mapVisibilityToggle').checked) {
+          syncMapToBattleMap();
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function toggleMapVisibility() {
+      mapVisible = document.getElementById('mapVisibilityToggle').checked;
+      syncMapToBattleMap();
+    }
+
+    function toggleGrid() {
+      gridVisible = document.getElementById('gridToggle').checked;
+      syncGridToBattleMap();
+    }
+
+    function syncMapToBattleMap() {
+      const data = {
+        type: 'map',
+        visible: mapVisible,
+        mapImage: mapVisible && currentMap ? currentMap.mapImage : null,
+        gridSize: currentMap ? currentMap.gridSize : 50,
+        timestamp: Date.now()
+      };
+
+      // Send via PeerJS
+      sendToBattleMap(data);
+
+      // Also save to localStorage as fallback
+      localStorage.setItem('daggerheart-battle-map', JSON.stringify(data));
+    }
+
+    function syncGridToBattleMap() {
+      const data = {
+        type: 'grid',
+        visible: gridVisible,
+        timestamp: Date.now()
+      };
+
+      sendToBattleMap(data);
+      localStorage.setItem('daggerheart-battle-grid', JSON.stringify(data));
+    }
+
+    function syncTokensToBattleMap() {
+      const data = {
+        type: 'tokens',
+        tokens: battleMapTokens,
+        timestamp: Date.now()
+      };
+
+      sendToBattleMap(data);
+      localStorage.setItem('daggerheart-battle-tokens', JSON.stringify(data));
+    }
+
+    function sendToBattleMap(data) {
+      // Send to all connected battle map displays
+      if (peer && peer.connections) {
+        for (const peerId in peer.connections) {
+          const connections = peer.connections[peerId];
+          if (connections && connections.length > 0) {
+            connections.forEach(conn => {
+              if (conn.open && conn.metadata && conn.metadata.type === 'battleMap') {
+                try {
+                  conn.send(data);
+                } catch (err) {
+                  console.error('Error sending to battle map:', err);
+                }
+              }
+            });
+          }
+        }
+      }
+
+      // Also broadcast to all connections (battle map will filter)
+      if (playerConnection && playerConnection.open) {
+        try {
+          playerConnection.send(data);
+        } catch (err) {
+          console.error('Error broadcasting battle map data:', err);
+        }
+      }
+    }
+
+    function addPlayerToken() {
+      const playerName = prompt('Enter player name:');
+      if (!playerName) return;
+
+      const token = {
+        id: `player-${nextPlayerTokenId++}`,
+        name: playerName,
+        type: 'player',
+        x: 5,
+        y: 5,
+        image: null,
+        conditions: {}
+      };
+
+      battleMapTokens.push(token);
+      renderTokenList();
+      syncTokensToBattleMap();
+    }
+
+    function addAdversaryToken(adversary) {
+      // Check if token already exists for this adversary
+      const existingToken = battleMapTokens.find(t => t.id === adversary.id);
+      if (existingToken) {
+        return; // Token already exists
+      }
+
+      // Get the active portrait
+      let image = null;
+      if (adversary.portraits && adversary.portraits.length > 0) {
+        const activeIndex = adversary.activePortraitIndex || 0;
+        image = adversary.portraits[activeIndex];
+      }
+
+      const token = {
+        id: adversary.id,
+        name: adversary.name,
+        type: 'adversary',
+        x: 10,
+        y: 10,
+        image: image,
+        conditions: adversary.conditions || {}
+      };
+
+      battleMapTokens.push(token);
+      renderTokenList();
+      syncTokensToBattleMap();
+    }
+
+    function removeToken(tokenId) {
+      battleMapTokens = battleMapTokens.filter(t => t.id !== tokenId);
+      renderTokenList();
+      syncTokensToBattleMap();
+    }
+
+    function updateTokenPosition(tokenId, x, y) {
+      const token = battleMapTokens.find(t => t.id === tokenId);
+      if (token) {
+        token.x = parseInt(x) || 0;
+        token.y = parseInt(y) || 0;
+        syncTokensToBattleMap();
+      }
+    }
+
+    function renderTokenList() {
+      const tokenList = document.getElementById('tokenList');
+      if (battleMapTokens.length === 0) {
+        tokenList.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; font-size: 0.85rem;">No tokens added yet</div>';
+        return;
+      }
+
+      tokenList.innerHTML = battleMapTokens.map(token => {
+        const tokenTypeClass = token.type;
+        const thumbStyle = token.image ? `background-image: url(${token.image})` : `background-color: ${token.type === 'player' ? '#4CAF50' : '#f44336'}`;
+
+        return `
+          <div class="token-item ${tokenTypeClass}">
+            <div class="token-thumb ${tokenTypeClass}" style="${thumbStyle}"></div>
+            <div class="token-info">
+              <div class="token-name">${token.name}</div>
+              <div class="token-position">
+                <span style="font-size: 0.75rem; color: #888;">X:</span>
+                <input type="number" class="token-coord-input" value="${token.x}"
+                       onchange="updateTokenPosition('${token.id}', this.value, document.getElementById('tokenY-${token.id}').value)"
+                       min="0" step="1">
+                <span style="font-size: 0.75rem; color: #888;">Y:</span>
+                <input type="number" class="token-coord-input" id="tokenY-${token.id}" value="${token.y}"
+                       onchange="updateTokenPosition('${token.id}', document.querySelector('[onchange*=\\'${token.id}\\'][onchange*=\\'tokenY\\']').previousElementSibling.previousElementSibling.value, this.value)"
+                       min="0" step="1">
+              </div>
+            </div>
+            <button class="token-remove-btn" onclick="removeToken('${token.id}')">Remove</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Auto-add adversary tokens when encounter is loaded or spotlight changes
+    function syncAdversaryTokens() {
+      if (!currentEncounter || !currentEncounter.adversaries) return;
+
+      currentEncounter.adversaries.forEach(adversary => {
+        const existingToken = battleMapTokens.find(t => t.id === adversary.id);
+        if (!existingToken) {
+          addAdversaryToken(adversary);
+        } else {
+          // Update existing token's image and conditions
+          let image = null;
+          if (adversary.portraits && adversary.portraits.length > 0) {
+            const activeIndex = adversary.activePortraitIndex || 0;
+            image = adversary.portraits[activeIndex];
+          }
+          existingToken.image = image;
+          existingToken.conditions = adversary.conditions || {};
+        }
+      });
+
+      renderTokenList();
+      syncTokensToBattleMap();
     }
     
     init();
