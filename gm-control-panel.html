@@ -1696,15 +1696,17 @@
       });
 
       peer.on('connection', (conn) => {
-        console.log('Player Display connected!');
-        playerConnection = conn;
+        console.log('Player Display connection received, waiting for data channel...');
 
         // Update UI to show connected state
         indicator.className = 'connection-indicator connected';
-        text.textContent = 'Player Display connected!';
+        text.textContent = 'Player Display connecting...';
 
         conn.on('open', () => {
-          // Send initial sync when connection opens
+          console.log('Data channel open! Connection ready.');
+          playerConnection = conn;
+          text.textContent = 'Player Display connected!';
+          // Send initial sync when connection is fully open
           sendFullSync();
         });
 
@@ -1752,7 +1754,14 @@
     // Send data to player display via PeerJS
     function sendToPlayer(data) {
       if (playerConnection && playerConnection.open) {
-        playerConnection.send(data);
+        console.log('Sending to player:', data.type);
+        try {
+          playerConnection.send(data);
+        } catch (e) {
+          console.error('Failed to send:', e);
+        }
+      } else {
+        console.log('Cannot send - connection not open. playerConnection:', !!playerConnection, 'open:', playerConnection?.open);
       }
     }
 
