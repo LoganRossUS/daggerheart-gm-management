@@ -2223,20 +2223,36 @@
         timestamp: Date.now()
       };
 
-      // Try localStorage first (for same-browser player display)
-      try {
-        localStorage.setItem('daggerheart-spotlight', JSON.stringify(spotlightData));
-        localStorage.setItem('daggerheart-update', Date.now().toString());
-      } catch (e) {
-        console.error('Failed to sync spotlight to localStorage:', e);
-        if (e.name === 'QuotaExceededError' || e.code === 22) {
-          alert('Image is too large for localStorage. Using PeerJS only. If player display is in another browser, it should still work.');
+      // If PeerJS is connected, send via binary (handles large images well)
+      if (playerConnection && playerConnection.open) {
+        sendToPlayer({ type: 'spotlight', ...spotlightData });
+        console.log('Spotlight sent via PeerJS:', adv.name, hasPortrait ? 'with portrait' : 'default image');
+
+        // Save non-image data to localStorage for persistence
+        const spotlightMetadata = { ...spotlightData, image: null };
+        try {
+          localStorage.setItem('daggerheart-spotlight', JSON.stringify(spotlightMetadata));
+          localStorage.setItem('daggerheart-update', Date.now().toString());
+        } catch (e) {
+          console.error('Failed to save spotlight metadata:', e);
+        }
+      } else {
+        // No PeerJS - try localStorage (for same-browser fallback)
+        // Use URL images only, skip base64 to avoid quota issues
+        const isUrlImage = imageToShow && (imageToShow.startsWith('http://') || imageToShow.startsWith('https://'));
+        const storageData = {
+          ...spotlightData,
+          image: isUrlImage ? imageToShow : getDefaultImageForAdversary(adv) // Use default for base64
+        };
+
+        try {
+          localStorage.setItem('daggerheart-spotlight', JSON.stringify(storageData));
+          localStorage.setItem('daggerheart-update', Date.now().toString());
+          console.log('Spotlight saved to localStorage:', adv.name);
+        } catch (e) {
+          console.error('Failed to sync spotlight to localStorage:', e);
         }
       }
-
-      // Always send via PeerJS (works even for large images)
-      sendToPlayer({ type: 'spotlight', ...spotlightData });
-      console.log('Spotlight sent:', adv.name, hasPortrait ? 'with portrait' : 'default image');
     }
 
     function saveEncounterState() {
