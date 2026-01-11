@@ -3998,6 +3998,9 @@
       const existingMarkers = container.querySelectorAll('.positioning-marker');
       existingMarkers.forEach(m => m.remove());
 
+      console.log('Drawing tokens. Total tokens:', battleMapTokens.length);
+      console.log('Tokens:', battleMapTokens);
+
       // Get map image dimensions
       const rect = mapImg.getBoundingClientRect();
       const mapWidth = mapImg.naturalWidth;
@@ -4005,8 +4008,12 @@
       const displayWidth = rect.width;
       const displayHeight = rect.height;
 
+      console.log('Map dimensions:', { mapWidth, mapHeight, displayWidth, displayHeight });
+
       // Calculate scale
       const scale = displayWidth / mapWidth;
+
+      console.log('Scale:', scale, 'GridSize:', gridSize);
 
       // Draw ALL tokens (both visible and hidden) so GM can position them before revealing
       battleMapTokens.forEach(token => {
@@ -4016,6 +4023,8 @@
         // Position marker
         const pixelX = (token.x * gridSize * scale);
         const pixelY = (token.y * gridSize * scale);
+
+        console.log(`Token ${token.name} at grid (${token.x}, ${token.y}) -> pixel (${pixelX}, ${pixelY})`);
 
         marker.style.left = `${pixelX}px`;
         marker.style.top = `${pixelY}px`;
@@ -4041,7 +4050,10 @@
         }
 
         container.appendChild(marker);
+        console.log('Marker appended to container');
       });
+
+      console.log('Finished drawing tokens');
     }
 
     init();
