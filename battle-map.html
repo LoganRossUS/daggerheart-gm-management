@@ -17,99 +17,160 @@
       cursor: none;
     }
 
-    /* Connection UI */
-    #connectionScreen {
+    /* Connection Status */
+    #connectionStatus {
       position: fixed;
-      inset: 0;
-      background: linear-gradient(180deg, #12061a 0%, #1a0d24 50%, #0d0610 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-      transition: opacity 0.5s;
-    }
-
-    #connectionScreen.connected {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .connection-form {
-      background: rgba(30, 15, 40, 0.9);
-      border: 2px solid rgba(179, 136, 255, 0.3);
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.85);
+      border: 2px solid rgba(179, 136, 255, 0.4);
       border-radius: 12px;
-      padding: 40px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-      text-align: center;
+      padding: 16px 20px;
+      z-index: 1000;
+      font-family: 'Cinzel', serif;
+      cursor: default;
+      transition: all 0.3s ease;
     }
 
-    .connection-form h1 {
+    #connectionStatus.connected {
+      border-color: rgba(76, 175, 80, 0.6);
+      background: rgba(0, 30, 0, 0.85);
+    }
+
+    #connectionStatus.minimized {
+      padding: 8px 12px;
+    }
+
+    #connectionStatus.minimized .connection-details {
+      display: none;
+    }
+
+    .connection-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    #connectionStatus.minimized .connection-header {
+      margin-bottom: 0;
+    }
+
+    .connection-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ff9800;
+      animation: pulse 2s infinite;
+    }
+
+    #connectionStatus.connected .connection-indicator {
+      background: #4caf50;
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .connection-title {
+      font-size: 0.85rem;
       color: #b388ff;
-      font-size: 2rem;
-      margin-bottom: 10px;
-      text-shadow: 0 0 20px rgba(179, 136, 255, 0.5);
     }
 
-    .connection-form h2 {
-      color: #ffd700;
-      font-size: 1.2rem;
-      margin-bottom: 30px;
-      font-weight: 400;
-      letter-spacing: 2px;
+    #connectionStatus.connected .connection-title {
+      color: #81c784;
+    }
+
+    .connection-details {
+      margin-top: 8px;
     }
 
     .room-code-input {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .room-code-input input {
-      width: 80px;
-      padding: 12px;
-      font-size: 1.2rem;
-      text-align: center;
-      background: rgba(20, 10, 30, 0.8);
-      border: 2px solid rgba(179, 136, 255, 0.3);
-      border-radius: 8px;
-      color: #b388ff;
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.4);
+      color: #ffd700;
       font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-align: center;
       text-transform: uppercase;
-      transition: all 0.3s;
+      letter-spacing: 3px;
     }
 
-    .room-code-input input:focus {
+    .room-code-input:focus {
       outline: none;
       border-color: #b388ff;
-      box-shadow: 0 0 15px rgba(179, 136, 255, 0.3);
+    }
+
+    .room-code-input::placeholder {
+      color: #555;
+      font-weight: 400;
     }
 
     .connect-btn {
       width: 100%;
-      padding: 15px;
-      font-size: 1.1rem;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #7c4dff, #4a0e4e);
+      color: white;
       font-family: 'Cinzel', serif;
-      background: linear-gradient(135deg, #7b2d8e 0%, #4b0082 100%);
-      border: 2px solid #b388ff;
-      border-radius: 8px;
-      color: #fff;
-      cursor: pointer;
-      transition: all 0.3s;
-      letter-spacing: 2px;
-    }
-
-    .connect-btn:hover {
-      background: linear-gradient(135deg, #8e3da3 0%, #5a0099 100%);
-      box-shadow: 0 0 20px rgba(179, 136, 255, 0.5);
-      transform: translateY(-2px);
-    }
-
-    .status-message {
-      margin-top: 15px;
-      color: #b388ff;
       font-size: 0.9rem;
-      min-height: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .connect-btn:hover:not(:disabled) {
+      transform: scale(1.02);
+      filter: brightness(1.1);
+    }
+
+    .connect-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .connect-btn.connecting {
+      background: linear-gradient(135deg, #ff9800, #e65100);
+    }
+
+    .room-code-label {
+      font-size: 0.7rem;
+      color: #888;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .connected-info {
+      font-size: 0.8rem;
+      color: #81c784;
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .minimize-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: none;
+      border: none;
+      color: #888;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px;
+      line-height: 1;
+    }
+
+    .minimize-btn:hover {
+      color: #b388ff;
     }
 
     /* Map Display */
@@ -230,73 +291,21 @@
       display: block;
     }
 
-    /* Connection Status Indicator */
-    #connectionStatus {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      padding: 8px 16px;
-      background: rgba(0, 0, 0, 0.7);
-      border: 2px solid;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      z-index: 200;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    #connectionStatus.connected {
-      border-color: #4CAF50;
-      color: #4CAF50;
-    }
-
-    #connectionStatus.disconnected {
-      border-color: #f44336;
-      color: #f44336;
-    }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
-
-    #connectionStatus.connected .status-dot {
-      background: #4CAF50;
-    }
-
-    #connectionStatus.disconnected .status-dot {
-      background: #f44336;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
   </style>
 </head>
 <body>
-  <!-- Connection Screen -->
-  <div id="connectionScreen">
-    <div class="connection-form">
-      <h1>BATTLE MAP</h1>
-      <h2>Enter Room Code</h2>
-      <div class="room-code-input">
-        <input type="text" id="code1" maxlength="4" placeholder="****" autocomplete="off">
-        <input type="text" id="code2" maxlength="4" placeholder="****" autocomplete="off">
-        <input type="text" id="code3" maxlength="2" placeholder="**" autocomplete="off">
-      </div>
-      <button class="connect-btn" onclick="connectToGM()">CONNECT</button>
-      <div class="status-message" id="statusMessage"></div>
-    </div>
-  </div>
-
   <!-- Connection Status -->
-  <div id="connectionStatus" class="disconnected">
-    <div class="status-dot"></div>
-    <span id="statusText">Disconnected</span>
+  <div id="connectionStatus">
+    <button class="minimize-btn" onclick="toggleConnectionMinimize()">−</button>
+    <div class="connection-header">
+      <div class="connection-indicator"></div>
+      <div class="connection-title">Enter GM Room Code</div>
+    </div>
+    <div class="connection-details">
+      <div class="room-code-label">Room Code from GM Panel</div>
+      <input type="text" id="roomCodeInput" class="room-code-input" placeholder="FIRE-DRAGON-00" maxlength="20" onkeyup="handleRoomCodeKeyup(event)">
+      <button class="connect-btn" id="connectBtn" onclick="connectToGM()">Connect</button>
+    </div>
   </div>
 
   <!-- Map Container -->
@@ -320,94 +329,41 @@
     let tokens = [];
     let gridSize = 50;
 
-    // Room code input handling
-    const codeInputs = [
-      document.getElementById('code1'),
-      document.getElementById('code2'),
-      document.getElementById('code3')
-    ];
-
-    codeInputs.forEach((input, index) => {
-      input.addEventListener('input', (e) => {
-        const value = e.target.value.toUpperCase();
-        e.target.value = value;
-
-        if (value.length === parseInt(e.target.maxLength)) {
-          if (index < codeInputs.length - 1) {
-            codeInputs[index + 1].focus();
-          }
-        }
-      });
-
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Backspace' && !e.target.value && index > 0) {
-          codeInputs[index - 1].focus();
-        } else if (e.key === 'Enter') {
-          connectToGM();
-        }
-      });
-
-      input.addEventListener('paste', (e) => {
-        e.preventDefault();
-        const pastedText = e.clipboardData.getData('text').toUpperCase().replace(/[^A-Z0-9]/g, '');
-
-        let currentIndex = index;
-        let remainingText = pastedText;
-
-        while (remainingText && currentIndex < codeInputs.length) {
-          const maxLength = parseInt(codeInputs[currentIndex].maxLength);
-          codeInputs[currentIndex].value = remainingText.substring(0, maxLength);
-          remainingText = remainingText.substring(maxLength);
-          currentIndex++;
-        }
-
-        if (currentIndex < codeInputs.length) {
-          codeInputs[currentIndex].focus();
-        }
-      });
-    });
-
-    // Auto-focus first input
-    window.addEventListener('load', () => {
-      codeInputs[0].focus();
-    });
-
-    function showStatus(message, isError = false) {
-      const statusElement = document.getElementById('statusMessage');
-      statusElement.textContent = message;
-      statusElement.style.color = isError ? '#f44336' : '#b388ff';
-    }
-
-    function updateConnectionStatus(connected) {
-      const statusElement = document.getElementById('connectionStatus');
-      const statusText = document.getElementById('statusText');
-
-      if (connected) {
-        statusElement.className = 'connected';
-        statusText.textContent = 'Connected';
-      } else {
-        statusElement.className = 'disconnected';
-        statusText.textContent = 'Disconnected';
+    // Handle Enter key in room code input
+    function handleRoomCodeKeyup(event) {
+      if (event.key === 'Enter') {
+        connectToGM();
       }
     }
 
-    function connectToGM() {
-      const code1 = codeInputs[0].value.toUpperCase();
-      const code2 = codeInputs[1].value.toUpperCase();
-      const code3 = codeInputs[2].value.toUpperCase();
+    // Toggle connection status minimize
+    function toggleConnectionMinimize() {
+      const statusEl = document.getElementById('connectionStatus');
+      statusEl.classList.toggle('minimized');
+      const btn = statusEl.querySelector('.minimize-btn');
+      btn.textContent = statusEl.classList.contains('minimized') ? '+' : '−';
+    }
 
-      if (!code1 || !code2 || !code3) {
-        showStatus('Please enter complete room code', true);
+    // Connect to GM via PeerJS
+    function connectToGM() {
+      const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+      if (!roomCode) {
         return;
       }
 
-      const roomCode = `${code1}-${code2}-${code3}`;
-      const peerId = `dh-${roomCode}`;
+      const statusEl = document.getElementById('connectionStatus');
+      const connectBtn = document.getElementById('connectBtn');
+      const indicator = statusEl.querySelector('.connection-indicator');
+      const title = statusEl.querySelector('.connection-title');
 
-      showStatus('Connecting to GM...');
+      // Update UI to show connecting
+      connectBtn.disabled = true;
+      connectBtn.textContent = 'Connecting...';
+      connectBtn.classList.add('connecting');
+      title.textContent = 'Connecting to GM...';
 
-      try {
-        // Create peer instance
+      // Create peer if not already created
+      if (!peer) {
         peer = new Peer({
           debug: 2,
           config: {
@@ -421,76 +377,84 @@
           }
         });
 
-        peer.on('open', () => {
-          console.log('Peer initialized, connecting to GM:', peerId);
-
-          // Connect to GM
-          gmConnection = peer.connect(peerId, {
-            serialization: 'binary',
-            reliable: true
-          });
-
-          gmConnection.on('open', () => {
-            console.log('Connected to GM');
-            showStatus('Connected! Waiting for map...');
-            updateConnectionStatus(true);
-
-            // Request full sync
-            try {
-              gmConnection.send({ type: 'battleMapConnected' });
-            } catch (err) {
-              console.error('Error sending connection message:', err);
-            }
-
-            // Hide connection screen after a short delay
-            setTimeout(() => {
-              document.getElementById('connectionScreen').classList.add('connected');
-            }, 1000);
-          });
-
-          gmConnection.on('data', (data) => {
-            handleGMData(data);
-          });
-
-          gmConnection.on('close', () => {
-            console.log('Connection to GM closed');
-            updateConnectionStatus(false);
-            showStatus('Connection lost. Refresh to reconnect.', true);
-          });
-
-          gmConnection.on('error', (err) => {
-            console.error('Connection error:', err);
-            showStatus('Connection error. Please try again.', true);
-            updateConnectionStatus(false);
-          });
+        peer.on('open', (id) => {
+          console.log('Peer initialized with ID:', id);
         });
 
         peer.on('error', (err) => {
-          console.error('Peer error:', err);
-          if (err.type === 'peer-unavailable') {
-            showStatus('GM not found. Check room code.', true);
-          } else if (err.type === 'network') {
-            showStatus('Network error. Check connection.', true);
-          } else {
-            showStatus(`Error: ${err.type}`, true);
-          }
-          updateConnectionStatus(false);
+          console.error('PeerJS error:', err);
+          indicator.style.background = '#f44336';
+          title.textContent = 'Connection error: ' + err.type;
+          connectBtn.disabled = false;
+          connectBtn.textContent = 'Connect';
+          connectBtn.classList.remove('connecting');
         });
-
-        // Connection timeout
-        setTimeout(() => {
-          if (!gmConnection || !gmConnection.open) {
-            showStatus('Connection timeout. Please try again.', true);
-            updateConnectionStatus(false);
-            if (peer) peer.destroy();
-          }
-        }, 10000);
-
-      } catch (err) {
-        console.error('Setup error:', err);
-        showStatus('Setup error. Please refresh.', true);
-        updateConnectionStatus(false);
       }
+
+      // Connect to GM's peer ID
+      const peerId = `dh-${roomCode}`;
+      console.log('Attempting to connect to GM:', peerId);
+
+      gmConnection = peer.connect(peerId, {
+        serialization: 'binary',
+        reliable: true
+      });
+
+      gmConnection.on('open', () => {
+        console.log('Connected to GM!');
+
+        // Update UI
+        statusEl.classList.add('connected');
+        title.textContent = 'Connected to GM';
+        connectBtn.disabled = true;
+
+        // Replace connection details with connected info
+        statusEl.querySelector('.connection-details').innerHTML = `
+          <div class="connected-info">Battle Map Connected</div>
+        `;
+
+        // Request full sync
+        try {
+          gmConnection.send({ type: 'battleMapConnected' });
+        } catch (err) {
+          console.error('Error sending connection message:', err);
+        }
+      });
+
+      gmConnection.on('data', (data) => {
+        handleGMData(data);
+      });
+
+      gmConnection.on('close', () => {
+        console.log('Disconnected from GM');
+        gmConnection = null;
+        statusEl.classList.remove('connected');
+        title.textContent = 'Disconnected from GM';
+        statusEl.querySelector('.connection-details').innerHTML = `
+          <div class="room-code-label">Room Code from GM Panel</div>
+          <input type="text" id="roomCodeInput" class="room-code-input" placeholder="FIRE-DRAGON-00" maxlength="20" value="${roomCode}" onkeyup="handleRoomCodeKeyup(event)">
+          <button class="connect-btn" id="connectBtn" onclick="connectToGM()">Reconnect</button>
+        `;
+      });
+
+      gmConnection.on('error', (err) => {
+        console.error('Connection error:', err);
+        title.textContent = 'Failed to connect';
+        connectBtn.disabled = false;
+        connectBtn.textContent = 'Connect';
+        connectBtn.classList.remove('connecting');
+      });
+
+      // Connection timeout
+      setTimeout(() => {
+        if (!gmConnection || !gmConnection.open) {
+          console.log('Connection timeout');
+          title.textContent = 'Connection timeout - GM not found';
+          connectBtn.disabled = false;
+          connectBtn.textContent = 'Retry';
+          connectBtn.classList.remove('connecting');
+        }
+      }, 10000);
     }
 
     function handleGMData(data) {
