@@ -391,7 +391,19 @@
       color: #b388ff;
       text-shadow: 0 0 60px rgba(179, 136, 255, 0.8);
     }
-    
+
+    #resultDisplay.critical .result-value {
+      color: #00ff88;
+      font-size: 5rem;
+      text-shadow: 0 0 60px rgba(0, 255, 136, 0.8), 0 0 120px rgba(0, 255, 136, 0.4);
+      animation: criticalPulse 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes criticalPulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.05); }
+    }
+
     /* Title */
     #title {
       position: absolute;
@@ -1563,12 +1575,18 @@
           setTimeout(() => {
             dice.forEach(d => d.container.style.opacity = '0.4');
 
-            resultValue.textContent = data.sum;
-            resultDetail.textContent = `with ${data.winner} (${data.hope} + ${data.fear})`;
-            resultDisplay.classList.add('visible', data.winner.toLowerCase());
+            if (data.critical) {
+              resultValue.textContent = 'Critical Success!';
+              resultDetail.textContent = `Doubles! (${data.hope} + ${data.fear})`;
+              resultDisplay.classList.add('visible', 'critical');
+            } else {
+              resultValue.textContent = data.sum;
+              resultDetail.textContent = `with ${data.winner} (${data.hope} + ${data.fear})`;
+              resultDisplay.classList.add('visible', data.winner.toLowerCase());
+            }
 
             setTimeout(() => {
-              resultDisplay.classList.remove('visible', 'hope', 'fear');
+              resultDisplay.classList.remove('visible', 'hope', 'fear', 'critical');
               setTimeout(() => { area.innerHTML = ''; }, 500);
             }, 4000);
           }, 300);
