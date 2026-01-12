@@ -2596,7 +2596,7 @@
           adversaryControlsHtml = `
             <div class="token-controls">
               <div class="token-controls-row">
-                <button class="token-spotlight-btn ${isSpotlighted ? 'active' : ''}" onclick="toggleSpotlight('${token.id}')" title="Show to players">
+                <button class="token-spotlight-btn ${isSpotlighted ? 'active' : ''}" onclick="setSpotlight('${token.id}')" title="Show to players">
                   ${isSpotlighted ? '★' : '☆'}
                 </button>
                 ${adversary.hp !== undefined ? `
@@ -2891,6 +2891,7 @@
 
       adv.currentHp = Math.max(0, Math.min(adv.hp, adv.currentHp + amount));
       renderEncounter();
+      renderTokenList();
       saveEncounterState();
 
       if (spotlightedAdversary === advId) {
@@ -2913,6 +2914,7 @@
 
       adv.conditions[condition] = !adv.conditions[condition];
       renderEncounter();
+      renderTokenList();
       saveEncounterState();
 
       // Update token conditions
@@ -2948,6 +2950,7 @@
       }
 
       renderEncounter();
+      renderTokenList();
       updateSpotlightUI();
       syncSpotlight();
     }
@@ -2955,6 +2958,7 @@
     function hideSpotlight() {
       spotlightedAdversary = null;
       renderEncounter();
+      renderTokenList();
       updateSpotlightUI();
 
       const spotlightData = { visible: false, timestamp: Date.now() };
