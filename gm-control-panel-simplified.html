@@ -1602,11 +1602,17 @@
       const fear = Math.floor(Math.random() * 12) + 1;
       const sum = hope + fear;
       const winner = hope >= fear ? 'Hope' : 'Fear';
+      const isDoubles = hope === fear;
       const lastRollEl = document.getElementById('lastRoll');
 
-      lastRollEl.textContent = `${sum} ${winner}`;
+      if (isDoubles) {
+        lastRollEl.textContent = `Critical!`;
+        lastRollEl.style.color = '#ffd700';
+      } else {
+        lastRollEl.textContent = `${sum} ${winner}`;
+        lastRollEl.style.color = winner === 'Hope' ? '#4CAF50' : '#f44336';
+      }
       lastRollEl.style.transform = 'scale(1.3)';
-      lastRollEl.style.color = winner === 'Hope' ? '#4CAF50' : '#f44336';
       setTimeout(() => {
         lastRollEl.style.transform = 'scale(1)';
         lastRollEl.style.color = '#ffd700';
@@ -1619,6 +1625,7 @@
         fear: fear,
         sum: sum,
         winner: winner,
+        critical: isDoubles,
         timestamp: Date.now()
       };
 
@@ -1626,7 +1633,7 @@
       localStorage.setItem('daggerheart-update', Date.now().toString());
       sendToPlayer({ type: 'dice', ...diceData });
 
-      console.log('Hope/Fear roll:', hope, '+', fear, '=', sum, winner);
+      console.log('Hope/Fear roll:', hope, '+', fear, '=', sum, winner, isDoubles ? '(Critical!)' : '');
     }
 
     // ========== Battle Map ==========
