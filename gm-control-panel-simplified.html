@@ -4399,13 +4399,13 @@
             roomRef.child('dice').set({
               type: data.type,
               notation: data.notation || null,
-              total: data.total,
+              total: data.total || null,
               hope: data.hope || null,
               fear: data.fear || null,
               sum: data.sum || null,
               winner: data.winner || null,
               critical: data.critical || false,
-              diceRolls: data.diceRolls || null,
+              breakdown: data.breakdown || null,
               timestamp: data.timestamp
             });
             break;

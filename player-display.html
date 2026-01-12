@@ -1268,8 +1268,23 @@
       let allResults = [];
       let allSides = [];
 
-      if (diceData.type === 'notation' && diceData.diceRolls) {
-        // New notation format with multiple dice types
+      if (diceData.type === 'dice' && diceData.breakdown) {
+        // New dice format with breakdown strings like '1d20: [3, 5]' or 'Modifier: +9'
+        diceData.breakdown.forEach(item => {
+          // Parse dice rolls: match patterns like "1d20: [3, 5, 2]" or "-2d6: [3, 1]"
+          const diceMatch = item.match(/^-?(\d+)d(\d+):\s*\[([^\]]+)\]/i);
+          if (diceMatch) {
+            const sides = parseInt(diceMatch[2]);
+            const results = diceMatch[3].split(',').map(r => parseInt(r.trim()));
+            results.forEach(result => {
+              allResults.push(result);
+              allSides.push(sides);
+            });
+          }
+          // Modifiers are ignored for dice animation (no physical dice to show)
+        });
+      } else if (diceData.type === 'notation' && diceData.diceRolls) {
+        // Legacy notation format with multiple dice types
         diceData.diceRolls.forEach(roll => {
           roll.results.forEach(result => {
             allResults.push(result);
