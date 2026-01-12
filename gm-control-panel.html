@@ -1714,6 +1714,164 @@
     .token-item.hidden {
       opacity: 0.5;
     }
+
+    /* Token control buttons for battlemap section */
+    .token-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .token-controls-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .token-spotlight-btn {
+      padding: 4px 10px;
+      border: none;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      color: #1a1a2e;
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .token-spotlight-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+    }
+
+    .token-spotlight-btn.active {
+      background: linear-gradient(135deg, #4a0e4e, #7c4dff);
+      color: #fff;
+    }
+
+    .token-condition-btn {
+      padding: 4px 8px;
+      border: 1px solid;
+      border-radius: 4px;
+      background: transparent;
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .token-condition-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .token-condition-btn.hidden-btn {
+      border-color: rgba(106, 90, 205, 0.4);
+      color: #9370db;
+    }
+
+    .token-condition-btn.hidden-btn:hover,
+    .token-condition-btn.hidden-btn.active {
+      background: rgba(106, 90, 205, 0.3);
+      border-color: #9370db;
+    }
+
+    .token-condition-btn.restrained-btn {
+      border-color: rgba(112, 128, 144, 0.4);
+      color: #b0c4de;
+    }
+
+    .token-condition-btn.restrained-btn:hover,
+    .token-condition-btn.restrained-btn.active {
+      background: rgba(112, 128, 144, 0.3);
+      border-color: #b0c4de;
+    }
+
+    .token-condition-btn.vulnerable-btn {
+      border-color: rgba(218, 165, 32, 0.4);
+      color: #ffd700;
+    }
+
+    .token-condition-btn.vulnerable-btn:hover,
+    .token-condition-btn.vulnerable-btn.active {
+      background: rgba(218, 165, 32, 0.3);
+      border-color: #ffd700;
+    }
+
+    .token-hp-tracker {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.3);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .token-hp-label {
+      font-size: 0.65rem;
+      color: #ff6b6b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .token-hp-btn {
+      width: 20px;
+      height: 20px;
+      border: none;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+      color: #ccc;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .token-hp-btn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .token-hp-btn.minus:hover {
+      background: rgba(255,68,68,0.3);
+      color: #ff6b6b;
+    }
+
+    .token-hp-btn.plus:hover {
+      background: rgba(102,187,106,0.3);
+      color: #66bb6a;
+    }
+
+    .token-hp-value {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #ff6b6b;
+      min-width: 45px;
+      text-align: center;
+    }
+
+    .token-hp-value.critical {
+      color: #ff4444;
+      animation: pulse 1s infinite;
+    }
+
+    .token-hp-value.defeated {
+      color: #666;
+      text-decoration: line-through;
+    }
+
+    .token-item.spotlighted {
+      border-color: #ffd700;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    }
   </style>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -4246,8 +4404,52 @@
         const visibilityBtnClass = isVisible ? '' : 'hidden';
         const visibilityText = isVisible ? '👁 Visible' : '👁 Hidden';
 
+        // Get adversary data for HP and conditions if this is an adversary token
+        let adversary = null;
+        let isSpotlighted = false;
+        if (token.type === 'adversary' && currentEncounter && currentEncounter.adversaries) {
+          adversary = currentEncounter.adversaries.find(a => a.id === token.id);
+          isSpotlighted = spotlightedAdversary === token.id;
+        }
+
+        // Build adversary controls HTML
+        let adversaryControlsHtml = '';
+        if (adversary) {
+          const conditions = adversary.conditions || {};
+          const hpValueClass = adversary.currentHp <= 0 ? 'defeated' : (adversary.hp && adversary.currentHp <= adversary.hp * 0.25 ? 'critical' : '');
+
+          adversaryControlsHtml = `
+            <div class="token-controls">
+              <div class="token-controls-row">
+                <button class="token-spotlight-btn ${isSpotlighted ? 'active' : ''}" onclick="toggleSpotlight('${token.id}')" title="Show to players">
+                  ${isSpotlighted ? '★ Lit' : '☆ Show'}
+                </button>
+                ${adversary.hp !== undefined ? `
+                  <div class="token-hp-tracker">
+                    <span class="token-hp-label">HP</span>
+                    <button class="token-hp-btn minus" onclick="adjustHp('${token.id}', -1)">−</button>
+                    <span class="token-hp-value ${hpValueClass}">${adversary.currentHp} / ${adversary.hp}</span>
+                    <button class="token-hp-btn plus" onclick="adjustHp('${token.id}', 1)">+</button>
+                  </div>
+                ` : ''}
+              </div>
+              <div class="token-controls-row">
+                <button class="token-condition-btn hidden-btn ${conditions.hidden ? 'active' : ''}" onclick="toggleCondition('${token.id}', 'hidden')" title="Rolls against Hidden have disadvantage">
+                  👁 Hidden
+                </button>
+                <button class="token-condition-btn restrained-btn ${conditions.restrained ? 'active' : ''}" onclick="toggleCondition('${token.id}', 'restrained')" title="Restrained creatures can't move">
+                  ⛓ Restrained
+                </button>
+                <button class="token-condition-btn vulnerable-btn ${conditions.vulnerable ? 'active' : ''}" onclick="toggleCondition('${token.id}', 'vulnerable')" title="Rolls against Vulnerable have advantage">
+                  ⚠ Vulnerable
+                </button>
+              </div>
+            </div>
+          `;
+        }
+
         return `
-          <div class="token-item ${tokenTypeClass} ${isVisible ? '' : 'hidden'}">
+          <div class="token-item ${tokenTypeClass} ${isVisible ? '' : 'hidden'} ${isSpotlighted ? 'spotlighted' : ''}">
             <div class="token-thumb ${tokenTypeClass}" style="${thumbStyle}" ${token.type === 'player' && !token.image ? `onclick="uploadPlayerTokenImage('${token.id}')"` : ''} title="${token.type === 'player' && !token.image ? 'Click to add image' : ''}"></div>
             <div class="token-info">
               <div class="token-name">${token.name}</div>
@@ -4261,6 +4463,7 @@
                        onchange="updateTokenPosition('${token.id}', document.querySelector('[onchange*=\\'${token.id}\\'][onchange*=\\'tokenY\\']').previousElementSibling.previousElementSibling.value, this.value)"
                        min="0" step="1">
               </div>
+              ${adversaryControlsHtml}
             </div>
             <div class="token-actions">
               <button class="token-position-btn" onclick="openPositioningModal('${token.id}')" ${!currentMap ? 'disabled title="Upload a map first"' : ''}>📍 Position</button>

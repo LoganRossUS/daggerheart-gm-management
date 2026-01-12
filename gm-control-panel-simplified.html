@@ -455,6 +455,150 @@
       color: #4CAF50;
     }
 
+    /* Token control buttons for battlemap section */
+    .token-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      width: 100%;
+    }
+
+    .token-controls-row {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .token-spotlight-btn {
+      padding: 3px 8px;
+      border: none;
+      border-radius: 3px;
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      color: #1a1a2e;
+      font-family: 'Cinzel', serif;
+      font-size: 0.6rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .token-spotlight-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .token-spotlight-btn.active {
+      background: linear-gradient(135deg, #4a0e4e, #7c4dff);
+      color: #fff;
+    }
+
+    .token-condition-btn {
+      padding: 2px 6px;
+      border: 1px solid;
+      border-radius: 3px;
+      background: transparent;
+      font-family: 'Cinzel', serif;
+      font-size: 0.55rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .token-condition-btn.hidden-btn {
+      border-color: rgba(106, 90, 205, 0.4);
+      color: #9370db;
+    }
+
+    .token-condition-btn.hidden-btn.active {
+      background: rgba(106, 90, 205, 0.3);
+      border-color: #9370db;
+    }
+
+    .token-condition-btn.restrained-btn {
+      border-color: rgba(112, 128, 144, 0.4);
+      color: #b0c4de;
+    }
+
+    .token-condition-btn.restrained-btn.active {
+      background: rgba(112, 128, 144, 0.3);
+      border-color: #b0c4de;
+    }
+
+    .token-condition-btn.vulnerable-btn {
+      border-color: rgba(218, 165, 32, 0.4);
+      color: #ffd700;
+    }
+
+    .token-condition-btn.vulnerable-btn.active {
+      background: rgba(218, 165, 32, 0.3);
+      border-color: #ffd700;
+    }
+
+    .token-hp-tracker {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(0,0,0,0.3);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .token-hp-label {
+      font-size: 0.55rem;
+      color: #ff6b6b;
+      text-transform: uppercase;
+    }
+
+    .token-hp-btn {
+      width: 16px;
+      height: 16px;
+      border: none;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.1);
+      color: #ccc;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .token-hp-btn.minus:hover {
+      background: rgba(255,68,68,0.3);
+      color: #ff6b6b;
+    }
+
+    .token-hp-btn.plus:hover {
+      background: rgba(102,187,106,0.3);
+      color: #66bb6a;
+    }
+
+    .token-hp-value {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #ff6b6b;
+      min-width: 35px;
+      text-align: center;
+    }
+
+    .token-hp-value.critical {
+      color: #ff4444;
+      animation: pulse 1s infinite;
+    }
+
+    .token-hp-value.defeated {
+      color: #666;
+      text-decoration: line-through;
+    }
+
+    .token-item.spotlighted {
+      border-color: #ffd700;
+      box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+    }
+
     /* Encounter Tab */
     .encounter-header {
       display: flex;
@@ -2434,23 +2578,68 @@
         return;
       }
 
-      container.innerHTML = battleMapTokens.map(token => `
-        <div class="token-item ${token.type} ${token.visible ? '' : 'hidden'}">
-          <div class="token-thumb" onclick="${token.type === 'player' && !token.image ? `uploadPlayerTokenImage('${token.id}')` : `openPositioningModal('${token.id}')`}" title="${token.type === 'player' && !token.image ? 'Click to add image' : 'Click to position on map'}">
-            ${token.image ? `<img src="${token.image}" alt="${token.name}">` : `<span style="font-size: 1.2rem;">${token.type === 'player' ? '👤' : '👹'}</span>`}
+      container.innerHTML = battleMapTokens.map(token => {
+        // Get adversary data for HP and conditions if this is an adversary token
+        let adversary = null;
+        let isSpotlighted = false;
+        if (token.type === 'adversary' && currentEncounter && currentEncounter.adversaries) {
+          adversary = currentEncounter.adversaries.find(a => a.id === token.id);
+          isSpotlighted = spotlightedAdversary === token.id;
+        }
+
+        // Build adversary controls HTML
+        let adversaryControlsHtml = '';
+        if (adversary) {
+          const conditions = adversary.conditions || {};
+          const hpValueClass = adversary.currentHp <= 0 ? 'defeated' : (adversary.hp && adversary.currentHp <= adversary.hp * 0.25 ? 'critical' : '');
+
+          adversaryControlsHtml = `
+            <div class="token-controls">
+              <div class="token-controls-row">
+                <button class="token-spotlight-btn ${isSpotlighted ? 'active' : ''}" onclick="toggleSpotlight('${token.id}')" title="Show to players">
+                  ${isSpotlighted ? '★' : '☆'}
+                </button>
+                ${adversary.hp !== undefined ? `
+                  <div class="token-hp-tracker">
+                    <span class="token-hp-label">HP</span>
+                    <button class="token-hp-btn minus" onclick="adjustHp('${token.id}', -1)">−</button>
+                    <span class="token-hp-value ${hpValueClass}">${adversary.currentHp}/${adversary.hp}</span>
+                    <button class="token-hp-btn plus" onclick="adjustHp('${token.id}', 1)">+</button>
+                  </div>
+                ` : ''}
+              </div>
+              <div class="token-controls-row">
+                <button class="token-condition-btn hidden-btn ${conditions.hidden ? 'active' : ''}" onclick="toggleCondition('${token.id}', 'hidden')" title="Hidden">👁</button>
+                <button class="token-condition-btn restrained-btn ${conditions.restrained ? 'active' : ''}" onclick="toggleCondition('${token.id}', 'restrained')" title="Restrained">⛓</button>
+                <button class="token-condition-btn vulnerable-btn ${conditions.vulnerable ? 'active' : ''}" onclick="toggleCondition('${token.id}', 'vulnerable')" title="Vulnerable">⚠</button>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="token-item ${token.type} ${token.visible ? '' : 'hidden'} ${isSpotlighted ? 'spotlighted' : ''}">
+            <div class="token-thumb" onclick="${token.type === 'player' && !token.image ? `uploadPlayerTokenImage('${token.id}')` : `openPositioningModal('${token.id}')`}" title="${token.type === 'player' && !token.image ? 'Click to add image' : 'Click to position on map'}">
+              ${token.image ? `<img src="${token.image}" alt="${token.name}">` : `<span style="font-size: 1.2rem;">${token.type === 'player' ? '👤' : '👹'}</span>`}
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="token-name">${token.name}</span>
+                <span class="token-pos" style="font-size: 0.65rem; color: #888;">(${token.x},${token.y})</span>
+              </div>
+              ${adversaryControlsHtml}
+            </div>
+            <div class="token-actions">
+              <button class="token-action-btn" onclick="openPositioningModal('${token.id}')" title="Position on map">📍</button>
+              ${token.type === 'player' ? `<button class="token-action-btn" onclick="uploadPlayerTokenImage('${token.id}')" title="Set image">🖼</button>` : ''}
+              <button class="token-action-btn ${token.visible ? 'visible-on' : ''}" onclick="toggleTokenVisibility('${token.id}')" title="${token.visible ? 'Hide' : 'Show'}">
+                ${token.visible ? '👁' : '👁‍🗨'}
+              </button>
+              <button class="token-action-btn" onclick="removeToken('${token.id}')" title="Remove">✕</button>
+            </div>
           </div>
-          <span class="token-name">${token.name}</span>
-          <span class="token-pos" style="font-size: 0.65rem; color: #888;">(${token.x},${token.y})</span>
-          <div class="token-actions">
-            <button class="token-action-btn" onclick="openPositioningModal('${token.id}')" title="Position on map">📍</button>
-            ${token.type === 'player' ? `<button class="token-action-btn" onclick="uploadPlayerTokenImage('${token.id}')" title="Set image">🖼</button>` : ''}
-            <button class="token-action-btn ${token.visible ? 'visible-on' : ''}" onclick="toggleTokenVisibility('${token.id}')" title="${token.visible ? 'Hide' : 'Show'}">
-              ${token.visible ? '👁' : '👁‍🗨'}
-            </button>
-            <button class="token-action-btn" onclick="removeToken('${token.id}')" title="Remove">✕</button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     // ========== Encounters ==========
