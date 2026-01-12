@@ -2737,7 +2737,7 @@
 
       localStorage.setItem('daggerheart-dice', JSON.stringify(diceData));
       localStorage.setItem('daggerheart-update', Date.now().toString());
-      sendToPlayer({ type: 'dice', ...diceData });
+      sendToPlayer(diceData);
 
       console.log('Hope/Fear roll:', hope, '+', fear, '=', sum, winner, isDoubles ? '(Critical!)' : '');
     }
@@ -3661,10 +3661,10 @@
         timestamp: Date.now()
       };
 
-      // If Gun.js is connected, send via Gun
-      if (roomNode) {
+      // If Firebase is connected, send via Firebase
+      if (roomRef) {
         sendToPlayer({ type: 'spotlight', ...spotlightData });
-        console.log('Spotlight sent via Gun.js:', adv.name, hasPortrait ? 'with portrait' : 'default image');
+        console.log('Spotlight sent via Firebase:', adv.name, hasPortrait ? 'with portrait' : 'default image');
 
         // Save non-image data to localStorage for persistence
         const spotlightMetadata = { ...spotlightData, image: null };
@@ -3675,7 +3675,7 @@
           console.error('Failed to save spotlight metadata:', e);
         }
       } else {
-        // No Gun.js - try localStorage (for same-browser fallback)
+        // No Firebase - try localStorage (for same-browser fallback)
         // Use URL images only, skip base64 to avoid quota issues
         const isUrlImage = imageToShow && (imageToShow.startsWith('http://') || imageToShow.startsWith('https://'));
         const storageData = {
@@ -4106,7 +4106,7 @@
       }
     }
 
-    // Sync NPC data to localStorage and Gun.js
+    // Sync NPC data to localStorage and Firebase
     function syncNpcToStorage() {
       const npcData = {
         image: currentNpcImage,
@@ -4114,8 +4114,8 @@
         timestamp: Date.now()
       };
 
-      // If Gun.js connected, send via Gun
-      if (roomNode) {
+      // If Firebase connected, send via Firebase
+      if (roomRef) {
         sendToPlayer({ type: 'npc', ...npcData });
 
         // Save metadata only to localStorage
@@ -4126,7 +4126,7 @@
           console.error('Failed to save NPC metadata:', e);
         }
       } else {
-        // No Gun.js - save to localStorage (may fail for large images)
+        // No Firebase - save to localStorage (may fail for large images)
         try {
           localStorage.setItem('daggerheart-npc', JSON.stringify(npcData));
         } catch (e) {
@@ -4283,6 +4283,7 @@
           case 'fear':
             roomRef.child('fear').set({ value: data.value, timestamp: data.timestamp });
             break;
+          case 'hopefear':
           case 'dice':
             roomRef.child('dice').set({
               type: data.type,
@@ -4371,9 +4372,6 @@
             });
             break;
         }
-
-        // Also send to player display (same room node)
-        sendToPlayer(data);
       } catch (e) {
         console.error('Failed to send battle map data via Firebase:', e);
       }
