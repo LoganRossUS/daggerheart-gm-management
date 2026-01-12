@@ -662,7 +662,11 @@
     setInterval(checkLocalStorage, 100);
 
     // Listen for storage events (cross-tab) for same-machine setup
+    // Skip if connected via PeerJS to avoid overwriting correct data (with images)
     window.addEventListener('storage', (e) => {
+      if (gmConnection && gmConnection.open) {
+        return; // PeerJS is connected, use that instead of localStorage
+      }
       if (e.key === 'daggerheart-battle-grid' && e.newValue) {
         try {
           updateGrid(JSON.parse(e.newValue));
