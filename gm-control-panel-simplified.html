@@ -4329,35 +4329,124 @@
     }
 
     // ========== Adversary Database ==========
-    function loadAdversaryDatabase() {
-      // Embedded adversary data (subset for the simplified panel)
-      adversaryDatabase = [
-        { name: 'Skeleton Warrior', tier: 1, role: 'Minion', hp: 6, stress: 3, themes: ['Undead'] },
-        { name: 'Skeleton Archer', tier: 1, role: 'Minion', hp: 4, stress: 2, themes: ['Undead'] },
-        { name: 'Zombie', tier: 1, role: 'Minion', hp: 8, stress: 2, themes: ['Undead'] },
-        { name: 'Ghost', tier: 2, role: 'Standard', hp: 12, stress: 6, themes: ['Undead', 'Spirit'] },
-        { name: 'Goblin Scout', tier: 1, role: 'Minion', hp: 4, stress: 2, themes: ['Goblinoid'] },
-        { name: 'Goblin Warrior', tier: 1, role: 'Minion', hp: 6, stress: 3, themes: ['Goblinoid'] },
-        { name: 'Hobgoblin', tier: 2, role: 'Standard', hp: 15, stress: 6, themes: ['Goblinoid'] },
-        { name: 'Orc Berserker', tier: 2, role: 'Standard', hp: 18, stress: 8, themes: ['Orc'] },
-        { name: 'Wolf', tier: 1, role: 'Minion', hp: 6, stress: 3, themes: ['Beast'] },
-        { name: 'Dire Wolf', tier: 2, role: 'Standard', hp: 14, stress: 6, themes: ['Beast'] },
-        { name: 'Bear', tier: 2, role: 'Standard', hp: 20, stress: 8, themes: ['Beast'] },
-        { name: 'Giant Spider', tier: 2, role: 'Standard', hp: 12, stress: 5, themes: ['Beast', 'Vermin'] },
-        { name: 'Bandit', tier: 1, role: 'Minion', hp: 5, stress: 3, themes: ['Humanoid'] },
-        { name: 'Bandit Captain', tier: 2, role: 'Leader', hp: 16, stress: 7, themes: ['Humanoid'] },
-        { name: 'Cultist', tier: 1, role: 'Minion', hp: 4, stress: 4, themes: ['Humanoid', 'Cult'] },
-        { name: 'Cult Fanatic', tier: 2, role: 'Standard', hp: 12, stress: 8, themes: ['Humanoid', 'Cult'] },
-        { name: 'Necromancer', tier: 2, role: 'Solo', hp: 15, stress: 10, themes: ['Humanoid', 'Undead'] },
-        { name: 'Young Dragon', tier: 3, role: 'Solo', hp: 40, stress: 15, themes: ['Dragon'] },
-        { name: 'Troll', tier: 3, role: 'Standard', hp: 35, stress: 10, themes: ['Giant'] },
-        { name: 'Ogre', tier: 2, role: 'Standard', hp: 25, stress: 8, themes: ['Giant'] },
-        { name: 'Wraith', tier: 3, role: 'Standard', hp: 20, stress: 12, themes: ['Undead', 'Spirit'] },
-        { name: 'Vampire Spawn', tier: 2, role: 'Standard', hp: 18, stress: 8, themes: ['Undead', 'Vampire'] },
-        { name: 'Elemental', tier: 2, role: 'Standard', hp: 16, stress: 6, themes: ['Elemental'] },
-        { name: 'Demon', tier: 3, role: 'Standard', hp: 30, stress: 12, themes: ['Fiend'] },
-        { name: 'Devil', tier: 3, role: 'Standard', hp: 28, stress: 14, themes: ['Fiend'] }
-      ];
+    async function loadAdversaryDatabase() {
+      try {
+        const response = await fetch('daggerheart_creatures_fixed.json');
+        const creatures = await response.json();
+
+        // Transform JSON data to match expected format
+        adversaryDatabase = creatures.map(creature => {
+          // Determine themes from creature properties
+          const themes = inferThemes(creature);
+
+          // Format attack string
+          let attackStr = '';
+          if (creature.attack) {
+            const mod = creature.attack.modifier >= 0 ? `+${creature.attack.modifier}` : `${creature.attack.modifier}`;
+            attackStr = `${mod} (${creature.attack.damage})`;
+            if (creature.attack.range && creature.attack.range !== 'Melee' && creature.attack.range !== 'Very Close') {
+              attackStr += `, ${creature.attack.range}`;
+            }
+          }
+
+          // Get features for display
+          const features = creature.features ? creature.features.map(f => {
+            return {
+              name: f.name,
+              type: f.type,
+              description: f.description
+            };
+          }) : [];
+
+          return {
+            name: creature.name,
+            tier: creature.tier || 1,
+            role: creature.role || 'Standard',
+            hp: creature.hp || 5,
+            stress: creature.stress || 3,
+            themes: themes,
+            difficulty: creature.difficulty || 10,
+            thresholds: creature.thresholds || null,
+            attack: attackStr,
+            experience: creature.experience || '',
+            features: features,
+            description: creature.description || '',
+            motives: creature.motives || ''
+          };
+        });
+
+        console.log(`Loaded ${adversaryDatabase.length} creatures from database`);
+      } catch (error) {
+        console.error('Error loading creature database:', error);
+        // Fallback to minimal data
+        adversaryDatabase = [
+          { name: 'Skeleton Warrior', tier: 1, role: 'Minion', hp: 6, stress: 3, themes: ['undead'] },
+          { name: 'Skeleton Archer', tier: 1, role: 'Minion', hp: 4, stress: 2, themes: ['undead'] },
+          { name: 'Zombie', tier: 1, role: 'Minion', hp: 8, stress: 2, themes: ['undead'] },
+          { name: 'Ghost', tier: 2, role: 'Standard', hp: 12, stress: 6, themes: ['undead'] },
+          { name: 'Goblin Scout', tier: 1, role: 'Minion', hp: 4, stress: 2, themes: ['bandits'] },
+          { name: 'Wolf', tier: 1, role: 'Minion', hp: 6, stress: 3, themes: ['beasts'] },
+          { name: 'Bear', tier: 2, role: 'Standard', hp: 20, stress: 8, themes: ['beasts'] },
+          { name: 'Bandit', tier: 1, role: 'Minion', hp: 5, stress: 3, themes: ['bandits'] },
+          { name: 'Elemental', tier: 2, role: 'Standard', hp: 16, stress: 6, themes: ['elementals'] }
+        ];
+      }
+    }
+
+    // Helper function to infer themes from creature data
+    function inferThemes(creature) {
+      const themes = [];
+      const name = creature.name.toLowerCase();
+      const desc = (creature.description || '').toLowerCase();
+      const motives = (creature.motives || '').toLowerCase();
+
+      // Theme detection based on name and description
+      if (name.includes('skeleton') || name.includes('zombie') || name.includes('undead') ||
+          name.includes('vampire') || name.includes('ghost') || name.includes('wraith') ||
+          desc.includes('undead') || desc.includes('necro')) {
+        themes.push('undead');
+      }
+      if (name.includes('bandit') || name.includes('thief') || name.includes('rogue') ||
+          name.includes('jagged knife') || name.includes('assassin') || desc.includes('bandit') || motives.includes('steal')) {
+        themes.push('bandits');
+      }
+      if (name.includes('guard') || name.includes('knight') || name.includes('soldier') ||
+          desc.includes('guard') || motives.includes('arrest')) {
+        themes.push('guards');
+      }
+      if (name.includes('wolf') || name.includes('bear') || name.includes('beast') ||
+          name.includes('spider') || name.includes('scorpion') || name.includes('rat') ||
+          name.includes('burrower') || name.includes('mosquito') || desc.includes('animal')) {
+        themes.push('beasts');
+      }
+      if (name.includes('demon') || desc.includes('demon') || desc.includes('fiend')) {
+        themes.push('demons');
+      }
+      if (name.includes('elemental') || desc.includes('elemental')) {
+        themes.push('elementals');
+      }
+      if (name.includes('ooze') || name.includes('slime') || desc.includes('ooze')) {
+        themes.push('oozes');
+      }
+      if (name.includes('construct') || desc.includes('construct') || desc.includes('golem')) {
+        themes.push('constructs');
+      }
+      if (name.includes('ogre') || name.includes('giant') || name.includes('troll') ||
+          desc.includes('giant')) {
+        themes.push('giants');
+      }
+      if (name.includes('pirate') || name.includes('corsair') || desc.includes('pirate')) {
+        themes.push('pirates');
+      }
+      if (name.includes('tree') || name.includes('plant') || name.includes('dryad') ||
+          name.includes('defender') || desc.includes('plant') || desc.includes('nature')) {
+        themes.push('nature');
+      }
+      if (creature.role === 'Social' || name.includes('courtier') || name.includes('noble')) {
+        themes.push('social');
+      }
+
+      return themes.length > 0 ? themes : ['other'];
     }
 
     // ========== Battle Queue ==========
