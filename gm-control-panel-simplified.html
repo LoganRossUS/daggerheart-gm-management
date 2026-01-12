@@ -1189,6 +1189,430 @@
       background: rgba(255,255,255,0.3);
     }
 
+    /* Battle Queue Styles */
+    .queue-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .queue-title {
+      font-size: 1rem;
+      color: #ffd700;
+    }
+
+    .queue-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .queue-btn {
+      padding: 6px 12px;
+      border: 1px solid rgba(76, 175, 80, 0.5);
+      border-radius: 4px;
+      background: transparent;
+      color: #4CAF50;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .queue-btn:hover {
+      background: rgba(76, 175, 80, 0.1);
+    }
+
+    .queue-btn.primary {
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      border-color: transparent;
+      color: white;
+    }
+
+    .queue-btn.primary:hover {
+      transform: scale(1.02);
+    }
+
+    .queue-btn.danger {
+      border-color: rgba(244, 67, 54, 0.5);
+      color: #f44336;
+    }
+
+    .queue-btn.danger:hover {
+      background: rgba(244, 67, 54, 0.1);
+    }
+
+    .queue-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .queue-empty {
+      text-align: center;
+      color: #666;
+      padding: 40px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      border: 2px dashed rgba(255,255,255,0.1);
+    }
+
+    .queue-empty-icon {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
+
+    .staged-battle-card {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+
+    .staged-battle-card:hover {
+      border-color: rgba(179, 136, 255, 0.4);
+    }
+
+    .staged-battle-card.drag-over {
+      border-color: #ffd700;
+      background: rgba(255, 215, 0, 0.1);
+    }
+
+    .staged-battle-header {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      background: rgba(0,0,0,0.2);
+      cursor: grab;
+    }
+
+    .staged-battle-header:active {
+      cursor: grabbing;
+    }
+
+    .staged-battle-order {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #7c4dff, #4a0e4e);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+
+    .staged-battle-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .staged-battle-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .staged-battle-meta {
+      font-size: 0.7rem;
+      color: #888;
+      display: flex;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .staged-battle-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .staged-action-btn {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .staged-action-btn.load {
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      color: #1a1a2e;
+      font-weight: 700;
+    }
+
+    .staged-action-btn.load:hover {
+      transform: scale(1.05);
+    }
+
+    .staged-action-btn.preview {
+      background: rgba(179, 136, 255, 0.2);
+      color: #b388ff;
+    }
+
+    .staged-action-btn.edit {
+      background: rgba(255,255,255,0.1);
+      color: #aaa;
+    }
+
+    .staged-action-btn.delete {
+      background: rgba(244, 67, 54, 0.2);
+      color: #f44336;
+    }
+
+    .staged-battle-preview {
+      display: none;
+      padding: 10px 12px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .staged-battle-preview.visible {
+      display: block;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 10px;
+    }
+
+    .preview-map {
+      width: 120px;
+      height: 80px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-map img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .preview-map-placeholder {
+      color: #555;
+      font-size: 0.7rem;
+    }
+
+    .preview-details {
+      font-size: 0.75rem;
+    }
+
+    .preview-section {
+      margin-bottom: 6px;
+    }
+
+    .preview-section-title {
+      color: #888;
+      font-size: 0.65rem;
+      margin-bottom: 2px;
+    }
+
+    .preview-adversaries {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .preview-adv-tag {
+      padding: 2px 6px;
+      background: rgba(244, 67, 54, 0.2);
+      border-radius: 3px;
+      font-size: 0.65rem;
+      color: #f44336;
+    }
+
+    .preview-tokens {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .preview-token-tag {
+      padding: 2px 6px;
+      background: rgba(76, 175, 80, 0.2);
+      border-radius: 3px;
+      font-size: 0.65rem;
+      color: #4CAF50;
+    }
+
+    .preview-token-tag.adversary {
+      background: rgba(244, 67, 54, 0.2);
+      color: #f44336;
+    }
+
+    .preview-notes {
+      color: #aaa;
+      font-style: italic;
+      max-height: 40px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Stage Battle Modal */
+    .stage-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .stage-modal.visible {
+      display: flex;
+    }
+
+    .stage-modal-content {
+      background: #1a1a2e;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .stage-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .stage-modal-title {
+      font-size: 1rem;
+      color: #ffd700;
+    }
+
+    .stage-modal-close {
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      color: #aaa;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .stage-modal-body {
+      padding: 15px;
+    }
+
+    .stage-form-group {
+      margin-bottom: 15px;
+    }
+
+    .stage-form-label {
+      display: block;
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .stage-form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+    }
+
+    .stage-form-input:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
+    .stage-form-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .stage-form-textarea:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
+    .stage-summary {
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 15px;
+    }
+
+    .stage-summary-title {
+      font-size: 0.75rem;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .stage-summary-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      padding: 4px 0;
+    }
+
+    .stage-summary-value {
+      color: #ffd700;
+    }
+
+    .stage-modal-footer {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      padding: 15px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .stage-cancel-btn {
+      padding: 10px 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      background: transparent;
+      color: #aaa;
+      font-family: 'Cinzel', serif;
+      cursor: pointer;
+    }
+
+    .stage-save-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      color: white;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .stage-save-btn:hover {
+      transform: scale(1.02);
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .battle-grid {
@@ -1206,6 +1630,15 @@
 
       .quick-dice-btns {
         display: none;
+      }
+
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-map {
+        width: 100%;
+        height: 100px;
       }
     }
   </style>
@@ -1253,6 +1686,7 @@
   <div class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('battle')">Battle <span class="tab-badge" id="battleBadge">0</span></button>
     <button class="tab-btn" onclick="switchTab('encounter')">Encounter <span class="tab-badge" id="encounterBadge">0</span></button>
+    <button class="tab-btn" onclick="switchTab('queue')">Queue <span class="tab-badge" id="queueBadge">0</span></button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
   </div>
 
@@ -1320,6 +1754,30 @@
       </div>
 
       <button class="hide-spotlight-btn" id="hideSpotlightBtn" onclick="hideSpotlight()">Hide Spotlight</button>
+    </div>
+
+    <!-- Queue Tab -->
+    <div class="tab-panel" id="queueTab">
+      <div class="queue-header">
+        <div class="queue-title">Battle Queue</div>
+        <div class="queue-actions">
+          <button class="queue-btn primary" onclick="openStageBattleModal()">+ Stage Current Battle</button>
+          <input type="file" id="importQueueInput" accept=".json" style="display: none;" onchange="handleImportQueue(event)">
+          <button class="queue-btn" onclick="document.getElementById('importQueueInput').click()">Import</button>
+          <button class="queue-btn" onclick="exportQueue()">Export</button>
+          <button class="queue-btn danger" onclick="clearQueue()">Clear All</button>
+        </div>
+      </div>
+
+      <div id="queueContainer" class="queue-list">
+        <div class="queue-empty">
+          <div class="queue-empty-icon">&#9876;</div>
+          <div>No battles staged yet.</div>
+          <div style="margin-top: 8px; font-size: 0.8rem;">
+            Set up your battle map, tokens, and encounter, then click "Stage Current Battle" to save it to the queue.
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Settings Tab -->
@@ -1459,6 +1917,51 @@
   <!-- Player Token Image Upload -->
   <input type="file" id="playerTokenImageInput" accept="image/*" style="display: none;" onchange="handlePlayerTokenImageUpload(event)">
 
+  <!-- Stage Battle Modal -->
+  <div id="stageBattleModal" class="stage-modal" onclick="closeStageBattleModal(event)">
+    <div class="stage-modal-content" onclick="event.stopPropagation()">
+      <div class="stage-modal-header">
+        <div class="stage-modal-title" id="stageModalTitle">Stage Current Battle</div>
+        <button class="stage-modal-close" onclick="closeStageBattleModal()">x</button>
+      </div>
+      <div class="stage-modal-body">
+        <div class="stage-form-group">
+          <label class="stage-form-label">Battle Name</label>
+          <input type="text" class="stage-form-input" id="stageBattleName" placeholder="e.g., Goblin Ambush, Boss Fight...">
+        </div>
+
+        <div class="stage-summary">
+          <div class="stage-summary-title">What will be staged:</div>
+          <div class="stage-summary-item">
+            <span>Battle Map</span>
+            <span class="stage-summary-value" id="stageSummaryMap">None</span>
+          </div>
+          <div class="stage-summary-item">
+            <span>Adversaries</span>
+            <span class="stage-summary-value" id="stageSummaryAdversaries">0</span>
+          </div>
+          <div class="stage-summary-item">
+            <span>Tokens</span>
+            <span class="stage-summary-value" id="stageSummaryTokens">0</span>
+          </div>
+          <div class="stage-summary-item">
+            <span>Positioned Tokens</span>
+            <span class="stage-summary-value" id="stageSummaryPositioned">0</span>
+          </div>
+        </div>
+
+        <div class="stage-form-group">
+          <label class="stage-form-label">Notes (optional)</label>
+          <textarea class="stage-form-textarea" id="stageBattleNotes" placeholder="Add any GM notes for this battle..."></textarea>
+        </div>
+      </div>
+      <div class="stage-modal-footer">
+        <button class="stage-cancel-btn" onclick="closeStageBattleModal()">Cancel</button>
+        <button class="stage-save-btn" id="stageSaveBtn" onclick="saveStagedBattle()">Stage Battle</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ========== State ==========
     let currentFear = 0;
@@ -1480,6 +1983,8 @@
     let peer = null;
     let playerConnection = null;
     let roomCode = null;
+    let stagedBattles = [];
+    let editingStagedBattleId = null;
 
     // Default silhouette image
     const DEFAULT_NPC_IMAGE = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
@@ -1516,6 +2021,8 @@
         renderTokenList();
       } else if (tabName === 'encounter') {
         renderEncounter();
+      } else if (tabName === 'queue') {
+        renderQueueList();
       }
 
       // Clear update indicator on the tab we're switching to
@@ -1528,6 +2035,7 @@
     function updateTabBadges() {
       const battleBadge = document.getElementById('battleBadge');
       const encounterBadge = document.getElementById('encounterBadge');
+      const queueBadge = document.getElementById('queueBadge');
 
       if (battleBadge) {
         battleBadge.textContent = battleMapTokens.length;
@@ -1536,6 +2044,10 @@
       if (encounterBadge) {
         const count = currentEncounter ? currentEncounter.adversaries.length : 0;
         encounterBadge.textContent = count;
+      }
+
+      if (queueBadge) {
+        queueBadge.textContent = stagedBattles.length;
       }
     }
 
@@ -3027,6 +3539,466 @@
       ];
     }
 
+    // ========== Battle Queue ==========
+    function openStageBattleModal(battleId = null) {
+      editingStagedBattleId = battleId;
+      const modal = document.getElementById('stageBattleModal');
+
+      if (battleId) {
+        // Editing existing battle
+        const battle = stagedBattles.find(b => b.id === battleId);
+        if (battle) {
+          document.getElementById('stageModalTitle').textContent = 'Edit Staged Battle';
+          document.getElementById('stageBattleName').value = battle.name;
+          document.getElementById('stageBattleNotes').value = battle.notes || '';
+          document.getElementById('stageSaveBtn').textContent = 'Update Battle';
+        }
+      } else {
+        // New battle
+        document.getElementById('stageModalTitle').textContent = 'Stage Current Battle';
+        document.getElementById('stageBattleName').value = currentEncounter?.name || '';
+        document.getElementById('stageBattleNotes').value = '';
+        document.getElementById('stageSaveBtn').textContent = 'Stage Battle';
+      }
+
+      // Update summary
+      document.getElementById('stageSummaryMap').textContent = currentMap ? 'Yes' : 'None';
+      document.getElementById('stageSummaryAdversaries').textContent = currentEncounter?.adversaries?.length || 0;
+      document.getElementById('stageSummaryTokens').textContent = battleMapTokens.length;
+      const positionedTokens = battleMapTokens.filter(t => t.x !== undefined && t.y !== undefined).length;
+      document.getElementById('stageSummaryPositioned').textContent = positionedTokens;
+
+      modal.classList.add('visible');
+      document.getElementById('stageBattleName').focus();
+    }
+
+    function closeStageBattleModal(event) {
+      if (event && event.target !== document.getElementById('stageBattleModal')) return;
+      document.getElementById('stageBattleModal').classList.remove('visible');
+      editingStagedBattleId = null;
+    }
+
+    function saveStagedBattle() {
+      const name = document.getElementById('stageBattleName').value.trim();
+      if (!name) {
+        alert('Please enter a battle name.');
+        return;
+      }
+
+      const notes = document.getElementById('stageBattleNotes').value.trim();
+
+      if (editingStagedBattleId) {
+        // Update existing battle
+        const battle = stagedBattles.find(b => b.id === editingStagedBattleId);
+        if (battle) {
+          battle.name = name;
+          battle.notes = notes;
+          battle.updatedAt = Date.now();
+        }
+      } else {
+        // Create new staged battle
+        const stagedBattle = {
+          id: 'battle-' + Math.random().toString(36).substr(2, 9),
+          name: name,
+          notes: notes,
+          encounter: currentEncounter ? JSON.parse(JSON.stringify(currentEncounter)) : null,
+          map: currentMap ? {
+            mapImage: currentMap.mapImage,
+            gridSize: currentMap.gridSize || gridSize
+          } : null,
+          mapVisible: mapVisible,
+          gridVisible: gridVisible,
+          tokens: JSON.parse(JSON.stringify(battleMapTokens)),
+          createdAt: Date.now(),
+          order: stagedBattles.length
+        };
+
+        stagedBattles.push(stagedBattle);
+      }
+
+      saveStagedBattles();
+      renderQueueList();
+      updateTabBadges();
+      closeStageBattleModal();
+    }
+
+    function loadStagedBattle(battleId) {
+      const battle = stagedBattles.find(b => b.id === battleId);
+      if (!battle) return;
+
+      if (!confirm(`Load "${battle.name}"? This will replace your current battle setup.`)) {
+        return;
+      }
+
+      // Clear current state
+      currentEncounter = null;
+      currentMap = null;
+      mapVisible = false;
+      gridVisible = false;
+      battleMapTokens = [];
+      spotlightedAdversary = null;
+
+      // Load battle state
+      if (battle.encounter) {
+        currentEncounter = JSON.parse(JSON.stringify(battle.encounter));
+        // Reset HP/stress to starting values for fresh battle
+        currentEncounter.adversaries.forEach(adv => {
+          adv.currentHp = adv.hp;
+          adv.currentStress = adv.stress;
+          adv.conditions = { hidden: false, restrained: false, vulnerable: false };
+        });
+      }
+
+      if (battle.map) {
+        currentMap = {
+          mapImage: battle.map.mapImage,
+          gridSize: battle.map.gridSize || 50
+        };
+        gridSize = currentMap.gridSize;
+
+        // Update map preview
+        const preview = document.getElementById('mapPreview');
+        const placeholder = document.getElementById('mapPlaceholder');
+        if (preview && placeholder) {
+          preview.src = currentMap.mapImage;
+          preview.style.display = 'block';
+          placeholder.style.display = 'none';
+        }
+      } else {
+        const preview = document.getElementById('mapPreview');
+        const placeholder = document.getElementById('mapPlaceholder');
+        if (preview && placeholder) {
+          preview.style.display = 'none';
+          placeholder.style.display = 'block';
+        }
+      }
+
+      mapVisible = battle.mapVisible || false;
+      gridVisible = battle.gridVisible || false;
+
+      // Update visibility buttons
+      const mapVisBtn = document.getElementById('mapVisBtn');
+      const gridBtn = document.getElementById('gridBtn');
+      if (mapVisBtn) {
+        mapVisBtn.textContent = mapVisible ? 'Hide' : 'Show';
+        mapVisBtn.classList.toggle('active', mapVisible);
+      }
+      if (gridBtn) {
+        gridBtn.classList.toggle('active', gridVisible);
+      }
+
+      if (battle.tokens) {
+        battleMapTokens = JSON.parse(JSON.stringify(battle.tokens));
+      }
+
+      // Update all UIs
+      renderEncounter();
+      renderTokenList();
+      saveEncounterState();
+      syncBattleMap();
+      updateTabBadges();
+
+      // Switch to Battle tab
+      switchTab('battle');
+
+      console.log(`Loaded staged battle: ${battle.name}`);
+    }
+
+    function deleteStagedBattle(battleId) {
+      const battle = stagedBattles.find(b => b.id === battleId);
+      if (!battle) return;
+
+      if (!confirm(`Delete "${battle.name}" from the queue?`)) {
+        return;
+      }
+
+      stagedBattles = stagedBattles.filter(b => b.id !== battleId);
+      // Re-number remaining battles
+      stagedBattles.forEach((b, i) => b.order = i);
+
+      saveStagedBattles();
+      renderQueueList();
+      updateTabBadges();
+    }
+
+    function toggleBattlePreview(battleId) {
+      const previewEl = document.getElementById(`preview-${battleId}`);
+      if (previewEl) {
+        previewEl.classList.toggle('visible');
+      }
+    }
+
+    function moveBattleUp(battleId) {
+      const index = stagedBattles.findIndex(b => b.id === battleId);
+      if (index > 0) {
+        [stagedBattles[index - 1], stagedBattles[index]] = [stagedBattles[index], stagedBattles[index - 1]];
+        stagedBattles.forEach((b, i) => b.order = i);
+        saveStagedBattles();
+        renderQueueList();
+      }
+    }
+
+    function moveBattleDown(battleId) {
+      const index = stagedBattles.findIndex(b => b.id === battleId);
+      if (index < stagedBattles.length - 1) {
+        [stagedBattles[index], stagedBattles[index + 1]] = [stagedBattles[index + 1], stagedBattles[index]];
+        stagedBattles.forEach((b, i) => b.order = i);
+        saveStagedBattles();
+        renderQueueList();
+      }
+    }
+
+    function renderQueueList() {
+      const container = document.getElementById('queueContainer');
+
+      if (stagedBattles.length === 0) {
+        container.innerHTML = `
+          <div class="queue-empty">
+            <div class="queue-empty-icon">&#9876;</div>
+            <div>No battles staged yet.</div>
+            <div style="margin-top: 8px; font-size: 0.8rem;">
+              Set up your battle map, tokens, and encounter, then click "Stage Current Battle" to save it to the queue.
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = stagedBattles.map((battle, index) => {
+        const adversaryCount = battle.encounter?.adversaries?.length || 0;
+        const tokenCount = battle.tokens?.length || 0;
+        const playerTokens = battle.tokens?.filter(t => t.type === 'player') || [];
+        const adversaryTokens = battle.tokens?.filter(t => t.type === 'adversary') || [];
+        const hasMap = !!battle.map?.mapImage;
+
+        return `
+          <div class="staged-battle-card" draggable="true" data-battle-id="${battle.id}"
+               ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)"
+               ondrop="handleDrop(event)" ondragend="handleDragEnd(event)">
+            <div class="staged-battle-header">
+              <div class="staged-battle-order">${index + 1}</div>
+              <div class="staged-battle-info">
+                <div class="staged-battle-name">${escapeHtml(battle.name)}</div>
+                <div class="staged-battle-meta">
+                  <span>${adversaryCount} adversar${adversaryCount === 1 ? 'y' : 'ies'}</span>
+                  <span>${tokenCount} token${tokenCount === 1 ? '' : 's'}</span>
+                  <span>${hasMap ? 'Map ready' : 'No map'}</span>
+                </div>
+              </div>
+              <div class="staged-battle-actions">
+                <button class="staged-action-btn load" onclick="loadStagedBattle('${battle.id}')">Load</button>
+                <button class="staged-action-btn preview" onclick="toggleBattlePreview('${battle.id}')">Preview</button>
+                <button class="staged-action-btn edit" onclick="openStageBattleModal('${battle.id}')">Edit</button>
+                <button class="staged-action-btn delete" onclick="deleteStagedBattle('${battle.id}')">Delete</button>
+              </div>
+            </div>
+            <div class="staged-battle-preview" id="preview-${battle.id}">
+              <div class="preview-grid">
+                <div class="preview-map">
+                  ${hasMap
+                    ? `<img src="${battle.map.mapImage}" alt="Map preview">`
+                    : '<span class="preview-map-placeholder">No map</span>'}
+                </div>
+                <div class="preview-details">
+                  ${adversaryCount > 0 ? `
+                    <div class="preview-section">
+                      <div class="preview-section-title">Adversaries</div>
+                      <div class="preview-adversaries">
+                        ${battle.encounter.adversaries.map(a => `<span class="preview-adv-tag">${escapeHtml(a.name)}</span>`).join('')}
+                      </div>
+                    </div>
+                  ` : ''}
+                  ${tokenCount > 0 ? `
+                    <div class="preview-section">
+                      <div class="preview-section-title">Tokens</div>
+                      <div class="preview-tokens">
+                        ${playerTokens.map(t => `<span class="preview-token-tag">${escapeHtml(t.name)}</span>`).join('')}
+                        ${adversaryTokens.map(t => `<span class="preview-token-tag adversary">${escapeHtml(t.name)}</span>`).join('')}
+                      </div>
+                    </div>
+                  ` : ''}
+                  ${battle.notes ? `
+                    <div class="preview-section">
+                      <div class="preview-section-title">Notes</div>
+                      <div class="preview-notes">${escapeHtml(battle.notes)}</div>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Drag and drop for reordering
+    let draggedBattleId = null;
+
+    function handleDragStart(event) {
+      draggedBattleId = event.target.dataset.battleId;
+      event.target.style.opacity = '0.5';
+    }
+
+    function handleDragOver(event) {
+      event.preventDefault();
+      const card = event.target.closest('.staged-battle-card');
+      if (card && card.dataset.battleId !== draggedBattleId) {
+        card.classList.add('drag-over');
+      }
+    }
+
+    function handleDrop(event) {
+      event.preventDefault();
+      const card = event.target.closest('.staged-battle-card');
+      if (card && draggedBattleId) {
+        const targetId = card.dataset.battleId;
+        if (targetId !== draggedBattleId) {
+          const fromIndex = stagedBattles.findIndex(b => b.id === draggedBattleId);
+          const toIndex = stagedBattles.findIndex(b => b.id === targetId);
+
+          if (fromIndex !== -1 && toIndex !== -1) {
+            const [moved] = stagedBattles.splice(fromIndex, 1);
+            stagedBattles.splice(toIndex, 0, moved);
+            stagedBattles.forEach((b, i) => b.order = i);
+            saveStagedBattles();
+            renderQueueList();
+          }
+        }
+      }
+      document.querySelectorAll('.staged-battle-card').forEach(c => c.classList.remove('drag-over'));
+    }
+
+    function handleDragEnd(event) {
+      event.target.style.opacity = '1';
+      draggedBattleId = null;
+      document.querySelectorAll('.staged-battle-card').forEach(c => c.classList.remove('drag-over'));
+    }
+
+    function saveStagedBattles() {
+      try {
+        // For localStorage, we need to be careful about size
+        // Store map images separately if they're base64
+        const battlesForStorage = stagedBattles.map(battle => {
+          const stored = { ...battle };
+          // Keep URL-based maps, but note if there was a base64 map
+          if (stored.map && stored.map.mapImage) {
+            if (stored.map.mapImage.startsWith('data:')) {
+              // Store base64 maps (they can be large but usually fit)
+              // If localStorage fails, we'll handle it
+            }
+          }
+          return stored;
+        });
+        localStorage.setItem('daggerheart-staged-battles', JSON.stringify(battlesForStorage));
+      } catch (e) {
+        console.error('Failed to save staged battles:', e);
+        alert('Failed to save battle queue. The data may be too large. Try using URL-based images instead of uploaded images.');
+      }
+    }
+
+    function loadStagedBattles() {
+      try {
+        const data = localStorage.getItem('daggerheart-staged-battles');
+        if (data) {
+          stagedBattles = JSON.parse(data);
+          // Sort by order
+          stagedBattles.sort((a, b) => (a.order || 0) - (b.order || 0));
+        }
+      } catch (e) {
+        console.error('Failed to load staged battles:', e);
+        stagedBattles = [];
+      }
+    }
+
+    function exportQueue() {
+      if (stagedBattles.length === 0) {
+        alert('No battles to export.');
+        return;
+      }
+
+      const exportData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        battles: stagedBattles
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `battle-queue-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function handleImportQueue(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+
+          if (!data.battles || !Array.isArray(data.battles)) {
+            alert('Invalid battle queue file.');
+            return;
+          }
+
+          const mode = confirm('Click OK to append battles to current queue, or Cancel to replace the current queue.');
+
+          if (mode) {
+            // Append
+            const startOrder = stagedBattles.length;
+            data.battles.forEach((battle, i) => {
+              battle.id = 'battle-' + Math.random().toString(36).substr(2, 9);
+              battle.order = startOrder + i;
+              stagedBattles.push(battle);
+            });
+          } else {
+            // Replace
+            stagedBattles = data.battles.map((battle, i) => ({
+              ...battle,
+              id: 'battle-' + Math.random().toString(36).substr(2, 9),
+              order: i
+            }));
+          }
+
+          saveStagedBattles();
+          renderQueueList();
+          updateTabBadges();
+
+          alert(`Imported ${data.battles.length} battle(s).`);
+        } catch (err) {
+          console.error('Import failed:', err);
+          alert('Failed to import battle queue. Invalid file format.');
+        }
+      };
+      reader.readAsText(file);
+
+      // Reset input
+      event.target.value = '';
+    }
+
+    function clearQueue() {
+      if (stagedBattles.length === 0) return;
+
+      if (!confirm(`Delete all ${stagedBattles.length} staged battle(s)?`)) {
+        return;
+      }
+
+      stagedBattles = [];
+      saveStagedBattles();
+      renderQueueList();
+      updateTabBadges();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
     // ========== Initialize ==========
     function init() {
       // Load fear
@@ -3073,6 +4045,10 @@
 
       // Load adversary database
       loadAdversaryDatabase();
+
+      // Load staged battles
+      loadStagedBattles();
+      renderQueueList();
 
       // Initialize PeerJS
       initPeerHost();
