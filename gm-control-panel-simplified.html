@@ -2105,7 +2105,7 @@
       }
     }
   </style>
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
 </head>
 <body>
   <!-- Header Bar -->
@@ -2477,9 +2477,10 @@
     let pendingPlayerTokenImageId = null;
     let adversaryDatabase = [];
     let selectedAutocompleteIndex = -1;
-    let peer = null;
-    let playerConnection = null;
+    let gun = null;
+    let roomNode = null;
     let roomCode = null;
+    let connectedClients = 0;
     let stagedBattles = [];
     let editingStagedBattleId = null;
 
@@ -3612,10 +3613,10 @@
         timestamp: Date.now()
       };
 
-      // If PeerJS is connected, send via binary (handles large images well)
-      if (playerConnection && playerConnection.open) {
+      // If Gun.js is connected, send via Gun
+      if (roomNode) {
         sendToPlayer({ type: 'spotlight', ...spotlightData });
-        console.log('Spotlight sent via PeerJS:', adv.name, hasPortrait ? 'with portrait' : 'default image');
+        console.log('Spotlight sent via Gun.js:', adv.name, hasPortrait ? 'with portrait' : 'default image');
 
         // Save non-image data to localStorage for persistence
         const spotlightMetadata = { ...spotlightData, image: null };
@@ -3626,7 +3627,7 @@
           console.error('Failed to save spotlight metadata:', e);
         }
       } else {
-        // No PeerJS - try localStorage (for same-browser fallback)
+        // No Gun.js - try localStorage (for same-browser fallback)
         // Use URL images only, skip base64 to avoid quota issues
         const isUrlImage = imageToShow && (imageToShow.startsWith('http://') || imageToShow.startsWith('https://'));
         const storageData = {
@@ -3648,7 +3649,7 @@
       if (currentEncounter) {
         try {
           // Strip large image data before saving to localStorage to avoid quota issues
-          // Images are sent via PeerJS only (which handles binary data well)
+          // Images are sent via Gun.js only (which handles data sync well)
           const encounterForStorage = {
             name: currentEncounter.name,
             adversaries: currentEncounter.adversaries.map(adv => ({
@@ -4057,7 +4058,7 @@
       }
     }
 
-    // Sync NPC data to localStorage and PeerJS
+    // Sync NPC data to localStorage and Gun.js
     function syncNpcToStorage() {
       const npcData = {
         image: currentNpcImage,
@@ -4065,8 +4066,8 @@
         timestamp: Date.now()
       };
 
-      // If PeerJS connected, send via binary (handles large images)
-      if (playerConnection && playerConnection.open) {
+      // If Gun.js connected, send via Gun
+      if (roomNode) {
         sendToPlayer({ type: 'npc', ...npcData });
 
         // Save metadata only to localStorage
@@ -4077,7 +4078,7 @@
           console.error('Failed to save NPC metadata:', e);
         }
       } else {
-        // No PeerJS - save to localStorage (may fail for large images)
+        // No Gun.js - save to localStorage (may fail for large images)
         try {
           localStorage.setItem('daggerheart-npc', JSON.stringify(npcData));
         } catch (e) {
@@ -4108,7 +4109,7 @@
       reader.readAsDataURL(file);
     }
 
-    // ========== PeerJS Connection ==========
+    // ========== Gun.js Connection ==========
     function generateRoomCode() {
       const adjectives = ['RED', 'BLUE', 'GOLD', 'DARK', 'WILD', 'IRON', 'FIRE', 'FROST', 'STORM', 'SHADOW'];
       const nouns = ['WOLF', 'HAWK', 'BEAR', 'LION', 'RAVEN', 'DRAGON', 'SWORD', 'CROWN', 'FLAME', 'BLADE'];
@@ -4128,7 +4129,7 @@
       }
     }
 
-    function initPeerHost() {
+    function initGunHost() {
       roomCode = generateRoomCode();
       document.getElementById('roomCodeDisplay').textContent = roomCode;
       document.getElementById('connectionBtn').textContent = 'Room: ' + roomCode;
@@ -4137,150 +4138,193 @@
       const text = document.getElementById('connectionText');
       const statusText = document.getElementById('connectionStatusText');
 
-      // Check if PeerJS is loaded
-      if (typeof Peer === 'undefined') {
-        text.textContent = 'PeerJS not loaded';
+      // Check if Gun is loaded
+      if (typeof Gun === 'undefined') {
+        text.textContent = 'Gun.js not loaded';
         statusText.textContent = 'Offline';
-        console.error('PeerJS library not loaded');
+        console.error('Gun.js library not loaded');
         return;
       }
 
       try {
-        peer = new Peer('dh-' + roomCode, {
-          debug: 2,
-          config: {
-            iceServers: [
-              { urls: 'stun:stun.l.google.com:19302' },
-              { urls: 'stun:stun1.l.google.com:19302' },
-              { urls: 'stun:stun2.l.google.com:19302' },
-              { urls: 'stun:stun3.l.google.com:19302' },
-              { urls: 'stun:stun4.l.google.com:19302' }
-            ]
-          }
+        // Initialize Gun with relay peers for WebRTC-free operation
+        gun = Gun({
+          peers: ['https://gun-manhattan.herokuapp.com/gun'],
+          localStorage: false,
+          radisk: false
         });
 
-        // Set a timeout for connection
-        const connectionTimeout = setTimeout(() => {
-          if (!peer || peer.disconnected) {
-            text.textContent = 'Connection timeout - using local only';
-            statusText.textContent = 'Local Mode';
+        // Create room namespace
+        roomNode = gun.get('daggerheart-room-' + roomCode);
+
+        // Mark room as active with GM heartbeat
+        roomNode.get('gm').put({
+          active: true,
+          timestamp: Date.now()
+        });
+
+        // Start GM heartbeat to keep room alive
+        setInterval(() => {
+          if (roomNode) {
+            roomNode.get('gm').put({
+              active: true,
+              timestamp: Date.now()
+            });
           }
         }, 10000);
 
-        peer.on('open', (id) => {
-          clearTimeout(connectionTimeout);
-          console.log('GM hosting with room code:', roomCode);
-          text.textContent = 'Waiting for connection...';
-          statusText.textContent = 'Ready';
-        });
+        console.log('GM hosting with room code:', roomCode);
+        text.textContent = 'Room ready';
+        statusText.textContent = 'Ready';
+        dot.classList.add('connected');
+        document.getElementById('connectionBtn').classList.add('connected');
 
-        peer.on('connection', (conn) => {
-          console.log('Connection received, waiting for data channel...');
-
-          conn.on('open', () => {
-            console.log('Data channel open!');
-            playerConnection = conn;
-            dot.classList.add('connected');
-            text.textContent = 'Connected!';
+        // Listen for client connections
+        roomNode.get('clients').map().on((client, clientId) => {
+          if (client && client.connected && (Date.now() - client.timestamp) < 30000) {
+            connectedClients++;
+            text.textContent = `${connectedClients} client(s) connected`;
             statusText.textContent = 'Connected';
-            document.getElementById('connectionBtn').classList.add('connected');
-            sendFullSync();
-          });
 
-          conn.on('data', (data) => {
-            if (data && data.type === 'battleMapConnected') {
-              syncBattleMap();
+            // If a client requests sync, send it
+            if (client.requestSync) {
+              sendFullSync();
+              // Clear the sync request
+              roomNode.get('clients').get(clientId).get('requestSync').put(false);
             }
-          });
-
-          conn.on('close', () => {
-            playerConnection = null;
-            dot.classList.remove('connected');
-            text.textContent = 'Disconnected';
-            statusText.textContent = 'Disconnected';
-            document.getElementById('connectionBtn').classList.remove('connected');
-          });
-
-          conn.on('error', (err) => {
-            console.error('Connection error:', err);
-          });
-        });
-
-        peer.on('disconnected', () => {
-          console.log('Disconnected from signaling server');
-          text.textContent = 'Reconnecting...';
-          statusText.textContent = 'Reconnecting';
-          setTimeout(() => {
-            if (peer && !peer.destroyed) {
-              peer.reconnect();
-            }
-          }, 2000);
-        });
-
-        peer.on('error', (err) => {
-          console.error('PeerJS error:', err);
-          if (err.type === 'unavailable-id') {
-            roomCode = generateRoomCode();
-            document.getElementById('roomCodeDisplay').textContent = roomCode;
-            document.getElementById('connectionBtn').textContent = 'Room: ' + roomCode;
-            peer.destroy();
-            setTimeout(initPeerHost, 1000);
-          } else if (err.type === 'network' || err.type === 'server-error') {
-            text.textContent = 'Network error - local mode';
-            statusText.textContent = 'Local Mode';
-          } else {
-            text.textContent = 'Error: ' + err.type;
-            statusText.textContent = 'Error';
           }
         });
+
+        // Listen for battle map sync requests
+        roomNode.get('battleMapRequest').on((request) => {
+          if (request && request.timestamp && (Date.now() - request.timestamp) < 5000) {
+            syncBattleMap();
+          }
+        });
+
+        // Send initial state
+        setTimeout(() => {
+          sendFullSync();
+        }, 1000);
+
       } catch (e) {
-        console.error('Failed to initialize PeerJS:', e);
+        console.error('Failed to initialize Gun.js:', e);
         text.textContent = 'Init failed - local mode';
         statusText.textContent = 'Local Mode';
       }
     }
 
     function sendToPlayer(data) {
-      if (playerConnection && playerConnection.open) {
-        try {
-          playerConnection.send(data);
-        } catch (e) {
-          console.error('Failed to send:', e);
+      if (!roomNode) return;
+
+      try {
+        // Add timestamp to data
+        data.timestamp = Date.now();
+
+        // Route data to appropriate Gun node based on type
+        switch (data.type) {
+          case 'fear':
+            roomNode.get('fear').put({ value: data.value, timestamp: data.timestamp });
+            break;
+          case 'dice':
+            // For complex objects, we need to stringify nested arrays
+            roomNode.get('dice').put({
+              type: data.type,
+              notation: data.notation || null,
+              total: data.total,
+              hope: data.hope || null,
+              fear: data.fear || null,
+              sum: data.sum || null,
+              winner: data.winner || null,
+              critical: data.critical || false,
+              diceRollsJson: data.diceRolls ? JSON.stringify(data.diceRolls) : null,
+              timestamp: data.timestamp
+            });
+            break;
+          case 'spotlight':
+            roomNode.get('spotlight').put({
+              visible: data.visible,
+              adversaryId: data.adversaryId || null,
+              name: data.name || null,
+              image: data.image || null,
+              isDefaultImage: data.isDefaultImage || false,
+              defeated: data.defeated || false,
+              conditionsJson: data.conditions ? JSON.stringify(data.conditions) : '{}',
+              timestamp: data.timestamp
+            });
+            break;
+          case 'npc':
+            roomNode.get('npc').put({
+              visible: data.visible,
+              image: data.image || null,
+              timestamp: data.timestamp
+            });
+            break;
+          case 'sync':
+            roomNode.get('sync').put({
+              fear: data.fear,
+              spotlightJson: data.spotlight ? JSON.stringify(data.spotlight) : null,
+              timestamp: data.timestamp
+            });
+            break;
+          default:
+            console.log('Unknown data type:', data.type);
         }
+      } catch (e) {
+        console.error('Failed to send via Gun.js:', e);
       }
     }
 
     function sendToBattleMap(data) {
-      // Send to all connected battle map displays
-      if (peer && peer.connections) {
-        for (const peerId in peer.connections) {
-          const connections = peer.connections[peerId];
-          if (connections && connections.length > 0) {
-            connections.forEach(conn => {
-              if (conn.open && conn.metadata && conn.metadata.type === 'battleMap') {
-                try {
-                  conn.send(data);
-                } catch (err) {
-                  console.error('Error sending to battle map:', err);
-                }
-              }
-            });
-          }
-        }
-      }
+      if (!roomNode) return;
 
-      // Also broadcast to all connections (battle map will filter)
-      if (playerConnection && playerConnection.open) {
-        try {
-          playerConnection.send(data);
-        } catch (err) {
-          console.error('Error broadcasting battle map data:', err);
+      try {
+        data.timestamp = Date.now();
+
+        switch (data.type) {
+          case 'map':
+            roomNode.get('map').put({
+              type: 'map',
+              visible: data.visible,
+              mapImage: data.mapImage || null,
+              gridSize: data.gridSize || 50,
+              timestamp: data.timestamp
+            });
+            break;
+          case 'tokens':
+            roomNode.get('tokens').put({
+              type: 'tokens',
+              tokensJson: JSON.stringify(data.tokens || []),
+              timestamp: data.timestamp
+            });
+            break;
+          case 'grid':
+            roomNode.get('grid').put({
+              type: 'grid',
+              visible: data.visible,
+              timestamp: data.timestamp
+            });
+            break;
+          case 'mapSync':
+            roomNode.get('mapSync').put({
+              type: 'mapSync',
+              mapJson: data.map ? JSON.stringify(data.map) : null,
+              tokensJson: data.tokens ? JSON.stringify(data.tokens) : null,
+              gridJson: data.grid ? JSON.stringify(data.grid) : null,
+              timestamp: data.timestamp
+            });
+            break;
         }
+
+        // Also send to player display (same room node)
+        sendToPlayer(data);
+      } catch (e) {
+        console.error('Failed to send battle map data via Gun.js:', e);
       }
     }
 
     function sendFullSync() {
-      if (!playerConnection || !playerConnection.open) return;
+      if (!roomNode) return;
 
       const syncData = {
         type: 'sync',
@@ -5013,8 +5057,8 @@
       loadStagedBattles();
       renderQueueList();
 
-      // Initialize PeerJS
-      initPeerHost();
+      // Initialize Gun.js
+      initGunHost();
 
       // Render initial state
       renderTokenList();

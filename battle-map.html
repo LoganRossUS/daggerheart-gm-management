@@ -319,12 +319,13 @@
   <!-- Token Layer -->
   <div id="tokenLayer"></div>
 
-  <!-- PeerJS Library -->
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <!-- Gun.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
 
   <script>
-    let peer = null;
-    let gmConnection = null;
+    let gun = null;
+    let roomNode = null;
+    let clientId = 'battlemap-' + Math.random().toString(36).substr(2, 9);
     let currentMap = null;
     let tokens = [];
     let gridSize = 50;
@@ -354,7 +355,7 @@
       btn.textContent = statusEl.classList.contains('minimized') ? '+' : '−';
     }
 
-    // Connect to GM via PeerJS
+    // Connect to GM via Gun.js
     function connectToGM() {
       const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
       if (!roomCode) {
@@ -376,103 +377,140 @@
       connectBtn.classList.add('connecting');
       title.textContent = 'Connecting to GM...';
 
-      // Create peer if not already created
-      if (!peer) {
-        peer = new Peer({
-          debug: 2,
-          config: {
-            iceServers: [
-              { urls: 'stun:stun.l.google.com:19302' },
-              { urls: 'stun:stun1.l.google.com:19302' },
-              { urls: 'stun:stun2.l.google.com:19302' },
-              { urls: 'stun:stun3.l.google.com:19302' },
-              { urls: 'stun:stun4.l.google.com:19302' }
-            ]
-          }
-        });
-
-        peer.on('open', (id) => {
-          console.log('Peer initialized with ID:', id);
-        });
-
-        peer.on('error', (err) => {
-          console.error('PeerJS error:', err);
-          indicator.style.background = '#f44336';
-          title.textContent = 'Connection error: ' + err.type;
-          connectBtn.disabled = false;
-          connectBtn.textContent = 'Connect';
-          connectBtn.classList.remove('connecting');
-        });
-
-        peer.on('disconnected', () => {
-          console.log('Disconnected from signaling server');
-          if (peer && !peer.destroyed) {
-            peer.reconnect();
-          }
-        });
+      // Check if Gun is loaded
+      if (typeof Gun === 'undefined') {
+        console.error('Gun.js library not loaded');
+        title.textContent = 'Gun.js not loaded';
+        connectBtn.disabled = false;
+        connectBtn.textContent = 'Retry';
+        connectBtn.classList.remove('connecting');
+        return;
       }
 
-      // Connect to GM's peer ID
-      const peerId = `dh-${roomCode}`;
-      console.log('Attempting to connect to GM:', peerId);
-
-      gmConnection = peer.connect(peerId, {
-        serialization: 'binary',
-        reliable: true
-      });
-
-      gmConnection.on('open', () => {
-        console.log('Connected to GM!');
-
-        // Initialize heartbeat tracking
-        lastHeartbeatReceived = Date.now();
-        startHeartbeatMonitoring();
-
-        // Update UI
-        statusEl.classList.add('connected');
-        title.textContent = 'Connected to GM';
-        connectBtn.disabled = true;
-
-        // Replace connection details with connected info
-        statusEl.querySelector('.connection-details').innerHTML = `
-          <div class="connected-info">Battle Map Connected</div>
-        `;
-
-        // Request full sync
-        try {
-          gmConnection.send({ type: 'battleMapConnected' });
-        } catch (err) {
-          console.error('Error sending connection message:', err);
+      try {
+        // Initialize Gun if not already created
+        if (!gun) {
+          gun = Gun({
+            peers: ['https://gun-manhattan.herokuapp.com/gun'],
+            localStorage: false,
+            radisk: false
+          });
         }
-      });
 
-      gmConnection.on('data', (data) => {
-        handleGMData(data);
-      });
+        // Connect to the GM's room
+        roomNode = gun.get('daggerheart-room-' + roomCode);
 
-      gmConnection.on('close', () => {
-        console.log('Disconnected from GM');
-        handleDisconnection();
-      });
+        // Check if GM is active
+        roomNode.get('gm').on((gmData) => {
+          if (gmData && gmData.active && (Date.now() - gmData.timestamp) < 30000) {
+            console.log('GM is active in room:', roomCode);
+            lastHeartbeatReceived = Date.now();
 
-      gmConnection.on('error', (err) => {
-        console.error('Connection error:', err);
-        title.textContent = 'Failed to connect';
+            // Update UI to show connected
+            statusEl.classList.add('connected');
+            title.textContent = 'Connected to GM';
+            connectBtn.disabled = true;
+            statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Battle Map Connected</div>';
+
+            // Register as connected client
+            roomNode.get('clients').get(clientId).put({
+              connected: true,
+              timestamp: Date.now(),
+              type: 'battleMap'
+            });
+
+            // Request battle map sync
+            roomNode.get('battleMapRequest').put({
+              clientId: clientId,
+              timestamp: Date.now()
+            });
+
+            // Start heartbeat monitoring
+            startHeartbeatMonitoring();
+          }
+        });
+
+        // Subscribe to all battle map data updates from GM
+        subscribeToGmData();
+
+        // Timeout if GM not found within 10 seconds
+        setTimeout(() => {
+          if (!statusEl.classList.contains('connected')) {
+            console.log('Connection timeout - GM not found');
+            title.textContent = 'GM not found. Check code?';
+            connectBtn.disabled = false;
+            connectBtn.textContent = 'Retry';
+            connectBtn.classList.remove('connecting');
+            roomNode = null;
+          }
+        }, 10000);
+
+      } catch (e) {
+        console.error('Gun.js connection error:', e);
+        title.textContent = 'Connection error';
         connectBtn.disabled = false;
-        connectBtn.textContent = 'Connect';
+        connectBtn.textContent = 'Retry';
         connectBtn.classList.remove('connecting');
+      }
+    }
+
+    // Subscribe to GM data updates
+    function subscribeToGmData() {
+      if (!roomNode) return;
+
+      // Subscribe to map updates
+      roomNode.get('map').on((data) => {
+        if (data && data.timestamp) {
+          lastHeartbeatReceived = Date.now();
+          console.log('Received map update:', data);
+          updateMap(data);
+        }
       });
 
-      // Connection timeout
-      setTimeout(() => {
-        if (!gmConnection || !gmConnection.open) {
-          console.log('Connection timeout');
-          title.textContent = 'Connection timeout - GM not found';
-          connectBtn.disabled = false;
-          connectBtn.textContent = 'Retry';
-          connectBtn.classList.remove('connecting');
+      // Subscribe to tokens updates
+      roomNode.get('tokens').on((data) => {
+        if (data && data.timestamp) {
+          lastHeartbeatReceived = Date.now();
+          console.log('Received tokens update:', data);
+
+          // Parse tokens from JSON string
+          const tokensData = {
+            type: 'tokens',
+            tokens: data.tokensJson ? JSON.parse(data.tokensJson) : []
+          };
+          updateTokens(tokensData);
         }
-      }, 10000);
+      });
+
+      // Subscribe to grid updates
+      roomNode.get('grid').on((data) => {
+        if (data && data.timestamp) {
+          lastHeartbeatReceived = Date.now();
+          console.log('Received grid update:', data);
+          updateGrid(data);
+        }
+      });
+
+      // Subscribe to full map sync updates
+      roomNode.get('mapSync').on((data) => {
+        if (data && data.timestamp) {
+          lastHeartbeatReceived = Date.now();
+          console.log('Received mapSync update:', data);
+
+          if (data.mapJson) {
+            const mapData = JSON.parse(data.mapJson);
+            updateMap(mapData);
+          }
+          if (data.tokensJson) {
+            const tokensData = JSON.parse(data.tokensJson);
+            updateTokens({ tokens: tokensData.tokens || tokensData });
+          }
+          if (data.gridJson) {
+            const gridData = JSON.parse(data.gridJson);
+            updateGrid(gridData);
+          }
+        }
+      });
     }
 
     function handleGMData(data) {
@@ -481,17 +519,6 @@
       if (!data || !data.type) return;
 
       switch (data.type) {
-        case 'heartbeat':
-          // Respond to heartbeat and update last received time
-          lastHeartbeatReceived = Date.now();
-          if (gmConnection && gmConnection.open) {
-            try {
-              gmConnection.send({ type: 'heartbeatResponse', timestamp: Date.now() });
-            } catch (err) {
-              console.warn('Failed to send heartbeat response:', err);
-            }
-          }
-          break;
         case 'map':
           updateMap(data);
           break;
@@ -659,8 +686,8 @@
 
     // localStorage fallback for same-machine setup (grid and tokens only, not map images)
     function checkLocalStorage() {
-      // Skip if connected via PeerJS
-      if (gmConnection && gmConnection.open) {
+      // Skip if connected via Gun.js
+      if (roomNode) {
         return;
       }
 
@@ -687,7 +714,7 @@
       }
     }
 
-    // Poll localStorage every 100ms as fallback (when not connected via PeerJS)
+    // Poll localStorage every 100ms as fallback (when not connected via Gun.js)
     setInterval(checkLocalStorage, 100);
 
     // ========== Heartbeat Monitoring and Automatic Reconnection ==========
@@ -702,6 +729,17 @@
         checkHeartbeat();
       }, 10000); // Check every 10 seconds
 
+      // Also send periodic client heartbeats to GM
+      setInterval(() => {
+        if (roomNode) {
+          roomNode.get('clients').get(clientId).put({
+            connected: true,
+            timestamp: Date.now(),
+            type: 'battleMap'
+          });
+        }
+      }, 15000);
+
       console.log('Heartbeat monitoring started');
     }
 
@@ -714,7 +752,7 @@
     }
 
     function checkHeartbeat() {
-      if (!gmConnection || !gmConnection.open) {
+      if (!roomNode) {
         return; // Not connected, nothing to check
       }
 
@@ -722,11 +760,9 @@
       const timeSinceLastHeartbeat = now - lastHeartbeatReceived;
 
       if (timeSinceLastHeartbeat > HEARTBEAT_TIMEOUT) {
-        console.warn('No heartbeat received for', Math.round(timeSinceLastHeartbeat / 1000), 'seconds. Connection may be stale.');
-        // Close the stale connection to trigger reconnection
-        if (gmConnection) {
-          gmConnection.close();
-        }
+        console.warn('No data received for', Math.round(timeSinceLastHeartbeat / 1000), 'seconds. Connection may be stale.');
+        // Trigger reconnection
+        handleDisconnection();
       }
     }
 
@@ -766,95 +802,50 @@
       const title = statusEl.querySelector('.connection-title');
       title.textContent = 'Reconnecting to GM...';
 
-      // If peer is destroyed, recreate it
-      if (!peer || peer.destroyed) {
-        peer = new Peer({
-          debug: 2,
-          config: {
-            iceServers: [
-              { urls: 'stun:stun.l.google.com:19302' },
-              { urls: 'stun:stun1.l.google.com:19302' },
-              { urls: 'stun:stun2.l.google.com:19302' },
-              { urls: 'stun:stun3.l.google.com:19302' },
-              { urls: 'stun:stun4.l.google.com:19302' }
-            ]
+      try {
+        // Reconnect to the room
+        roomNode = gun.get('daggerheart-room-' + savedRoomCode);
+
+        // Check if GM is still active
+        roomNode.get('gm').once((gmData) => {
+          if (gmData && gmData.active && (Date.now() - gmData.timestamp) < 30000) {
+            console.log('Reconnected to GM!');
+            reconnectAttempts = 0;
+            lastHeartbeatReceived = Date.now();
+
+            statusEl.classList.add('connected');
+            title.textContent = 'Connected to GM';
+            statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Battle Map Connected</div>';
+
+            // Re-register as connected client and request sync
+            roomNode.get('clients').get(clientId).put({
+              connected: true,
+              timestamp: Date.now(),
+              type: 'battleMap'
+            });
+
+            // Request battle map sync
+            roomNode.get('battleMapRequest').put({
+              clientId: clientId,
+              timestamp: Date.now()
+            });
+
+            subscribeToGmData();
+            startHeartbeatMonitoring();
+          } else {
+            console.log('GM not active, scheduling reconnect...');
+            scheduleReconnect();
           }
         });
 
-        peer.on('open', () => {
-          doReconnect();
-        });
-
-        peer.on('error', (err) => {
-          console.error('PeerJS error during reconnect:', err);
-          scheduleReconnect();
-        });
-      } else if (peer.open) {
-        doReconnect();
-      } else {
-        peer.on('open', () => {
-          doReconnect();
-        });
+      } catch (e) {
+        console.error('Reconnection error:', e);
+        scheduleReconnect();
       }
     }
 
-    function doReconnect() {
-      const peerId = `dh-${savedRoomCode}`;
-      console.log('Reconnecting to GM:', peerId);
-
-      gmConnection = peer.connect(peerId, {
-        serialization: 'binary',
-        reliable: true
-      });
-
-      gmConnection.on('open', () => {
-        console.log('Reconnected to GM!');
-        reconnectAttempts = 0; // Reset on successful connection
-        lastHeartbeatReceived = Date.now();
-
-        const statusEl = document.getElementById('connectionStatus');
-        const title = statusEl.querySelector('.connection-title');
-        statusEl.classList.add('connected');
-        title.textContent = 'Connected to GM';
-        statusEl.querySelector('.connection-details').innerHTML = `
-          <div class="connected-info">Battle Map Connected</div>
-        `;
-
-        startHeartbeatMonitoring();
-
-        // Request full sync
-        try {
-          gmConnection.send({ type: 'battleMapConnected' });
-        } catch (err) {
-          console.error('Error sending reconnection message:', err);
-        }
-      });
-
-      gmConnection.on('data', (data) => {
-        handleGMData(data);
-      });
-
-      gmConnection.on('close', () => {
-        console.log('Disconnected from GM');
-        handleDisconnection();
-      });
-
-      gmConnection.on('error', (err) => {
-        console.error('Reconnection error:', err);
-        scheduleReconnect();
-      });
-
-      // Timeout for reconnection attempt
-      setTimeout(() => {
-        if (!gmConnection || !gmConnection.open) {
-          console.log('Reconnection timeout');
-          scheduleReconnect();
-        }
-      }, 10000);
-    }
-
     function handleDisconnection() {
-      gmConnection = null;
+      roomNode = null;
       stopHeartbeatMonitoring();
 
       const statusEl = document.getElementById('connectionStatus');
@@ -867,10 +858,10 @@
     }
 
     // Listen for storage events (cross-tab) for same-machine setup
-    // Skip if connected via PeerJS to avoid overwriting correct data (with images)
+    // Skip if connected via Gun.js to avoid overwriting correct data (with images)
     window.addEventListener('storage', (e) => {
-      if (gmConnection && gmConnection.open) {
-        return; // PeerJS is connected, use that instead of localStorage
+      if (roomNode) {
+        return; // Gun.js is connected, use that instead of localStorage
       }
       if (e.key === 'daggerheart-battle-grid' && e.newValue) {
         try {
