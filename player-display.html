@@ -878,7 +878,34 @@
       color: #b388ff;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyA6GYyYWlW1ybQ07-K13u4YUaNFcV66Zj0",
+      authDomain: "daggerheart-8bdc1.firebaseapp.com",
+      databaseURL: "https://daggerheart-8bdc1-default-rtdb.firebaseio.com",
+      projectId: "daggerheart-8bdc1",
+      storageBucket: "daggerheart-8bdc1.firebasestorage.app",
+      messagingSenderId: "885297626381",
+      appId: "1:885297626381:web:9caf2af85fb793f819c444"
+    };
+
+    // Initialize Firebase
+    let firebaseApp = null;
+    let database = null;
+
+    try {
+      firebaseApp = firebase.initializeApp(firebaseConfig);
+      database = firebase.database();
+      console.log('Firebase initialized successfully');
+    } catch (e) {
+      console.error('Firebase initialization error:', e);
+    }
+  </script>
 </head>
 <body>
   <!-- Connection Status -->
@@ -1613,12 +1640,10 @@
     let currentNpcVisible = false;
     let currentSpotlightVisible = false;
 
-    // Gun.js connection state
-    let gun = null;
-    let roomNode = null;
+    // Firebase connection state
+    let roomRef = null;
     let clientId = 'player-' + Math.random().toString(36).substr(2, 9);
-    let useLocalMode = false; // True when Gun.js fails and we fall back to localStorage
-    let gunConnected = false; // True when Gun.js is actually working
+    let firebaseConnected = false;
 
     // Heartbeat and reconnection configuration
     const HEARTBEAT_TIMEOUT = 45000; // Consider connection dead after 45 seconds without heartbeat
@@ -1846,11 +1871,10 @@
 
       // Save room code for automatic reconnection
       savedRoomCode = roomCode;
-      reconnectAttempts = 0; // Reset reconnect attempts on manual connect
+      reconnectAttempts = 0;
 
       const statusEl = document.getElementById('connectionStatus');
       const connectBtn = document.getElementById('connectBtn');
-      const indicator = statusEl.querySelector('.connection-indicator');
       const title = statusEl.querySelector('.connection-title');
 
       // Update UI to show connecting
@@ -1859,10 +1883,10 @@
       connectBtn.classList.add('connecting');
       title.textContent = 'Connecting to GM...';
 
-      // Check if Gun is loaded
-      if (typeof Gun === 'undefined') {
-        console.error('Gun.js library not loaded');
-        title.textContent = 'Gun.js not loaded';
+      // Check if Firebase is loaded
+      if (!database) {
+        console.error('Firebase not initialized');
+        title.textContent = 'Firebase not configured';
         connectBtn.disabled = false;
         connectBtn.textContent = 'Retry';
         connectBtn.classList.remove('connecting');
@@ -1870,44 +1894,34 @@
       }
 
       try {
-        // Initialize Gun if not already created
-        if (!gun) {
-          // Use multiple relay peers for redundancy
-          gun = Gun({
-            peers: [
-              'https://gun-us.herokuapp.com/gun',
-              'https://gun-eu.herokuapp.com/gun',
-              'https://peer.wallie.io/gun'
-            ],
-            localStorage: false,
-            radisk: false,
-            retry: 3000  // Retry connection every 3 seconds
-          });
-        }
-
-        // Connect to the GM's room
-        roomNode = gun.get('daggerheart-room-' + roomCode);
+        // Connect to the GM's room in Firebase
+        roomRef = database.ref('rooms/' + roomCode);
 
         // Check if GM is active
-        roomNode.get('gm').on((gmData) => {
+        roomRef.child('gm').on('value', (snapshot) => {
+          const gmData = snapshot.val();
           if (gmData && gmData.active && (Date.now() - gmData.timestamp) < 30000) {
             console.log('GM is active in room:', roomCode);
             lastHeartbeatReceived = Date.now();
-            gunConnected = true;
-            useLocalMode = false;
+            firebaseConnected = true;
 
             // Update UI to show connected
             statusEl.classList.add('connected');
             title.textContent = 'Connected to GM';
             connectBtn.classList.remove('connecting');
+            connectBtn.disabled = true;
+            connectBtn.textContent = 'Connected';
             statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Receiving data from GM panel</div>';
 
             // Register as connected client
-            roomNode.get('clients').get(clientId).put({
+            roomRef.child('clients').child(clientId).set({
               connected: true,
               timestamp: Date.now(),
               requestSync: true
             });
+
+            // Remove client on disconnect
+            roomRef.child('clients').child(clientId).onDisconnect().remove();
 
             // Start heartbeat monitoring
             startHeartbeatMonitoring();
@@ -1917,31 +1931,20 @@
         // Subscribe to all data updates from GM
         subscribeToGmData();
 
-        // Timeout if GM not found within 5 seconds - fall back to local mode
+        // Timeout if GM not found within 8 seconds
         setTimeout(() => {
           if (!statusEl.classList.contains('connected')) {
-            console.log('Gun.js connection timeout - falling back to local mode');
-            useLocalMode = true;
-            gunConnected = false;
-
-            // Always connect in local mode - will receive data when GM panel broadcasts
-            statusEl.classList.add('connected');
-            title.textContent = 'Local Mode';
-            statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Connected via same browser</div>';
-            connectBtn.disabled = true;
-            connectBtn.textContent = 'Connected';
+            console.log('Connection timeout - GM not found or inactive');
+            title.textContent = 'GM not found. Check code?';
+            connectBtn.disabled = false;
+            connectBtn.textContent = 'Retry';
             connectBtn.classList.remove('connecting');
-            roomNode = null;
           }
-        }, 5000);
+        }, 8000);
 
       } catch (e) {
-        console.error('Gun.js connection error:', e);
-        // Fall back to local mode on error
-        useLocalMode = true;
-        gunConnected = false;
-        title.textContent = 'Local Mode';
-        statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Connected via same browser</div>';
+        console.error('Firebase connection error:', e);
+        title.textContent = 'Connection error';
         connectBtn.disabled = false;
         connectBtn.textContent = 'Retry';
         connectBtn.classList.remove('connecting');
@@ -1949,12 +1952,13 @@
     }
 
 
-    // Subscribe to GM data updates
+    // Subscribe to GM data updates via Firebase
     function subscribeToGmData() {
-      if (!roomNode) return;
+      if (!roomRef) return;
 
       // Subscribe to fear updates
-      roomNode.get('fear').on((data) => {
+      roomRef.child('fear').on('value', (snapshot) => {
+        const data = snapshot.val();
         if (data && data.timestamp) {
           lastHeartbeatReceived = Date.now();
           console.log('Received fear update:', data.value);
@@ -1963,55 +1967,32 @@
       });
 
       // Subscribe to dice updates
-      roomNode.get('dice').on((data) => {
+      roomRef.child('dice').on('value', (snapshot) => {
+        const data = snapshot.val();
         if (data && data.timestamp && data.timestamp > lastDiceTimestamp) {
           lastHeartbeatReceived = Date.now();
           lastDiceTimestamp = data.timestamp;
           console.log('Received dice update:', data);
-
-          // Reconstruct dice data from Gun format
-          const diceData = {
-            type: data.type,
-            notation: data.notation,
-            total: data.total,
-            hope: data.hope,
-            fear: data.fear,
-            sum: data.sum,
-            winner: data.winner,
-            critical: data.critical,
-            diceRolls: data.diceRollsJson ? JSON.parse(data.diceRollsJson) : null,
-            timestamp: data.timestamp
-          };
-          animateDiceRoll(diceData);
+          animateDiceRoll(data);
         }
       });
 
       // Subscribe to spotlight updates
-      roomNode.get('spotlight').on((data) => {
+      roomRef.child('spotlight').on('value', (snapshot) => {
+        const data = snapshot.val();
         if (data && data.timestamp) {
           lastHeartbeatReceived = Date.now();
           if (data.timestamp > lastSpotlightTimestamp || data.visible !== currentSpotlightVisible) {
             lastSpotlightTimestamp = data.timestamp;
             console.log('Received spotlight update:', data);
-
-            // Reconstruct spotlight data from Gun format
-            const spotlightData = {
-              visible: data.visible,
-              adversaryId: data.adversaryId,
-              name: data.name,
-              image: data.image,
-              isDefaultImage: data.isDefaultImage,
-              defeated: data.defeated,
-              conditions: data.conditionsJson ? JSON.parse(data.conditionsJson) : {},
-              timestamp: data.timestamp
-            };
-            updateSpotlight(spotlightData);
+            updateSpotlight(data);
           }
         }
       });
 
       // Subscribe to NPC updates
-      roomNode.get('npc').on((data) => {
+      roomRef.child('npc').on('value', (snapshot) => {
+        const data = snapshot.val();
         if (data && data.timestamp && !currentSpotlightVisible) {
           lastHeartbeatReceived = Date.now();
           if (data.timestamp > lastNpcTimestamp || data.visible !== currentNpcVisible) {
@@ -2023,7 +2004,8 @@
       });
 
       // Subscribe to full sync updates
-      roomNode.get('sync').on((data) => {
+      roomRef.child('sync').on('value', (snapshot) => {
+        const data = snapshot.val();
         if (data && data.timestamp) {
           lastHeartbeatReceived = Date.now();
           console.log('Received sync update:', data);
@@ -2031,10 +2013,9 @@
           if (data.fear !== undefined) {
             updateFear(data.fear);
           }
-          if (data.spotlightJson) {
-            const spotlight = JSON.parse(data.spotlightJson);
-            lastSpotlightTimestamp = spotlight.timestamp || Date.now();
-            updateSpotlight(spotlight);
+          if (data.spotlight) {
+            lastSpotlightTimestamp = data.spotlight.timestamp || Date.now();
+            updateSpotlight(data.spotlight);
           }
         }
       });
