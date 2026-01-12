@@ -364,6 +364,28 @@
     let reconnectTimeoutId = null;
     let savedRoomCode = null; // Store room code for reconnection
 
+    // Session management - clear stale data when connecting to a new room
+    function clearSessionData(newRoomCode) {
+      const lastRoom = localStorage.getItem('daggerheart-battlemap-last-room');
+
+      // If connecting to a different room, clear old data
+      if (lastRoom !== newRoomCode) {
+        console.log('New session detected, clearing stale battle map localStorage data');
+
+        // Clear battle map specific data
+        localStorage.removeItem('daggerheart-battle-grid');
+        localStorage.removeItem('daggerheart-battle-tokens');
+        localStorage.removeItem('daggerheart-battle-map-state');
+
+        // Reset local state
+        tokens = [];
+        currentMap = null;
+
+        // Store the new room code
+        localStorage.setItem('daggerheart-battlemap-last-room', newRoomCode);
+      }
+    }
+
     // Handle Enter key in room code input
     function handleRoomCodeKeyup(event) {
       if (event.key === 'Enter') {
@@ -379,12 +401,15 @@
       btn.textContent = statusEl.classList.contains('minimized') ? '+' : '−';
     }
 
-    // Connect to GM via Gun.js
+    // Connect to GM via Firebase
     function connectToGM() {
       const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
       if (!roomCode) {
         return;
       }
+
+      // Clear stale session data if connecting to a different room
+      clearSessionData(roomCode);
 
       // Save room code for automatic reconnection
       savedRoomCode = roomCode;
@@ -701,8 +726,8 @@
 
     // localStorage fallback for same-machine setup (grid and tokens only, not map images)
     function checkLocalStorage() {
-      // Skip if connected via Gun.js
-      if (roomNode) {
+      // Skip if connected via Firebase
+      if (firebaseConnected) {
         return;
       }
 
@@ -746,8 +771,8 @@
 
       // Also send periodic client heartbeats to GM
       setInterval(() => {
-        if (roomNode) {
-          roomNode.get('clients').get(clientId).put({
+        if (roomRef) {
+          roomRef.child('clients').child(clientId).update({
             connected: true,
             timestamp: Date.now(),
             type: 'battleMap'
@@ -767,7 +792,7 @@
     }
 
     function checkHeartbeat() {
-      if (!roomNode) {
+      if (!roomRef) {
         return; // Not connected, nothing to check
       }
 
@@ -818,29 +843,31 @@
       title.textContent = 'Reconnecting to GM...';
 
       try {
-        // Reconnect to the room
-        roomNode = gun.get('daggerheart-room-' + savedRoomCode);
+        // Reconnect to the room via Firebase
+        roomRef = database.ref('rooms/' + savedRoomCode);
 
         // Check if GM is still active
-        roomNode.get('gm').once((gmData) => {
+        roomRef.child('gm').once('value', (snapshot) => {
+          const gmData = snapshot.val();
           if (gmData && gmData.active && (Date.now() - gmData.timestamp) < 30000) {
             console.log('Reconnected to GM!');
             reconnectAttempts = 0;
             lastHeartbeatReceived = Date.now();
+            firebaseConnected = true;
 
             statusEl.classList.add('connected');
             title.textContent = 'Connected to GM';
             statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Battle Map Connected</div>';
 
             // Re-register as connected client and request sync
-            roomNode.get('clients').get(clientId).put({
+            roomRef.child('clients').child(clientId).set({
               connected: true,
               timestamp: Date.now(),
               type: 'battleMap'
             });
 
             // Request battle map sync
-            roomNode.get('battleMapRequest').put({
+            roomRef.child('battleMapRequest').set({
               clientId: clientId,
               timestamp: Date.now()
             });
@@ -860,7 +887,8 @@
     }
 
     function handleDisconnection() {
-      roomNode = null;
+      roomRef = null;
+      firebaseConnected = false;
       stopHeartbeatMonitoring();
 
       const statusEl = document.getElementById('connectionStatus');
@@ -873,10 +901,10 @@
     }
 
     // Listen for storage events (cross-tab) for same-machine setup
-    // Skip if connected via Gun.js to avoid overwriting correct data (with images)
+    // Skip if connected via Firebase to avoid overwriting correct data (with images)
     window.addEventListener('storage', (e) => {
-      if (roomNode) {
-        return; // Gun.js is connected, use that instead of localStorage
+      if (firebaseConnected) {
+        return; // Firebase is connected, use that instead of localStorage
       }
       if (e.key === 'daggerheart-battle-grid' && e.newValue) {
         try {
