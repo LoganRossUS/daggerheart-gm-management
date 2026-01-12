@@ -980,6 +980,124 @@
       color: #f44336;
     }
 
+    /* Stat Block Styles */
+    .adv-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin: 8px 0;
+      padding: 8px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 6px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.6rem;
+      color: #888;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .stat-value {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #e0e0e0;
+    }
+
+    .stat-value.attack {
+      color: #ef5350;
+    }
+
+    .stat-value.defense {
+      color: #42a5f5;
+    }
+
+    .adv-thresholds {
+      display: flex;
+      gap: 8px;
+      margin: 8px 0;
+    }
+
+    .threshold {
+      flex: 1;
+      padding: 6px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .threshold-label {
+      font-size: 0.6rem;
+      color: #888;
+      text-transform: uppercase;
+    }
+
+    .threshold-value {
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .threshold.major .threshold-value {
+      color: #ffa726;
+    }
+
+    .threshold.severe .threshold-value {
+      color: #ef5350;
+    }
+
+    .adv-traits {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin: 8px 0;
+    }
+
+    .trait-tag {
+      padding: 2px 8px;
+      background: rgba(124, 77, 255, 0.2);
+      border: 1px solid rgba(124, 77, 255, 0.4);
+      border-radius: 12px;
+      font-size: 0.65rem;
+      color: #b388ff;
+    }
+
+    .adv-abilities {
+      margin: 8px 0;
+      padding: 8px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 6px;
+    }
+
+    .abilities-header {
+      font-size: 0.65rem;
+      color: #888;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 4px;
+    }
+
+    .ability-item {
+      font-size: 0.75rem;
+      color: #ccc;
+      margin-bottom: 6px;
+      padding-left: 8px;
+      border-left: 2px solid rgba(124, 77, 255, 0.4);
+    }
+
+    .ability-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .ability-name {
+      color: #b388ff;
+      font-weight: 600;
+    }
+
     .encounter-empty {
       text-align: center;
       color: #666;
@@ -3241,6 +3359,55 @@
                   <span class="condition-badge restrained ${adv.conditions.restrained ? 'active' : ''}" onclick="toggleCondition('${adv.id}', 'restrained')">Restrained</span>
                   <span class="condition-badge vulnerable ${adv.conditions.vulnerable ? 'active' : ''}" onclick="toggleCondition('${adv.id}', 'vulnerable')">Vulnerable</span>
                 </div>
+
+                <div class="adv-stats">
+                  <div class="stat-item">
+                    <div class="stat-label">Attack</div>
+                    <div class="stat-value attack">${adv.attack || '-'}</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-label">Defense</div>
+                    <div class="stat-value defense">${adv.defense || '-'}</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-label">Type</div>
+                    <div class="stat-value">${adv.type || adv.role || '-'}</div>
+                  </div>
+                </div>
+
+                ${adv.thresholds ? `
+                <div class="adv-thresholds">
+                  <div class="threshold major">
+                    <div class="threshold-label">Major</div>
+                    <div class="threshold-value">${adv.thresholds.major}+</div>
+                  </div>
+                  <div class="threshold severe">
+                    <div class="threshold-label">Severe</div>
+                    <div class="threshold-value">${adv.thresholds.severe}+</div>
+                  </div>
+                </div>
+                ` : ''}
+
+                ${adv.traits && adv.traits.length > 0 ? `
+                <div class="adv-traits">
+                  ${adv.traits.map(trait => `<span class="trait-tag">${trait}</span>`).join('')}
+                </div>
+                ` : ''}
+
+                ${adv.abilities && adv.abilities.length > 0 ? `
+                <div class="adv-abilities">
+                  <div class="abilities-header">Abilities</div>
+                  ${adv.abilities.map(ability => {
+                    const colonIndex = ability.indexOf(':');
+                    if (colonIndex > -1) {
+                      const name = ability.substring(0, colonIndex);
+                      const desc = ability.substring(colonIndex + 1).trim();
+                      return `<div class="ability-item"><span class="ability-name">${name}:</span> ${desc}</div>`;
+                    }
+                    return `<div class="ability-item">${ability}</div>`;
+                  }).join('')}
+                </div>
+                ` : ''}
               </div>
             `;
           }).join('')}
