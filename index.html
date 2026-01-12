@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daggerheart GM Tools</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      font-family: 'Cinzel', serif;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      background: linear-gradient(180deg, #ffd700, #b8860b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #888;
+      font-size: 1rem;
+      margin-bottom: 50px;
+      text-align: center;
+    }
+
+    .links-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .link-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      border-radius: 12px;
+      padding: 30px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .link-card:hover {
+      background: rgba(179, 136, 255, 0.15);
+      border-color: #b388ff;
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .link-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+
+    .link-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #ffd700;
+      margin-bottom: 10px;
+    }
+
+    .link-description {
+      font-size: 0.85rem;
+      color: #aaa;
+      line-height: 1.5;
+    }
+
+    .link-card.primary {
+      border-color: rgba(255, 215, 0, 0.5);
+      background: rgba(255, 215, 0, 0.1);
+    }
+
+    .link-card.primary:hover {
+      background: rgba(255, 215, 0, 0.2);
+      border-color: #ffd700;
+    }
+
+    .footer {
+      margin-top: 50px;
+      color: #666;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    .footer a {
+      color: #b388ff;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>Daggerheart GM Tools</h1>
+  <p class="subtitle">Tools for running Daggerheart sessions</p>
+
+  <div class="links-container">
+    <a href="gm-control-panel-simplified.html" class="link-card primary">
+      <div class="link-icon">&#9876;</div>
+      <div class="link-title">GM Control Panel</div>
+      <div class="link-description">
+        Main control center for GMs. Manage encounters, battle maps, tokens, fear tracker, dice roller, and more.
+      </div>
+    </a>
+
+    <a href="player-display.html" class="link-card">
+      <div class="link-icon">&#128250;</div>
+      <div class="link-title">Player Display</div>
+      <div class="link-description">
+        Full-screen display for players. Shows spotlighted adversaries, NPC portraits, and syncs with the GM panel.
+      </div>
+    </a>
+
+    <a href="battle-map.html" class="link-card">
+      <div class="link-icon">&#128506;</div>
+      <div class="link-title">Battle Map</div>
+      <div class="link-description">
+        Tactical battle map display with tokens, grid overlay, and real-time sync from the GM panel.
+      </div>
+    </a>
+
+    <a href="encounter-generator.html" class="link-card">
+      <div class="link-icon">&#128126;</div>
+      <div class="link-title">Encounter Generator</div>
+      <div class="link-description">
+        Build and export encounters with adversaries. Search the bestiary and create encounter JSON files.
+      </div>
+    </a>
+  </div>
+
+  <div class="footer">
+    <p>Daggerheart is a tabletop RPG by Darrington Press</p>
+  </div>
+</body>
+</html>
