@@ -390,10 +390,16 @@
       try {
         // Initialize Gun if not already created
         if (!gun) {
+          // Use multiple relay peers for redundancy
           gun = Gun({
-            peers: ['https://gun-manhattan.herokuapp.com/gun'],
+            peers: [
+              'https://gun-us.herokuapp.com/gun',
+              'https://gun-eu.herokuapp.com/gun',
+              'https://peer.wallie.io/gun'
+            ],
             localStorage: false,
-            radisk: false
+            radisk: false,
+            retry: 3000  // Retry connection every 3 seconds
           });
         }
 
