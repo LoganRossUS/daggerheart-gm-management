@@ -1704,13 +1704,18 @@
       }));
 
       // Strip base64 images from tokens before storing (keep URL images)
+      // Format must match what battle-map.html expects: { type: 'tokens', tokens: [...] }
       const tokensForStorage = battleMapTokens.map(token => ({
         ...token,
         image: token.image && (token.image.startsWith('http://') || token.image.startsWith('https://'))
           ? token.image
           : null
       }));
-      localStorage.setItem('daggerheart-battle-tokens', JSON.stringify(tokensForStorage));
+      localStorage.setItem('daggerheart-battle-tokens', JSON.stringify({
+        type: 'tokens',
+        tokens: tokensForStorage,
+        timestamp: Date.now()
+      }));
 
       localStorage.setItem('daggerheart-battle-grid', JSON.stringify({ visible: gridVisible }));
       localStorage.setItem('daggerheart-update', Date.now().toString());
