@@ -2046,6 +2046,12 @@
     let peer = null;
     let playerConnection = null;
 
+    // Heartbeat configuration for keeping WebRTC connections alive
+    const HEARTBEAT_INTERVAL = 15000; // Send heartbeat every 15 seconds
+    const HEARTBEAT_TIMEOUT = 45000;  // Consider connection dead after 45 seconds without response
+    let heartbeatIntervalId = null;
+    let connectionHeartbeats = new Map(); // Track last heartbeat response per connection
+
     // Default NPC image (shadowy silhouette) - embedded SVG as data URL
     const DEFAULT_NPC_IMAGE = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
       <defs>
@@ -2172,6 +2178,8 @@
       peer.on('open', (id) => {
         console.log('GM hosting with room code:', roomCode);
         text.textContent = 'Ready - Waiting for Player Display...';
+        // Start heartbeat system when peer is ready
+        startHeartbeat();
       });
 
       peer.on('connection', (conn) => {
@@ -2185,14 +2193,22 @@
           console.log('Data channel open! Connection ready.');
           playerConnection = conn;
           text.textContent = 'Player Display connected!';
+          // Initialize heartbeat tracking for this connection
+          connectionHeartbeats.set('player', Date.now());
           // Send initial sync when connection is fully open
           sendFullSync();
         });
 
         conn.on('data', (data) => {
+          // Handle heartbeat responses
+          if (data && data.type === 'heartbeatResponse') {
+            handleHeartbeatResponse('player');
+            return;
+          }
           // Handle incoming data from connected clients (e.g., battle map)
           if (data && data.type === 'battleMapConnected') {
             console.log('Battle map connected, sending full sync');
+            connectionHeartbeats.set(conn.connectionId || conn.peer, Date.now());
             sendBattleMapSync();
           }
         });
@@ -2200,6 +2216,7 @@
         conn.on('close', () => {
           console.log('Player Display disconnected');
           playerConnection = null;
+          connectionHeartbeats.delete('player');
           indicator.className = 'connection-indicator';
           text.textContent = 'Waiting for Player Display...';
         });
@@ -4055,6 +4072,99 @@
           console.error('Error broadcasting battle map data:', err);
         }
       }
+    }
+
+    // ========== Heartbeat System for Connection Keep-Alive ==========
+
+    function startHeartbeat() {
+      if (heartbeatIntervalId) {
+        clearInterval(heartbeatIntervalId);
+      }
+
+      heartbeatIntervalId = setInterval(() => {
+        sendHeartbeat();
+        checkStaleConnections();
+      }, HEARTBEAT_INTERVAL);
+
+      console.log('Heartbeat system started');
+    }
+
+    function stopHeartbeat() {
+      if (heartbeatIntervalId) {
+        clearInterval(heartbeatIntervalId);
+        heartbeatIntervalId = null;
+      }
+      connectionHeartbeats.clear();
+      console.log('Heartbeat system stopped');
+    }
+
+    function sendHeartbeat() {
+      const heartbeatData = {
+        type: 'heartbeat',
+        timestamp: Date.now()
+      };
+
+      // Send to all battle map connections
+      if (peer && peer.connections) {
+        for (const peerId in peer.connections) {
+          const connections = peer.connections[peerId];
+          if (connections && connections.length > 0) {
+            connections.forEach(conn => {
+              if (conn.open) {
+                try {
+                  conn.send(heartbeatData);
+                } catch (err) {
+                  console.warn('Failed to send heartbeat to', peerId, err);
+                }
+              }
+            });
+          }
+        }
+      }
+
+      // Send to player connection
+      if (playerConnection && playerConnection.open) {
+        try {
+          playerConnection.send(heartbeatData);
+        } catch (err) {
+          console.warn('Failed to send heartbeat to player display:', err);
+        }
+      }
+    }
+
+    function checkStaleConnections() {
+      const now = Date.now();
+
+      // Check player connection
+      if (playerConnection && playerConnection.open) {
+        const lastHeartbeat = connectionHeartbeats.get('player') || now;
+        if (now - lastHeartbeat > HEARTBEAT_TIMEOUT) {
+          console.warn('Player display connection appears stale, closing...');
+          playerConnection.close();
+        }
+      }
+
+      // Check all peer connections
+      if (peer && peer.connections) {
+        for (const peerId in peer.connections) {
+          const connections = peer.connections[peerId];
+          if (connections && connections.length > 0) {
+            connections.forEach(conn => {
+              if (conn.open) {
+                const lastHeartbeat = connectionHeartbeats.get(conn.connectionId || peerId) || now;
+                if (now - lastHeartbeat > HEARTBEAT_TIMEOUT) {
+                  console.warn('Connection to', peerId, 'appears stale, closing...');
+                  conn.close();
+                }
+              }
+            });
+          }
+        }
+      }
+    }
+
+    function handleHeartbeatResponse(connectionId) {
+      connectionHeartbeats.set(connectionId, Date.now());
     }
 
     function addPlayerToken() {

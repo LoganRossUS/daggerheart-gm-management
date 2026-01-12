@@ -1617,6 +1617,16 @@
     let peer = null;
     let gmConnection = null;
 
+    // Heartbeat and reconnection configuration
+    const HEARTBEAT_TIMEOUT = 45000; // Consider connection dead after 45 seconds without heartbeat
+    const RECONNECT_BASE_DELAY = 2000; // Base delay for exponential backoff (2 seconds)
+    const MAX_RECONNECT_DELAY = 30000; // Max delay between reconnection attempts (30 seconds)
+    let lastHeartbeatReceived = Date.now();
+    let heartbeatCheckIntervalId = null;
+    let reconnectAttempts = 0;
+    let reconnectTimeoutId = null;
+    let savedRoomCode = null; // Store room code for reconnection
+
     // Default silhouette image for fallback
     const DEFAULT_SILHOUETTE = `data:image/svg+xml,${encodeURIComponent(`
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
@@ -1831,6 +1841,10 @@
         return;
       }
 
+      // Save room code for automatic reconnection
+      savedRoomCode = roomCode;
+      reconnectAttempts = 0; // Reset reconnect attempts on manual connect
+
       const statusEl = document.getElementById('connectionStatus');
       const connectBtn = document.getElementById('connectBtn');
       const indicator = statusEl.querySelector('.connection-indicator');
@@ -1901,6 +1915,10 @@
           console.log('Connected to GM!');
           gmConnection = conn;
 
+          // Initialize heartbeat tracking
+          lastHeartbeatReceived = Date.now();
+          startHeartbeatMonitoring();
+
           // Update UI to show connected
           statusEl.classList.add('connected');
           title.textContent = 'Connected to GM';
@@ -1913,14 +1931,7 @@
 
         conn.on('close', () => {
           console.log('Disconnected from GM');
-          gmConnection = null;
-          statusEl.classList.remove('connected');
-          title.textContent = 'Disconnected from GM';
-          statusEl.querySelector('.connection-details').innerHTML = `
-            <div class="room-code-label">Room Code from GM Panel</div>
-            <input type="text" id="roomCodeInput" class="room-code-input" placeholder="FIRE-DRAGON-00" maxlength="20" value="${roomCode}" onkeyup="handleRoomCodeKeyup(event)">
-            <button class="connect-btn" id="connectBtn" onclick="connectToGM()">Reconnect</button>
-          `;
+          handleDisconnection();
         });
 
         conn.on('error', (err) => {
@@ -1944,6 +1955,17 @@
       console.log('Received from GM:', data.type, data);
 
       switch (data.type) {
+        case 'heartbeat':
+          // Respond to heartbeat and update last received time
+          lastHeartbeatReceived = Date.now();
+          if (gmConnection && gmConnection.open) {
+            try {
+              gmConnection.send({ type: 'heartbeatResponse', timestamp: Date.now() });
+            } catch (err) {
+              console.warn('Failed to send heartbeat response:', err);
+            }
+          }
+          break;
         case 'fear':
           console.log('Calling updateFear with:', data.value);
           updateFear(data.value);
@@ -1989,6 +2011,173 @@
       const btn = statusEl.querySelector('.minimize-btn');
       statusEl.classList.toggle('minimized');
       btn.textContent = statusEl.classList.contains('minimized') ? '+' : '−';
+    }
+
+    // ========== Heartbeat Monitoring and Automatic Reconnection ==========
+
+    function startHeartbeatMonitoring() {
+      if (heartbeatCheckIntervalId) {
+        clearInterval(heartbeatCheckIntervalId);
+      }
+
+      lastHeartbeatReceived = Date.now();
+      heartbeatCheckIntervalId = setInterval(() => {
+        checkHeartbeat();
+      }, 10000); // Check every 10 seconds
+
+      console.log('Heartbeat monitoring started');
+    }
+
+    function stopHeartbeatMonitoring() {
+      if (heartbeatCheckIntervalId) {
+        clearInterval(heartbeatCheckIntervalId);
+        heartbeatCheckIntervalId = null;
+      }
+      console.log('Heartbeat monitoring stopped');
+    }
+
+    function checkHeartbeat() {
+      if (!gmConnection || !gmConnection.open) {
+        return; // Not connected, nothing to check
+      }
+
+      const now = Date.now();
+      const timeSinceLastHeartbeat = now - lastHeartbeatReceived;
+
+      if (timeSinceLastHeartbeat > HEARTBEAT_TIMEOUT) {
+        console.warn('No heartbeat received for', Math.round(timeSinceLastHeartbeat / 1000), 'seconds. Connection may be stale.');
+        // Close the stale connection to trigger reconnection
+        if (gmConnection) {
+          gmConnection.close();
+        }
+      }
+    }
+
+    function scheduleReconnect() {
+      if (reconnectTimeoutId) {
+        clearTimeout(reconnectTimeoutId);
+      }
+
+      if (!savedRoomCode) {
+        console.log('No room code saved, cannot reconnect');
+        return;
+      }
+
+      // Exponential backoff: 2s, 4s, 8s, 16s, 30s (max)
+      const delay = Math.min(RECONNECT_BASE_DELAY * Math.pow(2, reconnectAttempts), MAX_RECONNECT_DELAY);
+      reconnectAttempts++;
+
+      console.log(`Scheduling reconnect attempt ${reconnectAttempts} in ${delay / 1000} seconds...`);
+
+      const statusEl = document.getElementById('connectionStatus');
+      const title = statusEl.querySelector('.connection-title');
+      title.textContent = `Reconnecting in ${Math.round(delay / 1000)}s...`;
+
+      reconnectTimeoutId = setTimeout(() => {
+        console.log('Attempting to reconnect...');
+        attemptReconnect();
+      }, delay);
+    }
+
+    function attemptReconnect() {
+      if (!savedRoomCode) {
+        console.log('No room code saved, cannot reconnect');
+        return;
+      }
+
+      const statusEl = document.getElementById('connectionStatus');
+      const title = statusEl.querySelector('.connection-title');
+      title.textContent = 'Reconnecting to GM...';
+
+      // If peer is destroyed, recreate it
+      if (!peer || peer.destroyed) {
+        peer = new Peer({
+          debug: 2,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' },
+              { urls: 'stun:stun3.l.google.com:19302' },
+              { urls: 'stun:stun4.l.google.com:19302' }
+            ]
+          }
+        });
+
+        peer.on('open', () => {
+          doReconnect();
+        });
+
+        peer.on('error', (err) => {
+          console.error('PeerJS error during reconnect:', err);
+          scheduleReconnect();
+        });
+      } else if (peer.open) {
+        doReconnect();
+      } else {
+        peer.on('open', () => {
+          doReconnect();
+        });
+      }
+    }
+
+    function doReconnect() {
+      const peerId = `dh-${savedRoomCode}`;
+      console.log('Reconnecting to GM:', peerId);
+
+      gmConnection = peer.connect(peerId, {
+        reliable: true,
+        serialization: 'binary'
+      });
+
+      gmConnection.on('open', () => {
+        console.log('Reconnected to GM!');
+        reconnectAttempts = 0; // Reset on successful connection
+        lastHeartbeatReceived = Date.now();
+
+        const statusEl = document.getElementById('connectionStatus');
+        const title = statusEl.querySelector('.connection-title');
+        statusEl.classList.add('connected');
+        title.textContent = 'Connected to GM';
+        statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Receiving data from GM panel</div>';
+
+        startHeartbeatMonitoring();
+      });
+
+      gmConnection.on('data', (data) => {
+        handleGmData(data);
+      });
+
+      gmConnection.on('close', () => {
+        console.log('Disconnected from GM');
+        handleDisconnection();
+      });
+
+      gmConnection.on('error', (err) => {
+        console.error('Reconnection error:', err);
+        scheduleReconnect();
+      });
+
+      // Timeout for reconnection attempt
+      setTimeout(() => {
+        if (!gmConnection || !gmConnection.open) {
+          console.log('Reconnection timeout');
+          scheduleReconnect();
+        }
+      }, 10000);
+    }
+
+    function handleDisconnection() {
+      gmConnection = null;
+      stopHeartbeatMonitoring();
+
+      const statusEl = document.getElementById('connectionStatus');
+      const title = statusEl.querySelector('.connection-title');
+      statusEl.classList.remove('connected');
+      title.textContent = 'Disconnected - Reconnecting...';
+
+      // Automatically attempt to reconnect
+      scheduleReconnect();
     }
 
     // ========== Initialization ==========
