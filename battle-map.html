@@ -329,6 +329,8 @@
     let currentMap = null;
     let tokens = [];
     let gridSize = 50;
+    let useLocalMode = false; // True when Gun.js fails and we fall back to localStorage
+    let gunConnected = false; // True when Gun.js is actually working
 
     // Heartbeat and reconnection configuration
     const HEARTBEAT_TIMEOUT = 45000; // Consider connection dead after 45 seconds without heartbeat
@@ -411,11 +413,14 @@
           if (gmData && gmData.active && (Date.now() - gmData.timestamp) < 30000) {
             console.log('GM is active in room:', roomCode);
             lastHeartbeatReceived = Date.now();
+            gunConnected = true;
+            useLocalMode = false;
 
             // Update UI to show connected
             statusEl.classList.add('connected');
             title.textContent = 'Connected to GM';
             connectBtn.disabled = true;
+            connectBtn.classList.remove('connecting');
             statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Battle Map Connected</div>';
 
             // Register as connected client
@@ -439,26 +444,119 @@
         // Subscribe to all battle map data updates from GM
         subscribeToGmData();
 
-        // Timeout if GM not found within 10 seconds
+        // Timeout if GM not found within 5 seconds - fall back to local mode
         setTimeout(() => {
           if (!statusEl.classList.contains('connected')) {
-            console.log('Connection timeout - GM not found');
-            title.textContent = 'GM not found. Check code?';
-            connectBtn.disabled = false;
-            connectBtn.textContent = 'Retry';
+            console.log('Gun.js connection timeout - falling back to local mode');
+            useLocalMode = true;
+            gunConnected = false;
+
+            // Check if there's local battle map data from GM panel
+            const hasLocalData = localStorage.getItem('daggerheart-battle-map-state') !== null ||
+                                 localStorage.getItem('daggerheart-battle-tokens') !== null;
+
+            if (hasLocalData) {
+              // Local data found - GM panel is open in same browser
+              statusEl.classList.add('connected');
+              title.textContent = 'Local Mode';
+              statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Connected via same browser</div>';
+              connectBtn.disabled = true;
+              connectBtn.textContent = 'Connected';
+              // Load local data
+              loadLocalBattleMapData();
+            } else {
+              // No local data - GM panel may not be open yet
+              title.textContent = 'Waiting for GM...';
+              statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Open GM panel in this browser</div>';
+              connectBtn.disabled = false;
+              connectBtn.textContent = 'Retry';
+            }
             connectBtn.classList.remove('connecting');
             roomNode = null;
           }
-        }, 10000);
+        }, 5000);
 
       } catch (e) {
         console.error('Gun.js connection error:', e);
-        title.textContent = 'Connection error';
+        // Fall back to local mode on error
+        useLocalMode = true;
+        gunConnected = false;
+        title.textContent = 'Local Mode';
+        statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Connected via same browser</div>';
         connectBtn.disabled = false;
         connectBtn.textContent = 'Retry';
         connectBtn.classList.remove('connecting');
       }
     }
+
+    // Load battle map data from localStorage
+    function loadLocalBattleMapData() {
+      const mapState = localStorage.getItem('daggerheart-battle-map-state');
+      if (mapState) {
+        try {
+          const data = JSON.parse(mapState);
+          updateMap(data);
+        } catch (e) {
+          console.error('Failed to parse local map state:', e);
+        }
+      }
+
+      const tokensData = localStorage.getItem('daggerheart-battle-tokens');
+      if (tokensData) {
+        try {
+          const data = JSON.parse(tokensData);
+          if (data.tokens) {
+            tokens = data.tokens;
+            renderTokens();
+          }
+        } catch (e) {
+          console.error('Failed to parse local tokens:', e);
+        }
+      }
+
+      const gridData = localStorage.getItem('daggerheart-battle-grid');
+      if (gridData) {
+        try {
+          const data = JSON.parse(gridData);
+          if (data.visible !== undefined) {
+            updateGrid(data);
+          }
+        } catch (e) {
+          console.error('Failed to parse local grid:', e);
+        }
+      }
+    }
+
+    // Continuously check for local GM data and auto-connect in local mode
+    function checkLocalGMPresence() {
+      const statusEl = document.getElementById('connectionStatus');
+      if (!statusEl) return;
+
+      const title = statusEl.querySelector('.connection-title');
+      const connectBtn = document.getElementById('connectBtn');
+
+      // If we're waiting for GM and local data appears, auto-connect
+      if (useLocalMode && !statusEl.classList.contains('connected')) {
+        const hasLocalData = localStorage.getItem('daggerheart-battle-map-state') !== null ||
+                             localStorage.getItem('daggerheart-battle-tokens') !== null;
+        if (hasLocalData) {
+          statusEl.classList.add('connected');
+          title.textContent = 'Local Mode';
+          statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Connected via same browser</div>';
+          connectBtn.disabled = true;
+          connectBtn.textContent = 'Connected';
+          loadLocalBattleMapData();
+        }
+      }
+
+      // If in local mode and connected, poll for updates
+      if (useLocalMode && statusEl.classList.contains('connected')) {
+        loadLocalBattleMapData();
+      }
+    }
+
+    // Check for local GM presence every second
+    setInterval(checkLocalGMPresence, 1000);
 
     // Subscribe to GM data updates
     function subscribeToGmData() {
