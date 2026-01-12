@@ -2058,7 +2058,11 @@
         adversaries: currentEncounter.adversaries.map(adv => {
           // Find the original template to get themes for default image matching
           const template = adversaryDatabase.find(t => t.name === adv.name);
-          return {
+
+          // Determine if portrait is a URL or filename
+          const isUrl = adv.portrait && (adv.portrait.startsWith('http://') || adv.portrait.startsWith('https://'));
+
+          const exportAdv = {
             id: adv.id,
             name: adv.name,
             tier: adv.tier,
@@ -2073,6 +2077,13 @@
             // Include themes for default image matching in GM control panel
             themes: template?.themes || []
           };
+
+          // Also include portraitUrl for CDN-friendly imports
+          if (isUrl) {
+            exportAdv.portraitUrl = adv.portrait;
+          }
+
+          return exportAdv;
         })
       };
     }

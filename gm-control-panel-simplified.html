@@ -2320,7 +2320,7 @@
           </div>
           <input type="file" id="npcImageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
           <div class="npc-controls">
-            <button class="npc-btn" onclick="document.getElementById('npcImageInput').click()">Upload</button>
+            <button class="npc-btn" onclick="showNpcImageDialog()">Set Image</button>
             <button class="npc-btn" onclick="clearNpcImage()">Clear</button>
           </div>
           <div class="toggle-row">
@@ -2461,6 +2461,30 @@
 
   <!-- Player Token Image Upload -->
   <input type="file" id="playerTokenImageInput" accept="image/*" style="display: none;" onchange="handlePlayerTokenImageUpload(event)">
+
+  <!-- NPC Portrait Image Source Dialog -->
+  <div id="npcImageSourceDialog" class="image-dialog-overlay" onclick="closeNpcImageDialog(event)">
+    <div class="image-dialog" onclick="event.stopPropagation()">
+      <h3>Add NPC Portrait</h3>
+      <div class="image-dialog-options">
+        <button class="image-dialog-btn" onclick="chooseNpcFileUpload()">
+          Upload from Computer
+        </button>
+        <button class="image-dialog-btn" onclick="showNpcUrlInput()">
+          Use Image URL (CDN)
+        </button>
+      </div>
+      <div id="npcUrlInputSection" class="url-input-section">
+        <label>Image URL:</label>
+        <div class="url-input-row">
+          <input type="url" id="npcImageUrlInput" placeholder="https://..." onkeyup="handleNpcUrlKeyup(event)" oninput="previewNpcUrlImage()">
+          <button class="url-add-btn" id="npcUrlAddBtn" onclick="addNpcUrl()" disabled>Add</button>
+        </div>
+        <div id="npcUrlPreview" class="url-preview"></div>
+      </div>
+      <button class="image-dialog-cancel" onclick="closeNpcImageDialog()">Cancel</button>
+    </div>
+  </div>
 
   <!-- Stage Battle Modal -->
   <div id="stageBattleModal" class="stage-modal" onclick="closeStageBattleModal(event)">
@@ -2737,7 +2761,7 @@
 
       localStorage.setItem('daggerheart-dice', JSON.stringify(diceData));
       localStorage.setItem('daggerheart-update', Date.now().toString());
-      sendToPlayer({ type: 'dice', ...diceData });
+      sendToPlayer(diceData);
 
       console.log('Hope/Fear roll:', hope, '+', fear, '=', sum, winner, isDoubles ? '(Critical!)' : '');
     }
@@ -3339,15 +3363,48 @@
           const data = JSON.parse(e.target.result);
           currentEncounter = {
             name: data.name || 'Encounter',
-            adversaries: (data.adversaries || []).map(adv => ({
-              ...adv,
-              id: adv.id || 'adv-' + Math.random().toString(36).substr(2, 9),
-              currentHp: adv.currentHp ?? adv.hp,
-              currentStress: adv.currentStress ?? adv.stress,
-              conditions: adv.conditions || { hidden: false, restrained: false, vulnerable: false },
-              portraits: adv.portraits || [],
-              activePortraitIndex: 0
-            }))
+            adversaries: (data.adversaries || []).map(adv => {
+              // Build portraits array from various possible fields
+              let portraits = [];
+
+              // 1. Use existing portraits array if present
+              if (adv.portraits && Array.isArray(adv.portraits)) {
+                portraits = [...adv.portraits];
+              }
+
+              // 2. Add portrait URL if it's a URL (not a filename reference)
+              if (adv.portrait && typeof adv.portrait === 'string') {
+                if (adv.portrait.startsWith('http://') || adv.portrait.startsWith('https://')) {
+                  portraits.push(adv.portrait);
+                }
+              }
+
+              // 3. Add portraitUrl field (CDN URL support)
+              if (adv.portraitUrl && typeof adv.portraitUrl === 'string') {
+                if (adv.portraitUrl.startsWith('http://') || adv.portraitUrl.startsWith('https://')) {
+                  portraits.push(adv.portraitUrl);
+                }
+              }
+
+              // 4. Add portraitUrls array (multiple CDN URLs)
+              if (adv.portraitUrls && Array.isArray(adv.portraitUrls)) {
+                adv.portraitUrls.forEach(url => {
+                  if (typeof url === 'string' && (url.startsWith('http://') || url.startsWith('https://'))) {
+                    portraits.push(url);
+                  }
+                });
+              }
+
+              return {
+                ...adv,
+                id: adv.id || 'adv-' + Math.random().toString(36).substr(2, 9),
+                currentHp: adv.currentHp ?? adv.hp,
+                currentStress: adv.currentStress ?? adv.stress,
+                conditions: adv.conditions || { hidden: false, restrained: false, vulnerable: false },
+                portraits: portraits,
+                activePortraitIndex: 0
+              };
+            })
           };
 
           renderEncounter();
@@ -3661,10 +3718,10 @@
         timestamp: Date.now()
       };
 
-      // If Gun.js is connected, send via Gun
-      if (roomNode) {
+      // If Firebase is connected, send via Firebase
+      if (roomRef) {
         sendToPlayer({ type: 'spotlight', ...spotlightData });
-        console.log('Spotlight sent via Gun.js:', adv.name, hasPortrait ? 'with portrait' : 'default image');
+        console.log('Spotlight sent via Firebase:', adv.name, hasPortrait ? 'with portrait' : 'default image');
 
         // Save non-image data to localStorage for persistence
         const spotlightMetadata = { ...spotlightData, image: null };
@@ -3675,7 +3732,7 @@
           console.error('Failed to save spotlight metadata:', e);
         }
       } else {
-        // No Gun.js - try localStorage (for same-browser fallback)
+        // No Firebase - try localStorage (for same-browser fallback)
         // Use URL images only, skip base64 to avoid quota issues
         const isUrlImage = imageToShow && (imageToShow.startsWith('http://') || imageToShow.startsWith('https://'));
         const storageData = {
@@ -4022,6 +4079,60 @@
       showPlayerTokenImageDialog();
     }
 
+    // ===== NPC Portrait Image Dialog Functions =====
+    function showNpcImageDialog() {
+      document.getElementById('npcUrlInputSection').classList.remove('visible');
+      document.getElementById('npcImageUrlInput').value = '';
+      document.getElementById('npcUrlPreview').innerHTML = '';
+      document.getElementById('npcUrlAddBtn').disabled = true;
+      document.getElementById('npcImageSourceDialog').classList.add('visible');
+    }
+
+    function closeNpcImageDialog(event) {
+      if (event && event.target !== document.getElementById('npcImageSourceDialog')) return;
+      document.getElementById('npcImageSourceDialog').classList.remove('visible');
+    }
+
+    function chooseNpcFileUpload() {
+      document.getElementById('npcImageSourceDialog').classList.remove('visible');
+      document.getElementById('npcImageInput').click();
+    }
+
+    function showNpcUrlInput() {
+      document.getElementById('npcUrlInputSection').classList.add('visible');
+      document.getElementById('npcImageUrlInput').focus();
+    }
+
+    function handleNpcUrlKeyup(event) {
+      if (event.key === 'Enter' && !document.getElementById('npcUrlAddBtn').disabled) {
+        addNpcUrl();
+      }
+    }
+
+    function previewNpcUrlImage() {
+      const url = document.getElementById('npcImageUrlInput').value.trim();
+      const preview = document.getElementById('npcUrlPreview');
+      const addBtn = document.getElementById('npcUrlAddBtn');
+
+      if (!url) {
+        preview.innerHTML = '';
+        addBtn.disabled = true;
+        return;
+      }
+
+      preview.innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='Invalid URL'" onload="document.getElementById('npcUrlAddBtn').disabled=false">`;
+    }
+
+    function addNpcUrl() {
+      const url = document.getElementById('npcImageUrlInput').value.trim();
+      if (!url) return;
+
+      currentNpcImage = url;
+      updateNpcPreview();
+      syncNpcToStorage();
+      closeNpcImageDialog();
+    }
+
     function handleAdversaryImageUpload(event) {
       const files = event.target.files;
       if (!files.length || !pendingImageUploadAdversaryId) return;
@@ -4106,7 +4217,7 @@
       }
     }
 
-    // Sync NPC data to localStorage and Gun.js
+    // Sync NPC data to localStorage and Firebase
     function syncNpcToStorage() {
       const npcData = {
         image: currentNpcImage,
@@ -4114,8 +4225,8 @@
         timestamp: Date.now()
       };
 
-      // If Gun.js connected, send via Gun
-      if (roomNode) {
+      // If Firebase connected, send via Firebase
+      if (roomRef) {
         sendToPlayer({ type: 'npc', ...npcData });
 
         // Save metadata only to localStorage
@@ -4126,7 +4237,7 @@
           console.error('Failed to save NPC metadata:', e);
         }
       } else {
-        // No Gun.js - save to localStorage (may fail for large images)
+        // No Firebase - save to localStorage (may fail for large images)
         try {
           localStorage.setItem('daggerheart-npc', JSON.stringify(npcData));
         } catch (e) {
@@ -4283,6 +4394,7 @@
           case 'fear':
             roomRef.child('fear').set({ value: data.value, timestamp: data.timestamp });
             break;
+          case 'hopefear':
           case 'dice':
             roomRef.child('dice').set({
               type: data.type,
@@ -4371,9 +4483,6 @@
             });
             break;
         }
-
-        // Also send to player display (same room node)
-        sendToPlayer(data);
       } catch (e) {
         console.error('Failed to send battle map data via Firebase:', e);
       }
