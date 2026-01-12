@@ -1326,6 +1326,68 @@
       background: #ffd700;
     }
 
+    /* Reference Tab */
+    .reference-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 10px;
+    }
+
+    .reference-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 10px 15px;
+      flex-shrink: 0;
+    }
+
+    .reference-header h3 {
+      font-size: 0.9rem;
+      color: #b388ff;
+      margin: 0;
+    }
+
+    .reference-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .reference-btn {
+      padding: 6px 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      background: rgba(179, 136, 255, 0.2);
+      color: #e0e0e0;
+      font-size: 0.8rem;
+      font-family: 'Cinzel', serif;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .reference-btn:hover {
+      background: rgba(179, 136, 255, 0.4);
+      transform: scale(1.02);
+    }
+
+    .reference-pdf-wrapper {
+      flex: 1;
+      min-height: 0;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .reference-pdf-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
+    }
+
     /* Autocomplete Dropdown */
     .autocomplete-container {
       position: relative;
@@ -2090,6 +2152,7 @@
     <button class="tab-btn" onclick="switchTab('encounter')">Encounter <span class="tab-badge" id="encounterBadge">0</span></button>
     <button class="tab-btn" onclick="switchTab('queue')">Queue <span class="tab-badge" id="queueBadge">0</span></button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
+    <button class="tab-btn" onclick="switchTab('reference')">Reference</button>
   </div>
 
   <!-- Tab Content -->
@@ -2234,6 +2297,30 @@
 
       <div class="full-version-link">
         <a href="gm-control-panel.html">Switch to Full GM Control Panel</a>
+      </div>
+    </div>
+
+    <!-- Reference Tab -->
+    <div class="tab-panel" id="referenceTab">
+      <div class="reference-container">
+        <div class="reference-header">
+          <h3>Daggerheart SRD Reference</h3>
+          <div class="reference-controls">
+            <a href="https://www.daggerheart.com/wp-content/uploads/2025/05/DH-SRD-May202025.pdf"
+               target="_blank"
+               class="reference-btn">
+              Open in New Tab
+            </a>
+          </div>
+        </div>
+        <div class="reference-pdf-wrapper">
+          <iframe
+            id="srdPdfViewer"
+            src="https://www.daggerheart.com/wp-content/uploads/2025/05/DH-SRD-May202025.pdf"
+            class="reference-pdf-frame"
+            title="Daggerheart SRD PDF">
+          </iframe>
+        </div>
       </div>
     </div>
   </div>
