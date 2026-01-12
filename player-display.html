@@ -1924,24 +1924,12 @@
             useLocalMode = true;
             gunConnected = false;
 
-            // Check if there's local data from GM panel
-            const hasLocalData = localStorage.getItem('daggerheart-fear') !== null ||
-                                 localStorage.getItem('daggerheart-update') !== null;
-
-            if (hasLocalData) {
-              // Local data found - GM panel is open in same browser
-              statusEl.classList.add('connected');
-              title.textContent = 'Local Mode';
-              statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Connected via same browser</div>';
-              connectBtn.disabled = true;
-              connectBtn.textContent = 'Connected';
-            } else {
-              // No local data - GM panel may not be open yet
-              title.textContent = 'Waiting for GM...';
-              statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Open GM panel in this browser</div>';
-              connectBtn.disabled = false;
-              connectBtn.textContent = 'Retry';
-            }
+            // Always connect in local mode - will receive data when GM panel broadcasts
+            statusEl.classList.add('connected');
+            title.textContent = 'Local Mode';
+            statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Connected via same browser</div>';
+            connectBtn.disabled = true;
+            connectBtn.textContent = 'Connected';
             connectBtn.classList.remove('connecting');
             roomNode = null;
           }
@@ -1960,30 +1948,6 @@
       }
     }
 
-    // Continuously check for local GM data and auto-connect in local mode
-    function checkLocalGMPresence() {
-      const statusEl = document.getElementById('connectionStatus');
-      if (!statusEl) return;
-
-      const title = statusEl.querySelector('.connection-title');
-      const connectBtn = document.getElementById('connectBtn');
-
-      // If we're waiting for GM and local data appears, auto-connect
-      if (useLocalMode && !statusEl.classList.contains('connected')) {
-        const hasLocalData = localStorage.getItem('daggerheart-fear') !== null ||
-                             localStorage.getItem('daggerheart-update') !== null;
-        if (hasLocalData) {
-          statusEl.classList.add('connected');
-          title.textContent = 'Local Mode';
-          statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Connected via same browser</div>';
-          connectBtn.disabled = true;
-          connectBtn.textContent = 'Connected';
-        }
-      }
-    }
-
-    // Check for local GM presence every second
-    setInterval(checkLocalGMPresence, 1000);
 
     // Subscribe to GM data updates
     function subscribeToGmData() {

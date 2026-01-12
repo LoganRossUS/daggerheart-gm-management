@@ -451,27 +451,16 @@
             useLocalMode = true;
             gunConnected = false;
 
-            // Check if there's local battle map data from GM panel
-            const hasLocalData = localStorage.getItem('daggerheart-battle-map-state') !== null ||
-                                 localStorage.getItem('daggerheart-battle-tokens') !== null;
-
-            if (hasLocalData) {
-              // Local data found - GM panel is open in same browser
-              statusEl.classList.add('connected');
-              title.textContent = 'Local Mode';
-              statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Connected via same browser</div>';
-              connectBtn.disabled = true;
-              connectBtn.textContent = 'Connected';
-              // Load local data
-              loadLocalBattleMapData();
-            } else {
-              // No local data - GM panel may not be open yet
-              title.textContent = 'Waiting for GM...';
-              statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Open GM panel in this browser</div>';
-              connectBtn.disabled = false;
-              connectBtn.textContent = 'Retry';
-            }
+            // Always connect in local mode - GM panel may not have battle map data yet
+            statusEl.classList.add('connected');
+            title.textContent = 'Local Mode';
+            statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Connected via same browser</div>';
+            connectBtn.disabled = true;
+            connectBtn.textContent = 'Connected';
             connectBtn.classList.remove('connecting');
+
+            // Load any existing local data
+            loadLocalBattleMapData();
             roomNode = null;
           }
         }, 5000);
@@ -527,36 +516,16 @@
       }
     }
 
-    // Continuously check for local GM data and auto-connect in local mode
-    function checkLocalGMPresence() {
-      const statusEl = document.getElementById('connectionStatus');
-      if (!statusEl) return;
-
-      const title = statusEl.querySelector('.connection-title');
-      const connectBtn = document.getElementById('connectBtn');
-
-      // If we're waiting for GM and local data appears, auto-connect
-      if (useLocalMode && !statusEl.classList.contains('connected')) {
-        const hasLocalData = localStorage.getItem('daggerheart-battle-map-state') !== null ||
-                             localStorage.getItem('daggerheart-battle-tokens') !== null;
-        if (hasLocalData) {
-          statusEl.classList.add('connected');
-          title.textContent = 'Local Mode';
-          statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Connected via same browser</div>';
-          connectBtn.disabled = true;
-          connectBtn.textContent = 'Connected';
-          loadLocalBattleMapData();
-        }
-      }
-
-      // If in local mode and connected, poll for updates
-      if (useLocalMode && statusEl.classList.contains('connected')) {
+    // Continuously poll for local battle map data updates
+    function pollLocalBattleMapData() {
+      // Only poll when in local mode
+      if (useLocalMode) {
         loadLocalBattleMapData();
       }
     }
 
-    // Check for local GM presence every second
-    setInterval(checkLocalGMPresence, 1000);
+    // Poll for local data every 500ms when in local mode
+    setInterval(pollLocalBattleMapData, 500);
 
     // Subscribe to GM data updates
     function subscribeToGmData() {
