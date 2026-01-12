@@ -347,6 +347,145 @@
       text-align: center;
     }
 
+    .map-preview-wrapper {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .map-preview-grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+    .map-preview-token-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .map-preview-token {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid #4CAF50;
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+
+    .map-preview-token.adversary {
+      border-color: #f44336;
+    }
+
+    .map-preview-token:hover {
+      transform: translate(-50%, -50%) scale(1.15);
+      z-index: 20;
+    }
+
+    .map-preview-token.selected {
+      box-shadow: 0 0 0 3px rgba(179, 136, 255, 0.8), 0 0 12px rgba(179, 136, 255, 0.6);
+      z-index: 30;
+    }
+
+    .map-preview-token .token-label {
+      position: absolute;
+      bottom: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      color: #fff;
+      background: rgba(0,0,0,0.7);
+      padding: 1px 4px;
+      border-radius: 3px;
+      white-space: nowrap;
+      max-width: 60px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .map-preview-token .token-conditions-mini {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      display: flex;
+      gap: 1px;
+    }
+
+    .map-preview-token .condition-mini {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      font-size: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .map-preview-token .condition-mini.hidden-cond {
+      background: linear-gradient(135deg, #666, #444);
+    }
+
+    .map-preview-token .condition-mini.restrained-cond {
+      background: linear-gradient(135deg, #2196F3, #1565C0);
+    }
+
+    .map-preview-token .condition-mini.vulnerable-cond {
+      background: linear-gradient(135deg, #f44336, #c62828);
+    }
+
+    .position-mode-indicator {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(179, 136, 255, 0.9);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .cancel-position-btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .cancel-position-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .map-preview-area.positioning-active {
+      cursor: crosshair;
+    }
+
+    .map-preview-area.positioning-active .map-preview-token-layer {
+      pointer-events: auto;
+    }
+
     .token-area {
       background: rgba(0,0,0,0.3);
       border-radius: 8px;
@@ -1852,8 +1991,16 @@
             </div>
           </div>
           <div class="map-preview-area" id="mapPreviewArea">
-            <img id="mapPreview" style="display: none;" alt="Map Preview">
+            <div class="map-preview-wrapper" id="mapPreviewWrapper">
+              <img id="mapPreview" style="display: none;" alt="Map Preview">
+              <canvas id="mapPreviewGrid" class="map-preview-grid"></canvas>
+              <div id="mapPreviewTokenLayer" class="map-preview-token-layer"></div>
+            </div>
             <div class="map-placeholder" id="mapPlaceholder">Click Upload to add a battle map</div>
+            <div class="position-mode-indicator" id="positionModeIndicator" style="display: none;">
+              <span>Positioning: <strong id="positioningTokenName"></strong></span>
+              <button class="cancel-position-btn" onclick="cancelPositionMode()">Cancel</button>
+            </div>
           </div>
         </div>
 
@@ -2353,9 +2500,18 @@
           gridSize: gridSize
         };
 
-        document.getElementById('mapPreview').src = e.target.result;
-        document.getElementById('mapPreview').style.display = 'block';
+        const mapPreview = document.getElementById('mapPreview');
+        mapPreview.src = e.target.result;
+        mapPreview.style.display = 'block';
         document.getElementById('mapPlaceholder').style.display = 'none';
+
+        // Wait for image to load to get dimensions, then render tokens and grid
+        mapPreview.onload = () => {
+          setTimeout(() => {
+            drawMapPreviewGrid();
+            renderMapPreviewTokens();
+          }, 50);
+        };
 
         syncBattleMap();
       };
@@ -2373,6 +2529,7 @@
     function toggleGrid() {
       gridVisible = !gridVisible;
       document.getElementById('gridBtn').classList.toggle('active', gridVisible);
+      drawMapPreviewGrid();
       syncBattleMap();
     }
 
@@ -2383,6 +2540,9 @@
       document.getElementById('mapPlaceholder').style.display = 'block';
       document.getElementById('mapVisBtn').classList.remove('active');
       document.getElementById('mapVisBtn').textContent = 'Show';
+      cancelPositionMode();
+      renderMapPreviewTokens();
+      drawMapPreviewGrid();
       syncBattleMap();
     }
 
@@ -2493,22 +2653,8 @@
         return;
       }
 
-      positioningTokenId = tokenId;
-      const token = battleMapTokens.find(t => t.id === tokenId);
-
-      document.getElementById('positioningTitle').textContent = `Position: ${token.name}`;
-      document.getElementById('positioningMapImage').src = currentMap.mapImage;
-      document.getElementById('positioningModal').classList.add('visible');
-
-      setTimeout(() => {
-        const img = document.getElementById('positioningMapImage');
-        const canvas = document.getElementById('positioningGrid');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        canvas.style.width = img.width + 'px';
-        canvas.style.height = img.height + 'px';
-        drawPositioningGrid();
-      }, 100);
+      // Use the inline positioning mode on the map preview
+      selectTokenForPositioning(tokenId);
     }
 
     function drawPositioningGrid() {
@@ -2571,12 +2717,224 @@
       positioningTokenId = null;
     }
 
+    // ===== Map Preview Token Rendering =====
+    let selectedTokenForPositioning = null;
+
+    function renderMapPreviewTokens() {
+      const tokenLayer = document.getElementById('mapPreviewTokenLayer');
+      const mapPreview = document.getElementById('mapPreview');
+
+      if (!tokenLayer || !mapPreview || mapPreview.style.display === 'none' || !currentMap) {
+        if (tokenLayer) tokenLayer.innerHTML = '';
+        return;
+      }
+
+      // Get the displayed size of the map image
+      const imgRect = mapPreview.getBoundingClientRect();
+      const wrapperRect = document.getElementById('mapPreviewWrapper').getBoundingClientRect();
+
+      // Calculate scale factor between natural and displayed size
+      const scaleX = mapPreview.width / mapPreview.naturalWidth;
+      const scaleY = mapPreview.height / mapPreview.naturalHeight;
+
+      tokenLayer.innerHTML = '';
+
+      battleMapTokens.forEach(token => {
+        const tokenEl = document.createElement('div');
+        tokenEl.className = `map-preview-token ${token.type}${!token.visible ? ' hidden-token' : ''}`;
+        tokenEl.id = `preview-token-${token.id}`;
+
+        if (selectedTokenForPositioning === token.id) {
+          tokenEl.classList.add('selected');
+        }
+
+        // Calculate pixel position based on grid coordinates and scale
+        const pixelX = (token.x * gridSize + gridSize / 2) * scaleX;
+        const pixelY = (token.y * gridSize + gridSize / 2) * scaleY;
+
+        tokenEl.style.left = `${pixelX}px`;
+        tokenEl.style.top = `${pixelY}px`;
+
+        // Set token image or default color
+        if (token.image) {
+          tokenEl.style.backgroundImage = `url(${token.image})`;
+        } else {
+          tokenEl.style.backgroundColor = token.type === 'player' ? '#4CAF50' : '#f44336';
+        }
+
+        // Add token name label
+        const labelEl = document.createElement('div');
+        labelEl.className = 'token-label';
+        labelEl.textContent = token.name;
+        tokenEl.appendChild(labelEl);
+
+        // Add condition badges
+        const conditions = getTokenConditions(token);
+        if (conditions.hidden || conditions.restrained || conditions.vulnerable) {
+          const conditionsEl = document.createElement('div');
+          conditionsEl.className = 'token-conditions-mini';
+
+          if (conditions.hidden) {
+            const badge = document.createElement('div');
+            badge.className = 'condition-mini hidden-cond';
+            badge.textContent = 'H';
+            conditionsEl.appendChild(badge);
+          }
+          if (conditions.restrained) {
+            const badge = document.createElement('div');
+            badge.className = 'condition-mini restrained-cond';
+            badge.textContent = 'R';
+            conditionsEl.appendChild(badge);
+          }
+          if (conditions.vulnerable) {
+            const badge = document.createElement('div');
+            badge.className = 'condition-mini vulnerable-cond';
+            badge.textContent = 'V';
+            conditionsEl.appendChild(badge);
+          }
+
+          tokenEl.appendChild(conditionsEl);
+        }
+
+        // Click handler to select token for positioning
+        tokenEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectTokenForPositioning(token.id);
+        });
+
+        tokenLayer.appendChild(tokenEl);
+      });
+    }
+
+    function getTokenConditions(token) {
+      // For adversaries, get conditions from the encounter data
+      if (token.type === 'adversary' && currentEncounter && currentEncounter.adversaries) {
+        const adversary = currentEncounter.adversaries.find(a => a.id === token.id);
+        if (adversary && adversary.conditions) {
+          return adversary.conditions;
+        }
+      }
+      return token.conditions || { hidden: false, restrained: false, vulnerable: false };
+    }
+
+    function selectTokenForPositioning(tokenId) {
+      const token = battleMapTokens.find(t => t.id === tokenId);
+      if (!token) return;
+
+      selectedTokenForPositioning = tokenId;
+
+      // Show position mode indicator
+      document.getElementById('positioningTokenName').textContent = token.name;
+      document.getElementById('positionModeIndicator').style.display = 'flex';
+      document.getElementById('mapPreviewArea').classList.add('positioning-active');
+
+      // Update visual selection
+      renderMapPreviewTokens();
+    }
+
+    function cancelPositionMode() {
+      selectedTokenForPositioning = null;
+      document.getElementById('positionModeIndicator').style.display = 'none';
+      document.getElementById('mapPreviewArea').classList.remove('positioning-active');
+      renderMapPreviewTokens();
+    }
+
+    function drawMapPreviewGrid() {
+      const canvas = document.getElementById('mapPreviewGrid');
+      const mapPreview = document.getElementById('mapPreview');
+
+      if (!canvas || !mapPreview || mapPreview.style.display === 'none' || !currentMap) {
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        return;
+      }
+
+      // Set canvas size to match the displayed map size
+      canvas.width = mapPreview.width;
+      canvas.height = mapPreview.height;
+      canvas.style.width = mapPreview.width + 'px';
+      canvas.style.height = mapPreview.height + 'px';
+
+      // Calculate scale factor
+      const scaleX = mapPreview.width / mapPreview.naturalWidth;
+      const scaleY = mapPreview.height / mapPreview.naturalHeight;
+      const scaledGridSize = gridSize * scaleX;
+
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Only draw if grid is enabled
+      if (!gridVisible) return;
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 1;
+
+      // Draw vertical lines
+      for (let x = 0; x <= canvas.width; x += scaledGridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      // Draw horizontal lines
+      for (let y = 0; y <= canvas.height; y += scaledGridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+    }
+
+    // Click handler for positioning on the map preview
+    document.getElementById('mapPreviewWrapper').addEventListener('click', (e) => {
+      if (!selectedTokenForPositioning || !currentMap) return;
+
+      const mapPreview = document.getElementById('mapPreview');
+      const rect = mapPreview.getBoundingClientRect();
+
+      // Calculate click position relative to the map image
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      // Calculate scale factor
+      const scaleX = mapPreview.width / mapPreview.naturalWidth;
+      const scaleY = mapPreview.height / mapPreview.naturalHeight;
+
+      // Convert to grid coordinates
+      const gridX = Math.floor(clickX / (gridSize * scaleX));
+      const gridY = Math.floor(clickY / (gridSize * scaleY));
+
+      // Update token position
+      const token = battleMapTokens.find(t => t.id === selectedTokenForPositioning);
+      if (token) {
+        token.x = gridX;
+        token.y = gridY;
+        renderMapPreviewTokens();
+        renderTokenList();
+        syncBattleMap();
+      }
+    });
+
+    // Update map preview when window resizes
+    window.addEventListener('resize', () => {
+      if (currentMap) {
+        setTimeout(() => {
+          drawMapPreviewGrid();
+          renderMapPreviewTokens();
+        }, 100);
+      }
+    });
+
     function renderTokenList() {
       const container = document.getElementById('tokenList');
       if (!container) return;
 
       if (battleMapTokens.length === 0) {
         container.innerHTML = '<div style="text-align: center; color: #666; padding: 20px; font-size: 0.8rem;">No tokens. Add players or load an encounter.</div>';
+        renderMapPreviewTokens();
         return;
       }
 
@@ -2642,6 +3000,9 @@
           </div>
         `;
       }).join('');
+
+      // Also update tokens on the map preview
+      renderMapPreviewTokens();
     }
 
     // ========== Encounters ==========
@@ -3272,10 +3633,19 @@
 
       currentMap = { mapImage: url, gridSize: gridSize };
 
-      document.getElementById('mapPreview').src = url;
-      document.getElementById('mapPreview').style.display = 'block';
+      const mapPreview = document.getElementById('mapPreview');
+      mapPreview.src = url;
+      mapPreview.style.display = 'block';
       document.getElementById('mapPlaceholder').style.display = 'none';
       document.getElementById('mapVisBtn').textContent = mapVisible ? 'Hide' : 'Show';
+
+      // Wait for image to load to get dimensions, then render tokens and grid
+      mapPreview.onload = () => {
+        setTimeout(() => {
+          drawMapPreviewGrid();
+          renderMapPreviewTokens();
+        }, 50);
+      };
 
       if (mapVisible) {
         syncBattleMap();
@@ -3860,6 +4230,14 @@
           preview.src = currentMap.mapImage;
           preview.style.display = 'block';
           placeholder.style.display = 'none';
+
+          // Wait for image to load, then render grid and tokens
+          preview.onload = () => {
+            setTimeout(() => {
+              drawMapPreviewGrid();
+              renderMapPreviewTokens();
+            }, 50);
+          };
         }
       } else {
         const preview = document.getElementById('mapPreview');
@@ -3868,6 +4246,8 @@
           preview.style.display = 'none';
           placeholder.style.display = 'block';
         }
+        drawMapPreviewGrid();
+        renderMapPreviewTokens();
       }
 
       mapVisible = battle.mapVisible || false;
