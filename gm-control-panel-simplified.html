@@ -2333,6 +2333,16 @@
         </div>
       </div>
 
+      <div class="settings-section" style="margin-top: 20px;">
+        <h3>Session Management</h3>
+        <p style="color: #888; font-size: 0.85rem; margin-bottom: 12px;">
+          If you're starting a new game session and seeing stale data from a previous session, use this to clear all cached data.
+        </p>
+        <button class="display-btn" onclick="clearAllSessionData()" style="background: linear-gradient(135deg, #c62828, #b71c1c); width: 100%;">
+          Clear All Session Data
+        </button>
+      </div>
+
       <div class="full-version-link">
         <a href="gm-control-panel.html">Switch to Full GM Control Panel</a>
       </div>
@@ -5050,6 +5060,60 @@
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
+    }
+
+    // ========== Session Management ==========
+    function clearAllSessionData() {
+      if (!confirm('This will clear all saved data including fear, NPC portrait, encounters, battle tokens, and staged battles. Are you sure?')) {
+        return;
+      }
+
+      // Clear all daggerheart localStorage keys
+      const keysToRemove = [
+        'daggerheart-fear',
+        'daggerheart-dice',
+        'daggerheart-npc',
+        'daggerheart-spotlight',
+        'daggerheart-encounter',
+        'daggerheart-battle-tokens',
+        'daggerheart-battle-grid',
+        'daggerheart-staged-battles',
+        'daggerheart-battle-map-state',
+        'daggerheart-last-room',
+        'daggerheart-battlemap-last-room'
+      ];
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+
+      // Reset all in-memory state
+      currentFear = 0;
+      currentNpcImage = null;
+      npcVisible = false;
+      currentEncounter = null;
+      spotlightedAdversary = null;
+      battleMapTokens = [];
+      stagedBattles = [];
+
+      // Update UI
+      updateFearDisplay();
+      updateNpcPreview();
+      document.getElementById('npcVisibilityToggle').checked = false;
+      renderEncounter();
+      renderTokenList();
+      renderQueueList();
+      updateTabBadges();
+
+      // Notify Firebase clients to clear their state
+      if (roomRef) {
+        const timestamp = Date.now();
+        roomRef.child('fear').set({ value: 0, timestamp });
+        roomRef.child('npc').set({ visible: false, image: null, timestamp });
+        roomRef.child('spotlight').set({ visible: false, timestamp });
+        roomRef.child('tokens').set(null);
+        roomRef.child('grid').set(null);
+      }
+
+      alert('Session data cleared. The page will now reload.');
+      window.location.reload();
     }
 
     // ========== Initialize ==========
