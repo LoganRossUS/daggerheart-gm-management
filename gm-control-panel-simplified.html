@@ -2105,7 +2105,45 @@
       }
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    // ===========================================
+    // FIREBASE CONFIGURATION
+    // ===========================================
+    // To set up Firebase:
+    // 1. Go to https://console.firebase.google.com/
+    // 2. Create a new project (or use existing)
+    // 3. Go to Project Settings > General > Your apps
+    // 4. Click "Add app" and select Web (</>)
+    // 5. Copy your config values below
+    // 6. Go to Realtime Database > Create Database
+    // 7. Start in TEST MODE for now (allows read/write)
+    // ===========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyA6GYyYWlW1ybQ07-K13u4YUaNFcV66Zj0",
+      authDomain: "daggerheart-8bdc1.firebaseapp.com",
+      databaseURL: "https://daggerheart-8bdc1-default-rtdb.firebaseio.com",
+      projectId: "daggerheart-8bdc1",
+      storageBucket: "daggerheart-8bdc1.firebasestorage.app",
+      messagingSenderId: "885297626381",
+      appId: "1:885297626381:web:9caf2af85fb793f819c444"
+    };
+
+    // Initialize Firebase
+    let firebaseApp = null;
+    let database = null;
+
+    try {
+      firebaseApp = firebase.initializeApp(firebaseConfig);
+      database = firebase.database();
+      console.log('Firebase initialized successfully');
+    } catch (e) {
+      console.error('Firebase initialization error:', e);
+    }
+  </script>
 </head>
 <body>
   <!-- Header Bar -->
@@ -2477,10 +2515,10 @@
     let pendingPlayerTokenImageId = null;
     let adversaryDatabase = [];
     let selectedAutocompleteIndex = -1;
-    let gun = null;
-    let roomNode = null;
+    let roomRef = null;  // Firebase database reference for the room
     let roomCode = null;
     let connectedClients = 0;
+    let heartbeatInterval = null;
     let stagedBattles = [];
     let editingStagedBattleId = null;
 
@@ -4129,7 +4167,7 @@
       }
     }
 
-    function initGunHost() {
+    function initFirebaseHost() {
       roomCode = generateRoomCode();
       document.getElementById('roomCodeDisplay').textContent = roomCode;
       document.getElementById('connectionBtn').textContent = 'Room: ' + roomCode;
@@ -4138,46 +4176,40 @@
       const text = document.getElementById('connectionText');
       const statusText = document.getElementById('connectionStatusText');
 
-      // Check if Gun is loaded
-      if (typeof Gun === 'undefined') {
-        text.textContent = 'Gun.js not loaded';
+      // Check if Firebase is loaded and configured
+      if (!database) {
+        text.textContent = 'Firebase not configured';
         statusText.textContent = 'Offline';
-        console.error('Gun.js library not loaded');
+        console.error('Firebase not initialized. Please add your Firebase config.');
         return;
       }
 
       try {
-        // Initialize Gun with multiple relay peers for redundancy
-        // Using several public Gun relay servers as fallbacks
-        gun = Gun({
-          peers: [
-            'https://gun-us.herokuapp.com/gun',
-            'https://gun-eu.herokuapp.com/gun',
-            'https://peer.wallie.io/gun'
-          ],
-          localStorage: false,
-          radisk: false,
-          retry: 3000  // Retry connection every 3 seconds
-        });
-
-        // Create room namespace
-        roomNode = gun.get('daggerheart-room-' + roomCode);
+        // Create room reference in Firebase
+        roomRef = database.ref('rooms/' + roomCode);
 
         // Mark room as active with GM heartbeat
-        roomNode.get('gm').put({
+        roomRef.child('gm').set({
           active: true,
           timestamp: Date.now()
         });
 
         // Start GM heartbeat to keep room alive
-        setInterval(() => {
-          if (roomNode) {
-            roomNode.get('gm').put({
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        heartbeatInterval = setInterval(() => {
+          if (roomRef) {
+            roomRef.child('gm').update({
               active: true,
               timestamp: Date.now()
             });
           }
         }, 10000);
+
+        // Clean up room when GM disconnects
+        roomRef.child('gm').onDisconnect().set({
+          active: false,
+          timestamp: Date.now()
+        });
 
         console.log('GM hosting with room code:', roomCode);
         text.textContent = 'Room ready';
@@ -4186,23 +4218,32 @@
         document.getElementById('connectionBtn').classList.add('connected');
 
         // Listen for client connections
-        roomNode.get('clients').map().on((client, clientId) => {
-          if (client && client.connected && (Date.now() - client.timestamp) < 30000) {
-            connectedClients++;
-            text.textContent = `${connectedClients} client(s) connected`;
-            statusText.textContent = 'Connected';
-
-            // If a client requests sync, send it
-            if (client.requestSync) {
-              sendFullSync();
-              // Clear the sync request
-              roomNode.get('clients').get(clientId).get('requestSync').put(false);
+        roomRef.child('clients').on('value', (snapshot) => {
+          const clients = snapshot.val();
+          if (clients) {
+            let activeCount = 0;
+            Object.entries(clients).forEach(([clientId, client]) => {
+              if (client && client.connected && (Date.now() - client.timestamp) < 30000) {
+                activeCount++;
+                // If a client requests sync, send it
+                if (client.requestSync) {
+                  sendFullSync();
+                  // Clear the sync request
+                  roomRef.child('clients').child(clientId).child('requestSync').set(false);
+                }
+              }
+            });
+            connectedClients = activeCount;
+            if (activeCount > 0) {
+              text.textContent = `${activeCount} client(s) connected`;
+              statusText.textContent = 'Connected';
             }
           }
         });
 
         // Listen for battle map sync requests
-        roomNode.get('battleMapRequest').on((request) => {
+        roomRef.child('battleMapRequest').on('value', (snapshot) => {
+          const request = snapshot.val();
           if (request && request.timestamp && (Date.now() - request.timestamp) < 5000) {
             syncBattleMap();
           }
@@ -4214,27 +4255,26 @@
         }, 1000);
 
       } catch (e) {
-        console.error('Failed to initialize Gun.js:', e);
+        console.error('Failed to initialize Firebase:', e);
         text.textContent = 'Init failed - local mode';
         statusText.textContent = 'Local Mode';
       }
     }
 
     function sendToPlayer(data) {
-      if (!roomNode) return;
+      if (!roomRef) return;
 
       try {
         // Add timestamp to data
         data.timestamp = Date.now();
 
-        // Route data to appropriate Gun node based on type
+        // Route data to appropriate Firebase node based on type
         switch (data.type) {
           case 'fear':
-            roomNode.get('fear').put({ value: data.value, timestamp: data.timestamp });
+            roomRef.child('fear').set({ value: data.value, timestamp: data.timestamp });
             break;
           case 'dice':
-            // For complex objects, we need to stringify nested arrays
-            roomNode.get('dice').put({
+            roomRef.child('dice').set({
               type: data.type,
               notation: data.notation || null,
               total: data.total,
@@ -4243,33 +4283,33 @@
               sum: data.sum || null,
               winner: data.winner || null,
               critical: data.critical || false,
-              diceRollsJson: data.diceRolls ? JSON.stringify(data.diceRolls) : null,
+              diceRolls: data.diceRolls || null,
               timestamp: data.timestamp
             });
             break;
           case 'spotlight':
-            roomNode.get('spotlight').put({
+            roomRef.child('spotlight').set({
               visible: data.visible,
               adversaryId: data.adversaryId || null,
               name: data.name || null,
               image: data.image || null,
               isDefaultImage: data.isDefaultImage || false,
               defeated: data.defeated || false,
-              conditionsJson: data.conditions ? JSON.stringify(data.conditions) : '{}',
+              conditions: data.conditions || {},
               timestamp: data.timestamp
             });
             break;
           case 'npc':
-            roomNode.get('npc').put({
+            roomRef.child('npc').set({
               visible: data.visible,
               image: data.image || null,
               timestamp: data.timestamp
             });
             break;
           case 'sync':
-            roomNode.get('sync').put({
+            roomRef.child('sync').set({
               fear: data.fear,
-              spotlightJson: data.spotlight ? JSON.stringify(data.spotlight) : null,
+              spotlight: data.spotlight || null,
               timestamp: data.timestamp
             });
             break;
@@ -4277,19 +4317,19 @@
             console.log('Unknown data type:', data.type);
         }
       } catch (e) {
-        console.error('Failed to send via Gun.js:', e);
+        console.error('Failed to send via Firebase:', e);
       }
     }
 
     function sendToBattleMap(data) {
-      if (!roomNode) return;
+      if (!roomRef) return;
 
       try {
         data.timestamp = Date.now();
 
         switch (data.type) {
           case 'map':
-            roomNode.get('map').put({
+            roomRef.child('map').set({
               type: 'map',
               visible: data.visible,
               mapImage: data.mapImage || null,
@@ -4298,25 +4338,25 @@
             });
             break;
           case 'tokens':
-            roomNode.get('tokens').put({
+            roomRef.child('tokens').set({
               type: 'tokens',
-              tokensJson: JSON.stringify(data.tokens || []),
+              tokens: data.tokens || [],
               timestamp: data.timestamp
             });
             break;
           case 'grid':
-            roomNode.get('grid').put({
+            roomRef.child('grid').set({
               type: 'grid',
               visible: data.visible,
               timestamp: data.timestamp
             });
             break;
           case 'mapSync':
-            roomNode.get('mapSync').put({
+            roomRef.child('mapSync').set({
               type: 'mapSync',
-              mapJson: data.map ? JSON.stringify(data.map) : null,
-              tokensJson: data.tokens ? JSON.stringify(data.tokens) : null,
-              gridJson: data.grid ? JSON.stringify(data.grid) : null,
+              map: data.map || null,
+              tokens: data.tokens || null,
+              grid: data.grid || null,
               timestamp: data.timestamp
             });
             break;
@@ -4325,12 +4365,12 @@
         // Also send to player display (same room node)
         sendToPlayer(data);
       } catch (e) {
-        console.error('Failed to send battle map data via Gun.js:', e);
+        console.error('Failed to send battle map data via Firebase:', e);
       }
     }
 
     function sendFullSync() {
-      if (!roomNode) return;
+      if (!roomRef) return;
 
       const syncData = {
         type: 'sync',
@@ -5063,8 +5103,8 @@
       loadStagedBattles();
       renderQueueList();
 
-      // Initialize Gun.js
-      initGunHost();
+      // Initialize Firebase
+      initFirebaseHost();
 
       // Render initial state
       renderTokenList();
