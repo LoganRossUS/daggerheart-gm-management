@@ -4358,6 +4358,14 @@
             };
           }) : [];
 
+          // Format abilities from features for display
+          const abilities = creature.features ? creature.features.map(f => {
+            return `${f.name}: ${f.description}`;
+          }) : [];
+
+          // Determine traits from description and features
+          const traits = extractTraits(creature);
+
           return {
             name: creature.name,
             tier: creature.tier || 1,
@@ -4368,8 +4376,11 @@
             difficulty: creature.difficulty || 10,
             thresholds: creature.thresholds || null,
             attack: attackStr,
+            defense: creature.difficulty || 10,
             experience: creature.experience || '',
             features: features,
+            abilities: abilities,
+            traits: traits,
             description: creature.description || '',
             motives: creature.motives || ''
           };
@@ -4380,15 +4391,15 @@
         console.error('Error loading creature database:', error);
         // Fallback to minimal data
         adversaryDatabase = [
-          { name: 'Skeleton Warrior', tier: 1, role: 'Minion', hp: 6, stress: 3, themes: ['undead'] },
-          { name: 'Skeleton Archer', tier: 1, role: 'Minion', hp: 4, stress: 2, themes: ['undead'] },
-          { name: 'Zombie', tier: 1, role: 'Minion', hp: 8, stress: 2, themes: ['undead'] },
-          { name: 'Ghost', tier: 2, role: 'Standard', hp: 12, stress: 6, themes: ['undead'] },
-          { name: 'Goblin Scout', tier: 1, role: 'Minion', hp: 4, stress: 2, themes: ['bandits'] },
-          { name: 'Wolf', tier: 1, role: 'Minion', hp: 6, stress: 3, themes: ['beasts'] },
-          { name: 'Bear', tier: 2, role: 'Standard', hp: 20, stress: 8, themes: ['beasts'] },
-          { name: 'Bandit', tier: 1, role: 'Minion', hp: 5, stress: 3, themes: ['bandits'] },
-          { name: 'Elemental', tier: 2, role: 'Standard', hp: 16, stress: 6, themes: ['elementals'] }
+          { name: 'Skeleton Warrior', tier: 1, role: 'Minion', hp: 6, stress: 3, themes: ['undead'], difficulty: 11, defense: 11, attack: '+2 (2d6+2 phy)', traits: ['Minion', 'Undead'], abilities: [] },
+          { name: 'Skeleton Archer', tier: 1, role: 'Minion', hp: 4, stress: 2, themes: ['undead'], difficulty: 10, defense: 10, attack: '+3 (2d6+1 phy, Far)', traits: ['Minion', 'Undead'], abilities: [] },
+          { name: 'Zombie', tier: 1, role: 'Minion', hp: 8, stress: 2, themes: ['undead'], difficulty: 10, defense: 10, attack: '+0 (1d6+3 phy)', traits: ['Minion', 'Undead'], abilities: [] },
+          { name: 'Ghost', tier: 2, role: 'Standard', hp: 12, stress: 6, themes: ['undead'], difficulty: 14, defense: 14, attack: '+2 (2d6+2 mag)', traits: ['Standard', 'Undead'], abilities: [] },
+          { name: 'Goblin Scout', tier: 1, role: 'Minion', hp: 4, stress: 2, themes: ['bandits'], difficulty: 10, defense: 10, attack: '+0 (1d4 phy)', traits: ['Minion'], abilities: [] },
+          { name: 'Wolf', tier: 1, role: 'Minion', hp: 6, stress: 3, themes: ['beasts'], difficulty: 12, defense: 12, attack: '+2 (1d6+2 phy)', traits: ['Minion'], abilities: [] },
+          { name: 'Bear', tier: 2, role: 'Standard', hp: 20, stress: 8, themes: ['beasts'], difficulty: 14, defense: 14, attack: '+1 (1d8+3 phy)', traits: ['Standard'], abilities: [] },
+          { name: 'Bandit', tier: 1, role: 'Minion', hp: 5, stress: 3, themes: ['bandits'], difficulty: 10, defense: 10, attack: '+1 (1d6+2 phy)', traits: ['Minion'], abilities: [] },
+          { name: 'Elemental', tier: 2, role: 'Standard', hp: 16, stress: 6, themes: ['elementals'], difficulty: 12, defense: 12, attack: '+2 (1d8+2 mag)', traits: ['Standard'], abilities: [] }
         ];
       }
     }
@@ -4447,6 +4458,38 @@
       }
 
       return themes.length > 0 ? themes : ['other'];
+    }
+
+    // Helper function to extract traits from creature data
+    function extractTraits(creature) {
+      const traits = [];
+      const desc = (creature.description || '').toLowerCase();
+      const role = (creature.role || '').toLowerCase();
+
+      // Add role as a trait
+      if (creature.role) {
+        traits.push(creature.role);
+      }
+
+      // Extract traits from description
+      if (desc.includes('undead')) traits.push('Undead');
+      if (desc.includes('flying') || desc.includes('fly')) traits.push('Flying');
+      if (desc.includes('armored') || desc.includes('armor')) traits.push('Armored');
+      if (desc.includes('magical') || desc.includes('magic')) traits.push('Magical');
+      if (desc.includes('stealthy') || desc.includes('stealth')) traits.push('Stealthy');
+      if (desc.includes('fearless')) traits.push('Fearless');
+      if (desc.includes('aquatic') || desc.includes('water')) traits.push('Aquatic');
+
+      // Add features that sound like traits
+      if (creature.features) {
+        creature.features.forEach(f => {
+          if (f.type === 'Passive' && f.name.length < 20) {
+            traits.push(f.name);
+          }
+        });
+      }
+
+      return traits.length > 0 ? traits : ['Standard'];
     }
 
     // ========== Battle Queue ==========
