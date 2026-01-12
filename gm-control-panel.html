@@ -3342,7 +3342,7 @@
       adversary.currentHp = Math.min(adversary.hp, adversary.currentHp + amount);
 
       renderEncounter();
-      renderTokenList();
+      requestAnimationFrame(() => renderTokenList());
       syncEncounterToStorage();
 
       // Update spotlight if this adversary is spotlighted (defeated status may have changed)
@@ -3382,7 +3382,7 @@
       adversary.conditions[conditionName] = !adversary.conditions[conditionName];
 
       renderEncounter();
-      renderTokenList();
+      requestAnimationFrame(() => renderTokenList());
       syncEncounterToStorage();
 
       // Update spotlight if this adversary is spotlighted
@@ -3828,7 +3828,7 @@
       }
 
       renderEncounter();
-      renderTokenList();
+      requestAnimationFrame(() => renderTokenList());
       syncSpotlightToStorage();
     }
 
@@ -3836,7 +3836,7 @@
     function hideSpotlight() {
       spotlightedAdversary = null;
       renderEncounter();
-      renderTokenList();
+      requestAnimationFrame(() => renderTokenList());
       syncSpotlightToStorage();
     }
 

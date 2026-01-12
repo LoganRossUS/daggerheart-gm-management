@@ -2572,6 +2572,7 @@
 
     function renderTokenList() {
       const container = document.getElementById('tokenList');
+      if (!container) return;
 
       if (battleMapTokens.length === 0) {
         container.innerHTML = '<div style="text-align: center; color: #666; padding: 20px; font-size: 0.8rem;">No tokens. Add players or load an encounter.</div>';
@@ -2890,8 +2891,10 @@
       if (!adv) return;
 
       adv.currentHp = Math.max(0, Math.min(adv.hp, adv.currentHp + amount));
+
+      // Update both views immediately
       renderEncounter();
-      renderTokenList();
+      requestAnimationFrame(() => renderTokenList());
       saveEncounterState();
 
       if (spotlightedAdversary === advId) {
@@ -2914,7 +2917,7 @@
 
       adv.conditions[condition] = !adv.conditions[condition];
       renderEncounter();
-      renderTokenList();
+      requestAnimationFrame(() => renderTokenList());
       saveEncounterState();
 
       // Update token conditions
@@ -2950,7 +2953,7 @@
       }
 
       renderEncounter();
-      renderTokenList();
+      requestAnimationFrame(() => renderTokenList());
       updateSpotlightUI();
       syncSpotlight();
     }
@@ -2958,7 +2961,7 @@
     function hideSpotlight() {
       spotlightedAdversary = null;
       renderEncounter();
-      renderTokenList();
+      requestAnimationFrame(() => renderTokenList());
       updateSpotlightUI();
 
       const spotlightData = { visible: false, timestamp: Date.now() };
