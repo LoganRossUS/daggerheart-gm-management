@@ -2240,10 +2240,9 @@
       <div class="encounter-header">
         <div class="encounter-title" id="encounterTitle">No Encounter Loaded</div>
         <div class="encounter-actions">
-          <input type="file" id="encounterFolderInput" webkitdirectory directory style="display: none;" onchange="handleEncounterFolderUpload(event)">
           <input type="file" id="encounterFileInput" accept=".json" style="display: none;" onchange="handleEncounterUpload(event)">
           <input type="file" id="adversaryImageInput" accept="image/*" style="display: none;" multiple onchange="handleAdversaryImageUpload(event)">
-          <button class="encounter-btn" onclick="document.getElementById('encounterFolderInput').click()">Load Folder</button>
+          <button class="encounter-btn" onclick="document.getElementById('encounterFileInput').click()">Load JSON</button>
           <button class="encounter-btn" onclick="loadSampleEncounter()">Sample</button>
           <button class="encounter-btn" onclick="clearEncounter()">Clear</button>
         </div>
@@ -2260,7 +2259,7 @@
 
       <div id="encounterContainer">
         <div class="encounter-empty">
-          No encounter loaded. Load a folder or use the search to add adversaries.
+          No encounter loaded. Load a JSON file or use the search to add adversaries.
         </div>
       </div>
 
@@ -3284,75 +3283,6 @@
     }
 
     // ========== Encounters ==========
-    function handleEncounterFolderUpload(event) {
-      const files = Array.from(event.target.files);
-      const jsonFile = files.find(f => f.name === 'encounter.json');
-
-      if (!jsonFile) {
-        alert('No encounter.json found in folder');
-        return;
-      }
-
-      const imageFiles = files.filter(f => /\.(png|jpg|jpeg|gif|webp)$/i.test(f.name));
-      const imageMap = {};
-
-      let imagesLoaded = 0;
-      const totalImages = imageFiles.length;
-
-      const processEncounter = () => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const data = JSON.parse(e.target.result);
-            currentEncounter = {
-              name: data.name || 'Encounter',
-              adversaries: (data.adversaries || []).map(adv => ({
-                ...adv,
-                id: adv.id || 'adv-' + Math.random().toString(36).substr(2, 9),
-                currentHp: adv.currentHp ?? adv.hp,
-                currentStress: adv.currentStress ?? adv.stress,
-                conditions: adv.conditions || { hidden: false, restrained: false, vulnerable: false },
-                portraits: [],
-                activePortraitIndex: 0
-              }))
-            };
-
-            // Assign portraits from images
-            currentEncounter.adversaries.forEach(adv => {
-              if (adv.portrait && imageMap[adv.portrait]) {
-                adv.portraits.push(imageMap[adv.portrait]);
-              }
-            });
-
-            renderEncounter();
-            saveEncounterState();
-
-            // Add tokens for all adversaries
-            currentEncounter.adversaries.forEach(adv => addAdversaryToken(adv));
-          } catch (err) {
-            alert('Error parsing encounter.json: ' + err.message);
-          }
-        };
-        reader.readAsText(jsonFile);
-      };
-
-      if (totalImages === 0) {
-        processEncounter();
-      } else {
-        imageFiles.forEach(file => {
-          const imgReader = new FileReader();
-          imgReader.onload = (e) => {
-            imageMap[file.name] = e.target.result;
-            imagesLoaded++;
-            if (imagesLoaded === totalImages) {
-              processEncounter();
-            }
-          };
-          imgReader.readAsDataURL(file);
-        });
-      }
-    }
-
     function handleEncounterUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
