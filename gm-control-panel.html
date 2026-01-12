@@ -1758,11 +1758,11 @@
       </div>
 
       <div id="mapPlaceholder" class="map-placeholder">
-        <button class="map-upload-btn" onclick="document.getElementById('mapImageInput').click()">
-          📁 Upload Battle Map
+        <button class="map-upload-btn" onclick="showMapImageDialog()">
+          🗺️ Add Battle Map
         </button>
         <div style="margin-top: 10px; font-size: 0.75rem;">
-          Upload a map image to display on the battle map portal
+          Upload a map image or use a CDN link for the battle map
         </div>
       </div>
 
@@ -1963,6 +1963,58 @@
         <div id="urlPreview" class="url-preview"></div>
       </div>
       <button class="image-dialog-cancel" onclick="closeImageDialog()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Battle Map Image Source Dialog -->
+  <div id="mapImageSourceDialog" class="image-dialog-overlay" onclick="closeMapImageDialog(event)">
+    <div class="image-dialog" onclick="event.stopPropagation()">
+      <h3>🗺️ Add Battle Map</h3>
+      <div class="image-dialog-options">
+        <button class="image-dialog-btn" onclick="chooseMapFileUpload()">
+          <span class="btn-icon">📁</span>Upload from Computer
+          <span class="btn-subtitle">Select an image file from your device</span>
+        </button>
+        <button class="image-dialog-btn" onclick="showMapUrlInput()">
+          <span class="btn-icon">🔗</span>Use Image URL
+          <span class="btn-subtitle">Paste a CDN link (reduces memory usage on TV displays)</span>
+        </button>
+      </div>
+      <div id="mapUrlInputSection" class="url-input-section">
+        <label>Image URL:</label>
+        <div class="url-input-row">
+          <input type="url" id="mapImageUrlInput" placeholder="https://example.com/battlemap.png" onkeyup="handleMapUrlKeyup(event)" oninput="previewMapUrlImage()">
+          <button class="url-add-btn" id="mapUrlAddBtn" onclick="addMapUrl()" disabled>Add</button>
+        </div>
+        <div id="mapUrlPreview" class="url-preview"></div>
+      </div>
+      <button class="image-dialog-cancel" onclick="closeMapImageDialog()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Player Token Image Source Dialog -->
+  <div id="playerTokenImageSourceDialog" class="image-dialog-overlay" onclick="closePlayerTokenImageDialog(event)">
+    <div class="image-dialog" onclick="event.stopPropagation()">
+      <h3>🎭 Add Token Image</h3>
+      <div class="image-dialog-options">
+        <button class="image-dialog-btn" onclick="choosePlayerTokenFileUpload()">
+          <span class="btn-icon">📁</span>Upload from Computer
+          <span class="btn-subtitle">Select an image file from your device</span>
+        </button>
+        <button class="image-dialog-btn" onclick="showPlayerTokenUrlInput()">
+          <span class="btn-icon">🔗</span>Use Image URL
+          <span class="btn-subtitle">Paste a CDN link (reduces memory usage on TV displays)</span>
+        </button>
+      </div>
+      <div id="playerTokenUrlInputSection" class="url-input-section">
+        <label>Image URL:</label>
+        <div class="url-input-row">
+          <input type="url" id="playerTokenImageUrlInput" placeholder="https://example.com/token.png" onkeyup="handlePlayerTokenUrlKeyup(event)" oninput="previewPlayerTokenUrlImage()">
+          <button class="url-add-btn" id="playerTokenUrlAddBtn" onclick="addPlayerTokenUrl()" disabled>Add</button>
+        </div>
+        <div id="playerTokenUrlPreview" class="url-preview"></div>
+      </div>
+      <button class="image-dialog-cancel" onclick="closePlayerTokenImageDialog()">Cancel</button>
     </div>
   </div>
 
@@ -3269,6 +3321,190 @@
       closeImageDialog();
     }
 
+    // ===== Battle Map Image Dialog Functions =====
+    function showMapImageDialog() {
+      // Reset dialog state
+      document.getElementById('mapUrlInputSection').classList.remove('visible');
+      document.getElementById('mapImageUrlInput').value = '';
+      document.getElementById('mapUrlPreview').innerHTML = '';
+      document.getElementById('mapUrlAddBtn').disabled = true;
+      document.getElementById('mapImageSourceDialog').classList.add('visible');
+    }
+
+    function closeMapImageDialog(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('mapImageSourceDialog').classList.remove('visible');
+    }
+
+    function chooseMapFileUpload() {
+      document.getElementById('mapImageSourceDialog').classList.remove('visible');
+      document.getElementById('mapImageInput').click();
+    }
+
+    function showMapUrlInput() {
+      document.getElementById('mapUrlInputSection').classList.add('visible');
+      document.getElementById('mapImageUrlInput').focus();
+    }
+
+    function handleMapUrlKeyup(event) {
+      if (event.key === 'Enter' && !document.getElementById('mapUrlAddBtn').disabled) {
+        addMapUrl();
+      }
+    }
+
+    function previewMapUrlImage() {
+      const url = document.getElementById('mapImageUrlInput').value.trim();
+      const preview = document.getElementById('mapUrlPreview');
+      const addBtn = document.getElementById('mapUrlAddBtn');
+
+      if (!url) {
+        preview.innerHTML = '';
+        addBtn.disabled = true;
+        return;
+      }
+
+      // Basic URL validation
+      try {
+        const parsed = new URL(url);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          preview.innerHTML = '<div class="url-preview-error">URL must start with http:// or https://</div>';
+          addBtn.disabled = true;
+          return;
+        }
+      } catch (e) {
+        preview.innerHTML = '<div class="url-preview-error">Invalid URL format</div>';
+        addBtn.disabled = true;
+        return;
+      }
+
+      // Try to load the image
+      preview.innerHTML = '<div style="color: #888; font-size: 0.8rem;">Loading preview...</div>';
+      const img = new Image();
+      img.onload = function() {
+        preview.innerHTML = '';
+        preview.appendChild(img);
+        addBtn.disabled = false;
+      };
+      img.onerror = function() {
+        preview.innerHTML = '<div class="url-preview-error">Could not load image. Check the URL or try a different one.</div>';
+        addBtn.disabled = true;
+      };
+      img.src = url;
+    }
+
+    function addMapUrl() {
+      const url = document.getElementById('mapImageUrlInput').value.trim();
+      if (!url) return;
+
+      // Set the map image directly as the URL (no base64 conversion - saves memory!)
+      currentMap = {
+        mapImage: url,
+        gridSize: 50
+      };
+
+      // Show preview
+      document.getElementById('mapPreview').src = url;
+      document.getElementById('mapPreviewContainer').style.display = 'block';
+      document.getElementById('mapPlaceholder').style.display = 'none';
+
+      // If toggle is on, send to battle map
+      if (document.getElementById('mapVisibilityToggle').checked) {
+        syncMapToBattleMap();
+      }
+
+      // Close dialog
+      closeMapImageDialog();
+    }
+
+    // ===== Player Token Image Dialog Functions =====
+    function showPlayerTokenImageDialog() {
+      // Reset dialog state
+      document.getElementById('playerTokenUrlInputSection').classList.remove('visible');
+      document.getElementById('playerTokenImageUrlInput').value = '';
+      document.getElementById('playerTokenUrlPreview').innerHTML = '';
+      document.getElementById('playerTokenUrlAddBtn').disabled = true;
+      document.getElementById('playerTokenImageSourceDialog').classList.add('visible');
+    }
+
+    function closePlayerTokenImageDialog(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('playerTokenImageSourceDialog').classList.remove('visible');
+      pendingPlayerTokenImageId = null;
+    }
+
+    function choosePlayerTokenFileUpload() {
+      document.getElementById('playerTokenImageSourceDialog').classList.remove('visible');
+      document.getElementById('playerTokenImageInput').click();
+    }
+
+    function showPlayerTokenUrlInput() {
+      document.getElementById('playerTokenUrlInputSection').classList.add('visible');
+      document.getElementById('playerTokenImageUrlInput').focus();
+    }
+
+    function handlePlayerTokenUrlKeyup(event) {
+      if (event.key === 'Enter' && !document.getElementById('playerTokenUrlAddBtn').disabled) {
+        addPlayerTokenUrl();
+      }
+    }
+
+    function previewPlayerTokenUrlImage() {
+      const url = document.getElementById('playerTokenImageUrlInput').value.trim();
+      const preview = document.getElementById('playerTokenUrlPreview');
+      const addBtn = document.getElementById('playerTokenUrlAddBtn');
+
+      if (!url) {
+        preview.innerHTML = '';
+        addBtn.disabled = true;
+        return;
+      }
+
+      // Basic URL validation
+      try {
+        const parsed = new URL(url);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          preview.innerHTML = '<div class="url-preview-error">URL must start with http:// or https://</div>';
+          addBtn.disabled = true;
+          return;
+        }
+      } catch (e) {
+        preview.innerHTML = '<div class="url-preview-error">Invalid URL format</div>';
+        addBtn.disabled = true;
+        return;
+      }
+
+      // Try to load the image
+      preview.innerHTML = '<div style="color: #888; font-size: 0.8rem;">Loading preview...</div>';
+      const img = new Image();
+      img.onload = function() {
+        preview.innerHTML = '';
+        preview.appendChild(img);
+        addBtn.disabled = false;
+      };
+      img.onerror = function() {
+        preview.innerHTML = '<div class="url-preview-error">Could not load image. Check the URL or try a different one.</div>';
+        addBtn.disabled = true;
+      };
+      img.src = url;
+    }
+
+    function addPlayerTokenUrl() {
+      const url = document.getElementById('playerTokenImageUrlInput').value.trim();
+      if (!url || !pendingPlayerTokenImageId) return;
+
+      const token = battleMapTokens.find(t => t.id === pendingPlayerTokenImageId);
+      if (token) {
+        // Set the token image directly as the URL (no base64 conversion - saves memory!)
+        token.image = url;
+        renderTokenList();
+        syncTokensToBattleMap();
+      }
+      pendingPlayerTokenImageId = null;
+
+      // Close dialog
+      closePlayerTokenImageDialog();
+    }
+
     // Compress/resize image if too large for localStorage
     // Target: max 800KB base64 (leaves room for other data in localStorage)
     const MAX_IMAGE_SIZE = 800 * 1024; // 800KB target for base64 output
@@ -3954,7 +4190,7 @@
     // Upload image for player token
     function uploadPlayerTokenImage(tokenId) {
       pendingPlayerTokenImageId = tokenId;
-      document.getElementById('playerTokenImageInput').click();
+      showPlayerTokenImageDialog();
     }
 
     function handlePlayerTokenImageUpload(event) {
