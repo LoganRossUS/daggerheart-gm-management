@@ -24,30 +24,32 @@ async function verifyAndGetProfile(request, env, { jsonResponse, errorResponse }
     const firebaseUser = await verifyIdToken(token, env);
     const userId = firebaseUser.localId;
 
-    // Get or create user profile
-    let profile = await getFirestoreDoc(`users/${userId}/profile`, env);
-    let entitlement = await getFirestoreDoc(`users/${userId}/entitlement`, env);
+    // Get or create user document
+    let userDoc = await getFirestoreDoc(`users/${userId}`, env);
 
-    if (!profile) {
-      // First time user - create profile
-      profile = {
-        email: firebaseUser.email,
-        displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-        createdAt: new Date().toISOString(),
+    if (!userDoc) {
+      // First time user - create user document with all fields
+      userDoc = {
+        profile: {
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+          createdAt: new Date().toISOString(),
+        },
+        usage: {
+          storageBytes: 0,
+          lastUpdated: new Date().toISOString(),
+        },
+        entitlement: {
+          tier: 'demo',
+        },
       };
-      await setFirestoreDoc(`users/${userId}/profile`, profile, env);
-
-      // Initialize usage tracking
-      await setFirestoreDoc(`users/${userId}/usage`, {
-        storageBytes: 0,
-        lastUpdated: new Date().toISOString(),
-      }, env);
+      await setFirestoreDoc(`users/${userId}`, userDoc, env);
     }
 
     return jsonResponse({
       userId,
-      profile,
-      entitlement: entitlement || { tier: 'demo' },
+      profile: userDoc.profile,
+      entitlement: userDoc.entitlement || { tier: 'demo' },
     });
   } catch (err) {
     console.error('Auth error:', err);
