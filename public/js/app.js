@@ -2,7 +2,7 @@
 // This module is loaded alongside the existing embedded JS in the GM control panel
 
 import { initAuth, onAuthChange, signIn, signOut, getCurrentUser } from './lib/auth.js';
-import { initEntitlements } from './lib/entitlements.js';
+import { initEntitlements, waitForEntitlement } from './lib/entitlements.js';
 import { api } from './lib/api.js';
 import { canUse, getEntitlement } from './lib/features.js';
 import { initNotes, setNotes, getNotes, resetNotes } from './components/notes.js';
@@ -69,11 +69,13 @@ function setupAuthUI() {
     }
   });
 
-  onAuthChange((user) => {
+  onAuthChange(async (user) => {
     if (user) {
       loginBtn?.classList.add('hidden');
       userMenu?.classList.remove('hidden');
       if (userName) userName.textContent = user.displayName || user.email;
+      // Wait for entitlement verification before loading campaigns
+      await waitForEntitlement();
       if (userTier) userTier.textContent = getEntitlement().toUpperCase();
       loadCampaigns();
     } else {
