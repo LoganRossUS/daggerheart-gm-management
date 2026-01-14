@@ -2904,6 +2904,12 @@
     let currentMap = null;
     let mapVisible = false;
     let battleMapTokens = [];
+    // Ensure battleMapTokens is always an array (defensive helper)
+    function ensureTokensArray() {
+      if (!Array.isArray(battleMapTokens)) {
+        battleMapTokens = battleMapTokens?.tokens || [];
+      }
+    }
     let gridVisible = false;
     let gridSize = 50;
     let nextPlayerTokenId = 1;
@@ -3195,6 +3201,7 @@
     }
 
     function syncBattleMap() {
+      ensureTokensArray();
       const mapData = {
         type: 'mapSync',
         map: currentMap ? {
@@ -3369,6 +3376,7 @@
     let selectedTokenForPositioning = null;
 
     function renderMapPreviewTokens() {
+      ensureTokensArray();
       const tokenLayer = document.getElementById('mapPreviewTokenLayer');
       const mapPreview = document.getElementById('mapPreview');
 
@@ -3579,6 +3587,7 @@
     function renderTokenList() {
       const container = document.getElementById('tokenList');
       if (!container) return;
+      ensureTokensArray();
 
       if (battleMapTokens.length === 0) {
         container.innerHTML = '<div style="text-align: center; color: #666; padding: 20px; font-size: 0.8rem;">No tokens. Add players or load an encounter.</div>';
@@ -3839,6 +3848,7 @@
     }
 
     function clearEncounter() {
+      ensureTokensArray();
       // Remove adversary tokens
       if (currentEncounter) {
         currentEncounter.adversaries.forEach(adv => {
@@ -5249,7 +5259,9 @@
       }
 
       if (battle.tokens) {
-        battleMapTokens = JSON.parse(JSON.stringify(battle.tokens));
+        const tokens = JSON.parse(JSON.stringify(battle.tokens));
+        // Handle both array and { tokens: [...] } format
+        battleMapTokens = Array.isArray(tokens) ? tokens : (tokens.tokens || []);
       }
 
       // Update all UIs
@@ -5654,7 +5666,9 @@
       // Load tokens
       const tokensData = localStorage.getItem('daggerheart-battle-tokens');
       if (tokensData) {
-        battleMapTokens = JSON.parse(tokensData);
+        const parsed = JSON.parse(tokensData);
+        // Handle both old format (array) and new format ({ type: 'tokens', tokens: [...] })
+        battleMapTokens = Array.isArray(parsed) ? parsed : (parsed.tokens || []);
         renderTokenList();
       }
 
@@ -5696,7 +5710,8 @@
         updateFearDisplay();
       }
       if (state.tokens) {
-        battleMapTokens = state.tokens;
+        // Handle both array and { tokens: [...] } format
+        battleMapTokens = Array.isArray(state.tokens) ? state.tokens : (state.tokens.tokens || []);
         renderTokenList();
       }
       if (state.spotlight) {
