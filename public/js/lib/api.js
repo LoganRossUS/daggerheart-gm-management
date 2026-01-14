@@ -58,6 +58,20 @@ export const api = {
     delete: (campaignId, sceneId) => apiCall(`/campaigns/${campaignId}/scenes/${sceneId}`, { method: 'DELETE' }),
   },
 
+  characters: {
+    list: (campaignId) => apiCall(`/campaigns/${campaignId}/characters`),
+    get: (campaignId, characterId) => apiCall(`/campaigns/${campaignId}/characters/${characterId}`),
+    create: (campaignId, data) => apiCall(`/campaigns/${campaignId}/characters`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    update: (campaignId, characterId, data) => apiCall(`/campaigns/${campaignId}/characters/${characterId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+    delete: (campaignId, characterId) => apiCall(`/campaigns/${campaignId}/characters/${characterId}`, { method: 'DELETE' }),
+  },
+
   upload: {
     requestUrl: (metadata) => apiCall('/upload', {
       method: 'POST',
