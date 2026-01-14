@@ -123,7 +123,12 @@ export async function listFirestoreDocs(collectionPath, env) {
 function parseFirestoreDoc(doc) {
   if (!doc.fields) return null;
 
-  const result = { id: doc.name.split('/').pop() };
+  const result = {};
+
+  // Only add id if this is a top-level document (has name property)
+  if (doc.name) {
+    result.id = doc.name.split('/').pop();
+  }
 
   for (const [key, value] of Object.entries(doc.fields)) {
     result[key] = parseFirestoreValue(value);
