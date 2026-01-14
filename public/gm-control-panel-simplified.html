@@ -5739,7 +5739,8 @@
           mapVisible: mapVisible,
           gridVisible: gridVisible,
           gridSize: gridSize
-        }
+        },
+        battleQueue: stagedBattles
       };
     };
 
@@ -5793,6 +5794,11 @@
           }
         }
         syncBattleMap();
+      }
+      // Restore battle queue
+      if (state.battleQueue && Array.isArray(state.battleQueue)) {
+        stagedBattles = state.battleQueue;
+        renderBattleQueue();
       }
     };
   </script>
