@@ -67,6 +67,40 @@ export async function handleCampaigns(request, env, { jsonResponse, errorRespons
     return deleteCampaign(userId, deleteMatch[1], env, { jsonResponse, errorResponse });
   }
 
+  // === SCENES ROUTES ===
+
+  // GET /api/campaigns/:id/scenes - List scenes
+  const listScenesMatch = path.match(/^\/api\/campaigns\/([^/]+)\/scenes$/);
+  if (listScenesMatch && method === 'GET') {
+    return listScenes(userId, listScenesMatch[1], env, { jsonResponse, errorResponse });
+  }
+
+  // POST /api/campaigns/:id/scenes - Create scene
+  const createSceneMatch = path.match(/^\/api\/campaigns\/([^/]+)\/scenes$/);
+  if (createSceneMatch && method === 'POST') {
+    const body = await request.json();
+    return createScene(userId, createSceneMatch[1], body, env, { jsonResponse, errorResponse });
+  }
+
+  // GET /api/campaigns/:campaignId/scenes/:sceneId - Get scene
+  const getSceneMatch = path.match(/^\/api\/campaigns\/([^/]+)\/scenes\/([^/]+)$/);
+  if (getSceneMatch && method === 'GET') {
+    return getScene(userId, getSceneMatch[1], getSceneMatch[2], env, { jsonResponse, errorResponse });
+  }
+
+  // PUT /api/campaigns/:campaignId/scenes/:sceneId - Update scene
+  const updateSceneMatch = path.match(/^\/api\/campaigns\/([^/]+)\/scenes\/([^/]+)$/);
+  if (updateSceneMatch && method === 'PUT') {
+    const body = await request.json();
+    return updateScene(userId, updateSceneMatch[1], updateSceneMatch[2], body, env, { jsonResponse, errorResponse });
+  }
+
+  // DELETE /api/campaigns/:campaignId/scenes/:sceneId - Delete scene
+  const deleteSceneMatch = path.match(/^\/api\/campaigns\/([^/]+)\/scenes\/([^/]+)$/);
+  if (deleteSceneMatch && method === 'DELETE') {
+    return deleteScene(userId, deleteSceneMatch[1], deleteSceneMatch[2], env, { jsonResponse, errorResponse });
+  }
+
   return errorResponse('Not Found', 404);
 }
 
@@ -156,5 +190,101 @@ async function deleteCampaign(userId, campaignId, env, { jsonResponse, errorResp
   } catch (err) {
     console.error('Delete campaign error:', err);
     return errorResponse('Failed to delete campaign', 500);
+  }
+}
+
+// === SCENE FUNCTIONS ===
+
+async function listScenes(userId, campaignId, env, { jsonResponse, errorResponse }) {
+  try {
+    // Verify campaign exists
+    const campaign = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}`, env);
+    if (!campaign) {
+      return errorResponse('Campaign not found', 404);
+    }
+
+    const scenes = await listFirestoreDocs(`users/${userId}/campaigns/${campaignId}/scenes`, env);
+    return jsonResponse({ scenes });
+  } catch (err) {
+    console.error('List scenes error:', err);
+    return errorResponse('Failed to list scenes', 500);
+  }
+}
+
+async function createScene(userId, campaignId, data, env, { jsonResponse, errorResponse }) {
+  try {
+    // Verify campaign exists
+    const campaign = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}`, env);
+    if (!campaign) {
+      return errorResponse('Campaign not found', 404);
+    }
+
+    const sceneId = crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    const scene = {
+      name: data.name || 'Untitled Scene',
+      createdAt: now,
+      updatedAt: now,
+      encounter: data.encounter || null,
+    };
+
+    await setFirestoreDoc(`users/${userId}/campaigns/${campaignId}/scenes/${sceneId}`, scene, env);
+
+    return jsonResponse({ sceneId, ...scene });
+  } catch (err) {
+    console.error('Create scene error:', err);
+    return errorResponse('Failed to create scene', 500);
+  }
+}
+
+async function getScene(userId, campaignId, sceneId, env, { jsonResponse, errorResponse }) {
+  try {
+    const scene = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}/scenes/${sceneId}`, env);
+
+    if (!scene) {
+      return errorResponse('Scene not found', 404);
+    }
+
+    return jsonResponse(scene);
+  } catch (err) {
+    console.error('Get scene error:', err);
+    return errorResponse('Failed to get scene', 500);
+  }
+}
+
+async function updateScene(userId, campaignId, sceneId, data, env, { jsonResponse, errorResponse }) {
+  try {
+    const existing = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}/scenes/${sceneId}`, env);
+
+    if (!existing) {
+      return errorResponse('Scene not found', 404);
+    }
+
+    const updated = {
+      ...existing,
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Don't allow overwriting metadata
+    updated.createdAt = existing.createdAt;
+
+    await setFirestoreDoc(`users/${userId}/campaigns/${campaignId}/scenes/${sceneId}`, updated, env);
+
+    return jsonResponse(updated);
+  } catch (err) {
+    console.error('Update scene error:', err);
+    return errorResponse('Failed to update scene', 500);
+  }
+}
+
+async function deleteScene(userId, campaignId, sceneId, env, { jsonResponse, errorResponse }) {
+  try {
+    await deleteFirestoreDoc(`users/${userId}/campaigns/${campaignId}/scenes/${sceneId}`, env);
+    return jsonResponse({ success: true });
+  } catch (err) {
+    console.error('Delete scene error:', err);
+    return errorResponse('Failed to delete scene', 500);
   }
 }

@@ -8,11 +8,13 @@ import { canUse, getEntitlement } from './lib/features.js';
 import { initNotes, setNotes, getNotes, resetNotes } from './components/notes.js';
 
 let currentCampaignId = null;
+let currentSceneId = null;
 let autoSaveTimeout = null;
 
 function clearCampaignState() {
-  // Clear campaign ID
+  // Clear campaign and scene IDs
   currentCampaignId = null;
+  currentSceneId = null;
 
   // Clear auto-save timeout
   if (autoSaveTimeout) {
@@ -21,11 +23,21 @@ function clearCampaignState() {
   }
 
   // Reset campaign dropdown
-  const select = document.getElementById('campaign-select');
-  if (select) {
-    select.innerHTML = '<option value="">Select Campaign...</option>';
-    select.value = '';
+  const campaignSelect = document.getElementById('campaign-select');
+  if (campaignSelect) {
+    campaignSelect.innerHTML = '<option value="">Select Campaign...</option>';
+    campaignSelect.value = '';
   }
+
+  // Reset scene dropdown and disable scene controls
+  const sceneSelect = document.getElementById('scene-select');
+  if (sceneSelect) {
+    sceneSelect.innerHTML = '<option value="">Select Scene...</option>';
+    sceneSelect.value = '';
+    sceneSelect.disabled = true;
+  }
+  document.getElementById('new-scene-btn')?.setAttribute('disabled', '');
+  document.getElementById('save-scene-btn')?.setAttribute('disabled', '');
 
   // Clear save status
   updateSaveStatus('');
@@ -109,6 +121,17 @@ function handleCampaignSelect(e) {
   const campaignId = e.target.value;
   if (campaignId) {
     loadCampaign(campaignId);
+  } else {
+    // Campaign deselected - clear scenes
+    currentCampaignId = null;
+    currentSceneId = null;
+    const sceneSelect = document.getElementById('scene-select');
+    if (sceneSelect) {
+      sceneSelect.innerHTML = '<option value="">Select Scene...</option>';
+      sceneSelect.disabled = true;
+    }
+    document.getElementById('new-scene-btn')?.setAttribute('disabled', '');
+    document.getElementById('save-scene-btn')?.setAttribute('disabled', '');
   }
 }
 
@@ -116,29 +139,83 @@ async function loadCampaign(campaignId) {
   if (!campaignId || !canUse('campaigns')) return;
 
   try {
-    const campaign = await api.campaigns.get(campaignId);
     currentCampaignId = campaignId;
-
-    // Restore encounter state if it exists
-    if (campaign.encounter && typeof window.loadEncounterState === 'function') {
-      window.loadEncounterState(campaign.encounter);
-    }
+    currentSceneId = null;
 
     // Initialize notes if we have the notes feature
+    const campaign = await api.campaigns.get(campaignId);
     if (canUse('notes')) {
       initNotes(campaignId);
       setNotes(campaign.notes);
     }
 
-    updateSaveStatus('Loaded');
+    // Load scenes for this campaign
+    await loadScenes(campaignId);
+
+    // Enable scene creation button
+    document.getElementById('new-scene-btn')?.removeAttribute('disabled');
+
+    updateSaveStatus('Campaign loaded');
   } catch (err) {
     console.error('Failed to load campaign:', err);
     updateSaveStatus('Load failed');
   }
 }
 
-export async function saveCampaign() {
-  if (!currentCampaignId || !canUse('cloudSave')) return;
+async function loadScenes(campaignId) {
+  if (!campaignId || !canUse('campaigns')) return;
+
+  try {
+    const { scenes } = await api.scenes.list(campaignId);
+    const select = document.getElementById('scene-select');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Select Scene...</option>' +
+      scenes.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    select.disabled = false;
+
+    // Add event listener for scene selection
+    select.removeEventListener('change', handleSceneSelect);
+    select.addEventListener('change', handleSceneSelect);
+  } catch (err) {
+    console.error('Failed to load scenes:', err);
+  }
+}
+
+function handleSceneSelect(e) {
+  const sceneId = e.target.value;
+  if (sceneId) {
+    loadScene(sceneId);
+  } else {
+    currentSceneId = null;
+    document.getElementById('save-scene-btn')?.setAttribute('disabled', '');
+  }
+}
+
+async function loadScene(sceneId) {
+  if (!currentCampaignId || !sceneId || !canUse('campaigns')) return;
+
+  try {
+    const scene = await api.scenes.get(currentCampaignId, sceneId);
+    currentSceneId = sceneId;
+
+    // Restore encounter state if it exists
+    if (scene.encounter && typeof window.loadEncounterState === 'function') {
+      window.loadEncounterState(scene.encounter);
+    }
+
+    // Enable save button
+    document.getElementById('save-scene-btn')?.removeAttribute('disabled');
+
+    updateSaveStatus('Scene loaded');
+  } catch (err) {
+    console.error('Failed to load scene:', err);
+    updateSaveStatus('Load failed');
+  }
+}
+
+export async function saveScene() {
+  if (!currentCampaignId || !currentSceneId || !canUse('cloudSave')) return;
 
   try {
     updateSaveStatus('Saving...');
@@ -147,15 +224,28 @@ export async function saveCampaign() {
       encounter: typeof window.getCurrentEncounterState === 'function'
         ? window.getCurrentEncounterState()
         : null,
-      notes: getNotes(),
     };
 
-    await api.campaigns.update(currentCampaignId, data);
+    await api.scenes.update(currentCampaignId, currentSceneId, data);
     updateSaveStatus('Saved');
   } catch (err) {
-    console.error('Failed to save campaign:', err);
+    console.error('Failed to save scene:', err);
     updateSaveStatus('Save failed');
   }
+}
+
+// Legacy function - now redirects to saveScene
+export async function saveCampaign() {
+  // Save notes to campaign level
+  if (currentCampaignId && canUse('cloudSave')) {
+    try {
+      await api.campaigns.update(currentCampaignId, { notes: getNotes() });
+    } catch (err) {
+      console.error('Failed to save campaign notes:', err);
+    }
+  }
+  // Save scene data
+  await saveScene();
 }
 
 export async function createNewCampaign() {
@@ -175,17 +265,48 @@ export async function createNewCampaign() {
       select.value = campaign.campaignId;
     }
 
+    // Load the campaign (which will enable scene controls)
+    await loadCampaign(campaign.campaignId);
+
     updateSaveStatus('Created');
   } catch (err) {
     console.error('Failed to create campaign:', err);
   }
 }
 
+export async function createNewScene() {
+  if (!currentCampaignId || !canUse('campaigns')) return;
+
+  const name = prompt('Enter scene name:');
+  if (!name) return;
+
+  try {
+    const scene = await api.scenes.create(currentCampaignId, { name });
+    currentSceneId = scene.sceneId;
+
+    // Refresh the scenes list
+    await loadScenes(currentCampaignId);
+
+    // Select the new scene
+    const select = document.getElementById('scene-select');
+    if (select) {
+      select.value = scene.sceneId;
+    }
+
+    // Enable save button
+    document.getElementById('save-scene-btn')?.removeAttribute('disabled');
+
+    updateSaveStatus('Scene created');
+  } catch (err) {
+    console.error('Failed to create scene:', err);
+  }
+}
+
 export function scheduleAutoSave() {
-  if (!currentCampaignId || !canUse('cloudSave')) return;
+  if (!currentCampaignId || !currentSceneId || !canUse('cloudSave')) return;
 
   if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
-  autoSaveTimeout = setTimeout(saveCampaign, 2000);
+  autoSaveTimeout = setTimeout(saveScene, 2000);
   updateSaveStatus('Unsaved changes');
 }
 
@@ -194,12 +315,23 @@ function updateSaveStatus(status) {
   if (statusEl) statusEl.textContent = status;
 }
 
+// Upload file to R2 cloud storage
+export async function uploadFile(file) {
+  if (!canUse('cloudSave')) {
+    throw new Error('Cloud storage requires subscription');
+  }
+  return api.upload.uploadFile(file);
+}
+
 // Export for use by existing app
 window.cloudFeatures = {
   initCloudFeatures,
   saveCampaign,
   createNewCampaign,
+  saveScene,
+  createNewScene,
   scheduleAutoSave,
   canUse,
   getEntitlement,
+  uploadFile,
 };

@@ -2211,11 +2211,17 @@
     /* Campaign Manager */
     .campaign-manager {
       display: flex;
-      align-items: center;
-      gap: 8px;
+      flex-direction: column;
+      gap: 6px;
       padding: 8px 15px;
       background: rgba(0,0,0,0.2);
       border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .campaign-row, .scene-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .campaign-manager select {
@@ -2230,6 +2236,11 @@
       font-size: 0.75rem;
     }
 
+    .campaign-manager select:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     .campaign-manager button {
       padding: 6px 10px;
       border: 1px solid rgba(179, 136, 255, 0.4);
@@ -2242,7 +2253,12 @@
       transition: all 0.2s;
     }
 
-    .campaign-manager button:hover {
+    .campaign-manager button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .campaign-manager button:hover:not(:disabled) {
       background: rgba(179, 136, 255, 0.2);
     }
 
@@ -2504,17 +2520,25 @@
 
   <!-- Campaign Manager (shown for authenticated users with campaigns feature) -->
   <div id="campaign-manager" class="campaign-manager hidden" data-requires="campaigns">
-    <select id="campaign-select">
-      <option value="">Select Campaign...</option>
-    </select>
-    <button id="new-campaign-btn" onclick="window.cloudFeatures?.createNewCampaign()" title="New Campaign">+</button>
-    <button id="save-campaign-btn" onclick="window.cloudFeatures?.saveCampaign()" title="Save Campaign">Save</button>
+    <div class="campaign-row">
+      <select id="campaign-select">
+        <option value="">Select Campaign...</option>
+      </select>
+      <button id="new-campaign-btn" onclick="window.cloudFeatures?.createNewCampaign()" title="New Campaign">+</button>
+    </div>
+    <div class="scene-row">
+      <select id="scene-select" disabled>
+        <option value="">Select Scene...</option>
+      </select>
+      <button id="new-scene-btn" onclick="window.cloudFeatures?.createNewScene()" title="New Scene" disabled>+</button>
+      <button id="save-scene-btn" onclick="window.cloudFeatures?.saveScene()" title="Save Scene" disabled>Save</button>
+    </div>
     <span id="save-status" class="save-status"></span>
   </div>
 
   <!-- Upgrade Prompt (shown for demo users) -->
   <div id="upgrade-prompt" class="upgrade-prompt hidden" data-upgrade-prompt>
-    <p>Sign in and upgrade to save your campaigns to the cloud.</p>
+    <p>Sign in and upgrade to save your campaigns and scenes to the cloud.</p>
     <button id="upgrade-btn">Learn More</button>
   </div>
 
@@ -3143,33 +3167,49 @@
     }
 
     // ========== Battle Map ==========
-    function handleMapUpload(event) {
+    async function handleMapUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
 
+      // Try cloud upload first if available
+      if (window.cloudFeatures?.canUse?.('cloudSave')) {
+        try {
+          const result = await window.cloudFeatures.uploadFile(file);
+          setMapFromUrl(result.url);
+          return;
+        } catch (err) {
+          console.warn('Cloud upload failed, falling back to local:', err);
+        }
+      }
+
+      // Fallback to base64 for offline/unauthenticated users
       const reader = new FileReader();
       reader.onload = (e) => {
-        currentMap = {
-          mapImage: e.target.result,
-          gridSize: gridSize
-        };
-
-        const mapPreview = document.getElementById('mapPreview');
-        mapPreview.src = e.target.result;
-        mapPreview.style.display = 'block';
-        document.getElementById('mapPlaceholder').style.display = 'none';
-
-        // Wait for image to load to get dimensions, then render tokens and grid
-        mapPreview.onload = () => {
-          setTimeout(() => {
-            drawMapPreviewGrid();
-            renderMapPreviewTokens();
-          }, 50);
-        };
-
-        syncBattleMap();
+        setMapFromUrl(e.target.result);
       };
       reader.readAsDataURL(file);
+    }
+
+    function setMapFromUrl(imageUrl) {
+      currentMap = {
+        mapImage: imageUrl,
+        gridSize: gridSize
+      };
+
+      const mapPreview = document.getElementById('mapPreview');
+      mapPreview.src = imageUrl;
+      mapPreview.style.display = 'block';
+      document.getElementById('mapPlaceholder').style.display = 'none';
+
+      // Wait for image to load to get dimensions, then render tokens and grid
+      mapPreview.onload = () => {
+        setTimeout(() => {
+          drawMapPreviewGrid();
+          renderMapPreviewTokens();
+        }, 50);
+      };
+
+      syncBattleMap();
     }
 
     function toggleMapVisibility() {
@@ -5696,7 +5736,13 @@
         adversaries: currentEncounter,
         fear: currentFear,
         tokens: battleMapTokens,
-        spotlight: spotlightedAdversary
+        spotlight: spotlightedAdversary,
+        battleMap: {
+          map: currentMap,
+          mapVisible: mapVisible,
+          gridVisible: gridVisible,
+          gridSize: gridSize
+        }
       };
     };
 
@@ -5717,6 +5763,39 @@
       if (state.spotlight) {
         spotlightedAdversary = state.spotlight;
         updateSpotlightUI();
+      }
+      // Restore battlemap state
+      if (state.battleMap) {
+        const bm = state.battleMap;
+        if (bm.gridSize) gridSize = bm.gridSize;
+        if (bm.gridVisible !== undefined) {
+          gridVisible = bm.gridVisible;
+          document.getElementById('gridBtn')?.classList.toggle('active', gridVisible);
+        }
+        if (bm.mapVisible !== undefined) {
+          mapVisible = bm.mapVisible;
+          const btn = document.getElementById('mapVisBtn');
+          if (btn) {
+            btn.classList.toggle('active', mapVisible);
+            btn.textContent = mapVisible ? 'Hide' : 'Show';
+          }
+        }
+        if (bm.map) {
+          currentMap = bm.map;
+          const mapPreview = document.getElementById('mapPreview');
+          if (mapPreview && currentMap.mapImage) {
+            mapPreview.src = currentMap.mapImage;
+            mapPreview.style.display = 'block';
+            document.getElementById('mapPlaceholder').style.display = 'none';
+            mapPreview.onload = () => {
+              setTimeout(() => {
+                drawMapPreviewGrid();
+                renderMapPreviewTokens();
+              }, 50);
+            };
+          }
+        }
+        syncBattleMap();
       }
     };
   </script>
