@@ -2148,6 +2148,299 @@
         height: 100px;
       }
     }
+
+    /* Auth & Cloud Features */
+    .auth-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 10px;
+      padding-left: 10px;
+      border-left: 1px solid rgba(179, 136, 255, 0.3);
+    }
+
+    .auth-btn {
+      padding: 6px 12px;
+      border: 1px solid rgba(179, 136, 255, 0.4);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.05);
+      color: #b388ff;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .auth-btn:hover {
+      background: rgba(179, 136, 255, 0.2);
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-menu .user-name {
+      font-size: 0.75rem;
+      color: #888;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tier-badge {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      color: #1a1a2e;
+      font-weight: bold;
+    }
+
+    .tier-badge.demo {
+      background: rgba(255,255,255,0.2);
+      color: #888;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Campaign Manager */
+    .campaign-manager {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 15px;
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .campaign-manager select {
+      flex: 1;
+      max-width: 200px;
+      padding: 6px 10px;
+      border: 1px solid rgba(179, 136, 255, 0.4);
+      border-radius: 6px;
+      background: rgba(0,0,0,0.3);
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+    }
+
+    .campaign-manager button {
+      padding: 6px 10px;
+      border: 1px solid rgba(179, 136, 255, 0.4);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.05);
+      color: #b388ff;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .campaign-manager button:hover {
+      background: rgba(179, 136, 255, 0.2);
+    }
+
+    .save-status {
+      font-size: 0.7rem;
+      color: #888;
+    }
+
+    .save-status.saved {
+      color: #4CAF50;
+    }
+
+    .save-status.saving {
+      color: #ffd700;
+    }
+
+    /* Upgrade Prompt */
+    .upgrade-prompt {
+      padding: 10px 15px;
+      background: rgba(179, 136, 255, 0.1);
+      border-bottom: 1px solid rgba(179, 136, 255, 0.3);
+      text-align: center;
+    }
+
+    .upgrade-prompt p {
+      font-size: 0.8rem;
+      color: #b388ff;
+      margin-bottom: 8px;
+    }
+
+    .upgrade-prompt button {
+      padding: 6px 16px;
+      border: 1px solid #ffd700;
+      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(184, 134, 11, 0.2));
+      color: #ffd700;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .upgrade-prompt button:hover {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(184, 134, 11, 0.3));
+    }
+
+    /* Notes Panel */
+    .notes-container {
+      display: flex;
+      height: 100%;
+      gap: 15px;
+    }
+
+    .notes-sidebar {
+      width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .notes-categories {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .category-btn {
+      padding: 8px 12px;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      border-radius: 6px;
+      background: rgba(0,0,0,0.2);
+      color: #888;
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+
+    .category-btn:hover, .category-btn.active {
+      background: rgba(179, 136, 255, 0.1);
+      color: #b388ff;
+    }
+
+    .notes-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .note-item {
+      padding: 8px 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      background: rgba(0,0,0,0.2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .note-item:hover, .note-item.selected {
+      background: rgba(179, 136, 255, 0.1);
+      border-color: rgba(179, 136, 255, 0.3);
+    }
+
+    .note-category-icon {
+      color: #b388ff;
+      font-size: 0.7rem;
+    }
+
+    .note-title {
+      font-size: 0.75rem;
+      color: #e0e0e0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .add-note-btn {
+      padding: 10px;
+      border: 1px dashed rgba(179, 136, 255, 0.4);
+      border-radius: 6px;
+      background: transparent;
+      color: #b388ff;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .add-note-btn:hover {
+      background: rgba(179, 136, 255, 0.1);
+    }
+
+    .notes-editor {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .notes-editor input,
+    .notes-editor select {
+      padding: 10px;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      border-radius: 6px;
+      background: rgba(0,0,0,0.3);
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+    }
+
+    .notes-editor textarea {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      border-radius: 6px;
+      background: rgba(0,0,0,0.3);
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      resize: none;
+    }
+
+    .note-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .note-actions button {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid rgba(179, 136, 255, 0.4);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.05);
+      color: #b388ff;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .note-actions button:hover {
+      background: rgba(179, 136, 255, 0.2);
+    }
+
+    #delete-note-btn {
+      border-color: rgba(198, 40, 40, 0.4);
+      color: #ef5350;
+    }
+
+    #delete-note-btn:hover {
+      background: rgba(198, 40, 40, 0.2);
+    }
   </style>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -2197,7 +2490,32 @@
       <a href="encounter-generator.html" class="header-btn" style="text-decoration: none;" title="Build encounters">Encounter Builder</a>
       <span id="connectionStatusText" style="font-size: 0.7rem; color: #888;">Initializing...</span>
       <button class="header-btn" id="connectionBtn" onclick="copyRoomCode()">Room: ----</button>
+      <!-- Auth UI -->
+      <div id="auth-container" class="auth-container">
+        <button id="login-btn" class="auth-btn">Sign In</button>
+        <div id="user-menu" class="user-menu hidden">
+          <span id="user-name" class="user-name"></span>
+          <span id="user-tier" class="tier-badge demo">DEMO</span>
+          <button id="logout-btn" class="auth-btn">Sign Out</button>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- Campaign Manager (shown for authenticated users with campaigns feature) -->
+  <div id="campaign-manager" class="campaign-manager hidden" data-requires="campaigns">
+    <select id="campaign-select">
+      <option value="">Select Campaign...</option>
+    </select>
+    <button id="new-campaign-btn" onclick="window.cloudFeatures?.createNewCampaign()" title="New Campaign">+</button>
+    <button id="save-campaign-btn" onclick="window.cloudFeatures?.saveCampaign()" title="Save Campaign">Save</button>
+    <span id="save-status" class="save-status"></span>
+  </div>
+
+  <!-- Upgrade Prompt (shown for demo users) -->
+  <div id="upgrade-prompt" class="upgrade-prompt hidden" data-upgrade-prompt>
+    <p>Sign in and upgrade to save your campaigns to the cloud.</p>
+    <button id="upgrade-btn">Learn More</button>
   </div>
 
   <!-- Quick Bar - Always Visible -->
@@ -5357,6 +5675,43 @@
 
     // Start
     init();
+
+    // Expose functions for cloud features integration
+    window.getCurrentEncounterState = function() {
+      return {
+        adversaries: currentEncounter,
+        fear: currentFear,
+        tokens: battleMapTokens,
+        spotlight: spotlightedAdversary
+      };
+    };
+
+    window.loadEncounterState = function(state) {
+      if (state.adversaries) {
+        currentEncounter = state.adversaries;
+        renderEncounter();
+      }
+      if (state.fear !== undefined) {
+        currentFear = state.fear;
+        updateFearDisplay();
+      }
+      if (state.tokens) {
+        battleMapTokens = state.tokens;
+        renderTokenList();
+      }
+      if (state.spotlight) {
+        spotlightedAdversary = state.spotlight;
+        updateSpotlightUI();
+      }
+    };
+  </script>
+
+  <!-- Cloud Features Module (optional - graceful degradation if unavailable) -->
+  <script type="module">
+    import { initCloudFeatures } from './js/app.js';
+    initCloudFeatures().catch(err => {
+      console.log('Cloud features not available, running in demo mode');
+    });
   </script>
 </body>
 </html>
