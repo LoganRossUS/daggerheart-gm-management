@@ -6,9 +6,13 @@ let currentUser = null;
 let authChangeCallbacks = [];
 
 const firebaseConfig = {
-  apiKey: 'YOUR_FIREBASE_API_KEY',
-  authDomain: 'YOUR_PROJECT.firebaseapp.com',
-  projectId: 'YOUR_PROJECT_ID',
+apiKey: "AIzaSyA6GYyYWlW1ybQ07-K13u4YUaNFcV66Zj0",
+authDomain: "daggerheart-8bdc1.firebaseapp.com",
+databaseURL: "https://daggerheart-8bdc1-default-rtdb.firebaseio.com",
+projectId: "daggerheart-8bdc1",
+storageBucket: "daggerheart-8bdc1.firebasestorage.app",
+messagingSenderId: "885297626381",
+appId: "1:885297626381:web:9caf2af85fb793f819c444"
 };
 
 export async function initAuth() {
