@@ -3166,28 +3166,33 @@
       console.log('Hope/Fear roll:', hope, '+', fear, '=', sum, winner, isDoubles ? '(Critical!)' : '');
     }
 
-    // ========== Battle Map ==========
-    async function handleMapUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
+    // ========== Image Upload Helper ==========
+    async function uploadImageToCloud(file) {
       // Try cloud upload first if available
       if (window.cloudFeatures?.canUse?.('cloudSave')) {
         try {
           const result = await window.cloudFeatures.uploadFile(file);
-          setMapFromUrl(result.url);
-          return;
+          return result.url;
         } catch (err) {
           console.warn('Cloud upload failed, falling back to local:', err);
         }
       }
 
       // Fallback to base64 for offline/unauthenticated users
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setMapFromUrl(e.target.result);
-      };
-      reader.readAsDataURL(file);
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ========== Battle Map ==========
+    async function handleMapUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const imageUrl = await uploadImageToCloud(file);
+      setMapFromUrl(imageUrl);
     }
 
     function setMapFromUrl(imageUrl) {
@@ -4570,57 +4575,52 @@
       closeNpcImageDialog();
     }
 
-    function handleAdversaryImageUpload(event) {
+    async function handleAdversaryImageUpload(event) {
       const files = event.target.files;
       if (!files.length || !pendingImageUploadAdversaryId) return;
 
       const adv = currentEncounter?.adversaries.find(a => a.id === pendingImageUploadAdversaryId);
       if (!adv) return;
 
-      Array.from(files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (!adv.portraits) adv.portraits = [];
-          adv.portraits.push(e.target.result);
-          adv.activePortraitIndex = adv.portraits.length - 1;
+      for (const file of Array.from(files)) {
+        const imageUrl = await uploadImageToCloud(file);
 
-          const token = battleMapTokens.find(t => t.id === adv.id);
-          if (token) {
-            token.image = e.target.result;
-            syncBattleMap();
-          }
+        if (!adv.portraits) adv.portraits = [];
+        adv.portraits.push(imageUrl);
+        adv.activePortraitIndex = adv.portraits.length - 1;
 
-          renderEncounter();
-          saveEncounterState();
+        const token = battleMapTokens.find(t => t.id === adv.id);
+        if (token) {
+          token.image = imageUrl;
+          syncBattleMap();
+        }
 
-          if (spotlightedAdversary === adv.id) {
-            syncSpotlight();
-          }
-        };
-        reader.readAsDataURL(file);
-      });
+        renderEncounter();
+        saveEncounterState();
+
+        if (spotlightedAdversary === adv.id) {
+          syncSpotlight();
+        }
+      }
 
       pendingImageUploadAdversaryId = null;
     }
 
     // ========== NPC Portrait ==========
-    function handleImageUpload(event) {
+    async function handleImageUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      // Check file size (limit to 5MB for localStorage)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image too large. Please select an image under 5MB.');
+      // Check file size (limit to 10MB for cloud, 5MB for local)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Image too large. Please select an image under 10MB.');
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        currentNpcImage = e.target.result;
-        updateNpcPreview();
-        syncNpcToStorage();
-      };
-      reader.readAsDataURL(file);
+      const imageUrl = await uploadImageToCloud(file);
+      currentNpcImage = imageUrl;
+      updateNpcPreview();
+      syncNpcToStorage();
     }
 
     function clearNpcImage() {
@@ -4688,21 +4688,18 @@
     }
 
     // ========== Player Token Image ==========
-    function handlePlayerTokenImageUpload(event) {
+    async function handlePlayerTokenImageUpload(event) {
       const file = event.target.files[0];
       if (!file || !pendingPlayerTokenImageId) return;
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const token = battleMapTokens.find(t => t.id === pendingPlayerTokenImageId);
-        if (token) {
-          token.image = e.target.result;
-          renderTokenList();
-          syncBattleMap();
-        }
-        pendingPlayerTokenImageId = null;
-      };
-      reader.readAsDataURL(file);
+      const imageUrl = await uploadImageToCloud(file);
+      const token = battleMapTokens.find(t => t.id === pendingPlayerTokenImageId);
+      if (token) {
+        token.image = imageUrl;
+        renderTokenList();
+        syncBattleMap();
+      }
+      pendingPlayerTokenImageId = null;
     }
 
     // ========== Gun.js Connection ==========
@@ -5742,7 +5739,8 @@
           mapVisible: mapVisible,
           gridVisible: gridVisible,
           gridSize: gridSize
-        }
+        },
+        battleQueue: stagedBattles
       };
     };
 
@@ -5796,6 +5794,11 @@
           }
         }
         syncBattleMap();
+      }
+      // Restore battle queue
+      if (state.battleQueue && Array.isArray(state.battleQueue)) {
+        stagedBattles = state.battleQueue;
+        renderBattleQueue();
       }
     };
   </script>

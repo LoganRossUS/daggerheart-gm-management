@@ -158,7 +158,7 @@ async function handleFileDataUpload(request, env, fileId, { jsonResponse, errorR
 
     // Return the public URL for the file
     // Using the R2 public bucket URL pattern
-    const publicUrl = `https://pub-daggerheart.r2.dev/${fileDoc.key}`;
+    const publicUrl = `https://pub-fcd553bb197a4935b7e97601f28e1bc0.r2.dev/${fileDoc.key}`;
 
     return jsonResponse({
       success: true,
