@@ -24,15 +24,21 @@ async function verifyAndGetProfile(request, env, { jsonResponse, errorResponse }
     const firebaseUser = await verifyIdToken(token, env);
     const userId = firebaseUser.localId;
 
+    // Extract email and display name with fallbacks
+    const email = firebaseUser.email || '';
+    const displayName = firebaseUser.displayName ||
+      (email ? email.split('@')[0] : `User_${userId.slice(0, 8)}`);
+
     // Get or create user document
     let userDoc = await getFirestoreDoc(`users/${userId}`, env);
 
-    if (!userDoc) {
-      // First time user - create user document with all fields
+    // Check if document doesn't exist or is missing the profile field (migration case)
+    if (!userDoc || !userDoc.profile) {
+      // Create or update user document with all fields
       userDoc = {
         profile: {
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+          email,
+          displayName,
           createdAt: new Date().toISOString(),
         },
         usage: {
