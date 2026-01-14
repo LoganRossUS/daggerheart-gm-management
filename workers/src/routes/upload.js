@@ -25,15 +25,16 @@ export async function handleUpload(request, env, { jsonResponse, errorResponse }
     return errorResponse('Authentication failed', 401);
   }
 
-  // Check entitlement
-  const entitlement = await getFirestoreDoc(`users/${userId}/entitlement`, env);
+  // Check entitlement (stored as field on user document)
+  const userDoc = await getFirestoreDoc(`users/${userId}`, env);
+  const entitlement = userDoc?.entitlement;
 
   if (!entitlement || !['basic', 'premium'].includes(entitlement.tier)) {
     return errorResponse('Upgrade required for file uploads', 403);
   }
 
-  // Check storage usage
-  const usage = await getFirestoreDoc(`users/${userId}/usage`, env) || { storageBytes: 0 };
+  // Check storage usage (stored as field on user document)
+  const usage = userDoc?.usage || { storageBytes: 0 };
   const body = await request.json();
   const { filename, size, contentType } = body;
 
@@ -59,9 +60,12 @@ export async function handleUpload(request, env, { jsonResponse, errorResponse }
     const expiresIn = 300; // 5 minutes
 
     // Update usage (optimistically - will be reconciled if upload fails)
-    await setFirestoreDoc(`users/${userId}/usage`, {
-      storageBytes: usage.storageBytes + size,
-      lastUpdated: new Date().toISOString(),
+    await setFirestoreDoc(`users/${userId}`, {
+      ...userDoc,
+      usage: {
+        storageBytes: usage.storageBytes + size,
+        lastUpdated: new Date().toISOString(),
+      },
     }, env);
 
     // Store file metadata for later retrieval
