@@ -5,10 +5,34 @@ import { initAuth, onAuthChange, signIn, signOut, getCurrentUser } from './lib/a
 import { initEntitlements } from './lib/entitlements.js';
 import { api } from './lib/api.js';
 import { canUse, getEntitlement } from './lib/features.js';
-import { initNotes, setNotes, getNotes } from './components/notes.js';
+import { initNotes, setNotes, getNotes, resetNotes } from './components/notes.js';
 
 let currentCampaignId = null;
 let autoSaveTimeout = null;
+
+function clearCampaignState() {
+  // Clear campaign ID
+  currentCampaignId = null;
+
+  // Clear auto-save timeout
+  if (autoSaveTimeout) {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = null;
+  }
+
+  // Reset campaign dropdown
+  const select = document.getElementById('campaign-select');
+  if (select) {
+    select.innerHTML = '<option value="">Select Campaign...</option>';
+    select.value = '';
+  }
+
+  // Clear save status
+  updateSaveStatus('');
+
+  // Reset notes
+  resetNotes();
+}
 
 // Initialize auth and entitlements (non-blocking for demo mode)
 export async function initCloudFeatures() {
@@ -55,6 +79,7 @@ function setupAuthUI() {
     } else {
       loginBtn?.classList.remove('hidden');
       userMenu?.classList.add('hidden');
+      clearCampaignState();
     }
   });
 }
