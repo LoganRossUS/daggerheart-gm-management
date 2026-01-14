@@ -40,7 +40,8 @@
         "description": "When the Burrower takes Severe damage, all creatures within Close range are bathed in their acidic blood, taking 1d10 physical damage. This splash covers the ground within Very Close range with blood, and all creatures other than the Burrower who move through it take 1d6 physical damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Acid_Burrower.webp"
   },
   {
     "name": "APPRENTICE ASSASSIN",
@@ -65,7 +66,8 @@
       }
     ],
     "tier": 1,
-    "role": "Minion"
+    "role": "Minion",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Apprentice_Assassin.webp"
   },
   {
     "name": "ARCHER GUARD",
@@ -93,7 +95,8 @@
         "description": "Make an attack against a target within Far range. On a success, mark a Stress to deal 1d12+3 physical damage. If the target marks HP from this attack, they have disadvantage on Agility Rolls until they clear at least 1 HP."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Archer_Guard.webp"
   },
   {
     "name": "ARCHER SQUADRON",
@@ -124,7 +127,8 @@
       }
     ],
     "tier": 1,
-    "role": "Horde"
+    "role": "Horde",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Archer_Squadron.webp"
   },
   {
     "name": "ASSASSIN POISONER",
@@ -162,7 +166,8 @@
       }
     ],
     "tier": 1,
-    "role": "Skulk"
+    "role": "Skulk",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Assassin_Poisoner.webp"
   },
   {
     "name": "BEAR",
@@ -200,7 +205,8 @@
         "description": "When the Bear makes a successful attack against a PC, you gain a Fear."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/bear.webp"
   },
   {
     "name": "BLADED GUARD",
@@ -233,7 +239,8 @@
         "description": "Make an attack against a target within Very Close range. On a success, mark a Stress to Restrain the target until they break free with a successful attack, Finesse Roll, or Strength Roll."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Bladed_Guard.webp"
   },
   {
     "name": "BRAWNY ZOMBIE",
@@ -271,7 +278,8 @@
         "description": "When the Zombies makes a successful standard attack, you can mark a Stress to temporarily Restrain the target and force them to mark 2 Stress."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/zombie_bruiser.webp"
   },
   {
     "name": "CAVE OGRE",
@@ -314,7 +322,8 @@
         "description": "When the Ogre marks 2 or more HP, they can rampage. Move the Ogre to a point within Close range and deal 2d6+3 direct physical damage to all targets in their path."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/cave_ogre.webp"
   },
   {
     "name": "CONSTRUCT",
@@ -361,7 +370,8 @@
         "description": "When the Construct marks their last HP, the magic powering them ruptures in an explosion of force. Make an attack with advantage against all targets within Very Close range. Targets the Construct succeeds against take 1d12+2 magic damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/construct.webp"
   },
   {
     "name": "DEEPROOT DEFENDER",
@@ -394,7 +404,8 @@
         "description": "Make an attack against a target within Close range. On a success, spend a Fear to pull them into Melee range, deal 1d6+2 physical damage, and Restrain them until the Defender takes Severe damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/treant.webp"
   },
   {
     "name": "DIRE WOLF",
@@ -427,7 +438,8 @@
         "description": "Mark a Stress to make an attack against a target within Melee range. On a success, deal 3d4+10 direct physical damage and make them Vulnerable until they clear at least 1 HP."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Dire_Wolf.webp"
   },
   {
     "name": "FEATURES",
@@ -460,7 +472,8 @@
         "description": "Spend a Fear and target a PC. The Courtier convinces a crowd or prominent individual that the target is the cause of their current confl ict or misfortune."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Court_Schemer.webp"
   },
   {
     "name": "GIANT MOSQUITOES",
@@ -492,7 +505,8 @@
         "description": "When the Mosquitoes\u2019 attack causes a target to mark HP, you can mark a Stress to force the target to mark an additional HP."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/giant_mosquitos.webp"
   },
   {
     "name": "GIANT RAT",
@@ -522,7 +536,8 @@
         "description": "Spend a Fear to choose a target and spotlight all Giant Rats within Close range of them. Those Minions move into Melee range of the target and make one shared attack roll. On a success, they deal 1 physical damage each. Combine this damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/giant_rat.webp"
   },
   {
     "name": "GIANT SCORPION",
@@ -560,7 +575,8 @@
         "description": "When the Scorpion makes a successful attack against a PC, you gain a Fear."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/giant_scorpion.webp"
   },
   {
     "name": "GLASS SNAKE",
@@ -597,7 +613,8 @@
         "description": "Spend a Fear to introduce a d6 Spitter Die. When the Snake is in the spotlight, roll this die. On a result of 5 or higher, all targets in front of the Snake within Far range must succeed on an Agility Reaction Roll or take 1d4 physical damage. The Snake can take the spotlight a second time this GM turn."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/glass_snake.webp"
   },
   {
     "name": "GREEN OOZE",
@@ -640,7 +657,8 @@
         "description": "When the Ooze has 3 or more HP marked, you can spend a Fear to split them into two Tiny Green Oozes (with no marked HP or Stress). Immediately spotlight both of them."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/green_ooze.webp"
   },
   {
     "name": "HARRIER",
@@ -673,7 +691,8 @@
         "description": "When a creature moves into Melee range to make an attack, you can mark a Stress before the attack roll to move anywhere within Close range and make an attack against that creature. On a success, deal 1d10+2 physical damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/harrier.jpg.png"
   },
   {
     "name": "HEAD GUARD",
@@ -711,7 +730,8 @@
         "description": "When the Head Guard makes a successful attack against a PC, you gain a Fear."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/head_guard.webp"
   },
   {
     "name": "JAGGED KNIFE BANDIT",
@@ -744,7 +764,8 @@
         "description": "When the Bandit succeeds on a standard attack from above a target, they deal 1d10+1 physical damage instead of their standard damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": ""
   },
   {
     "name": "JAGGED KNIFE HEXER",
@@ -777,7 +798,8 @@
         "description": "Make an attack against up to three targets within Very Close range. Mark a Stress to deal 2d6+3 magic damage to targets the Hexer succeeded against."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Jagged_Knife_Hexer.webp"
   },
   {
     "name": "JAGGED KNIFE KNEEBREAKER",
@@ -810,7 +832,8 @@
         "description": "Make an attack against a target within Melee range. On a success, the target takes no damage but is Restrained and Vulnerable. The target can break free, clearing both conditions, with a successful Strength Roll or is freed automatically if the Kneebreaker takes Major or greater damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/jagged_knife_knee_breaker.webp"
   },
   {
     "name": "JAGGED KNIFE LACKEY",
@@ -840,7 +863,8 @@
         "description": "Spend a Fear to choose a target and spotlight all Jagged Knife Lackeys within Close range of them. Those Minions move into Melee range of the target and make one shared attack roll. On a success, they deal 2 physical damage each. Combine this damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/jagged_knife_lackey.webp"
   },
   {
     "name": "JAGGED KNIFE LIEUTENANT",
@@ -883,7 +907,8 @@
         "description": "When the Lieutenant makes a successful attack against a PC, you gain a Fear."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/jagged_knife_lt.webp"
   },
   {
     "name": "JAGGED KNIFE SHADOW",
@@ -916,7 +941,8 @@
         "description": "Become Hidden until after the Shadow\u2019s next attack. Attacks made while Hidden from this feature have advantage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/jagged_knife_shadow.webp"
   },
   {
     "name": "JAGGED KNIFE SNIPER",
@@ -944,7 +970,8 @@
         "description": "If the Sniper is Hidden when they make a successful standard attack against a target, they deal 1d10+3 physical damage instead of their standard damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/jagged_knife_sniper.webp"
   },
   {
     "name": "MERCHANT",
@@ -977,7 +1004,8 @@
         "description": "When a PC rolls a 14 or lower on a Presence Roll made against the Merchant, they must mark a Stress."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/merchant.webp"
   },
   {
     "name": "MINOR CHAOS ELEMENTAL",
@@ -1024,7 +1052,8 @@
         "description": "When the Elemental makes a successful attack against a PC, you gain a Fear."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": ""
   },
   {
     "name": "MINOR DEMON",
@@ -1071,7 +1100,8 @@
         "description": "When the Demon makes a successful attack against a PC, you gain a Fear."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/minor_demon.webp"
   },
   {
     "name": "MINOR FIRE ELEMENTAL",
@@ -1118,7 +1148,8 @@
         "description": "When the Elemental makes a successful attack against a PC, you gain a Fear."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/fire_elemental.webp"
   },
   {
     "name": "MINOR TREANT",
@@ -1142,7 +1173,8 @@
         "description": "Spend a Fear to choose a target and spotlight all Minor Treants within Close range of them. Those Minions move into Melee range of the target and make one shared attack roll. On a success, they deal 4 physical damage each. Combine this damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Minor_Treant.webp"
   },
   {
     "name": "PATCHWORK ZOMBIE HULK",
@@ -1185,7 +1217,8 @@
         "description": "Mark a Stress to cause all PCs within Far range to make a Presence Reaction Roll (13). Targets who fail lose a Hope and you gain a Fear for each. Targets who succeed must mark a Stress."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": ""
   },
   {
     "name": "PETTY NOBLE",
@@ -1223,7 +1256,8 @@
         "description": "Spend a Fear and target a PC. The Noble proclaims that the target and their allies are exiled from their land. If the PCs don't leave, they become wanted criminals."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/petty_noble.webp"
   },
   {
     "name": "PIRATE CAPTAIN",
@@ -1266,7 +1300,8 @@
         "description": "When the Captain makes a successful attack against a PC, you gain a Fear."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Pirate_Captain.webp"
   },
   {
     "name": "PIRATE RAIDERS",
@@ -1293,7 +1328,8 @@
         "description": "When the Raiders mark 2 or fewer HP from an attack within Melee range, the attacker must mark a Stress."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Pirate_Raiders.webp"
   },
   {
     "name": "PIRATE TOUGH",
@@ -1326,7 +1362,8 @@
         "description": "Make an attack against a target within Very Close range. On a success, mark a Stress to move into Melee range of the target, dealing 3d4 physical damage and knocking the target back to Close range."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Pirate_Tough.webp"
   },
   {
     "name": "RED OOZE",
@@ -1364,7 +1401,8 @@
         "description": "When the Ooze has 3 or more HP marked, you can spend a Fear to split them into two Tiny Red Oozes (with no marked HP or Stress). Immediately spotlight both of them."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Red_Ooze.webp"
   },
   {
     "name": "ROTTED ZOMBIE",
@@ -1393,7 +1431,8 @@
         "description": "Spend a Fear to choose a target and spotlight all Rotted Zombies within Close range of them. Those Minions move into Melee range of the target and make one shared attack roll. On a success, they deal 2 physical damage each. Combine this damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": ""
   },
   {
     "name": "SELLSWORD",
@@ -1422,7 +1461,8 @@
         "description": "Spend a Fear to choose a target and spotlight all Sellswords within Close range of them. Those Minions move into Melee range of the target and make one shared attack roll. On a success, they deal 3 physical damage each. Combine this damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Sellsword.webp"
   },
   {
     "name": "SHAMBLING ZOMBIE",
@@ -1454,7 +1494,8 @@
         "description": "Targets who mark HP from the Zombie's attacks must also mark a Stress."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": ""
   },
   {
     "name": "SKELETON ARCHER",
@@ -1486,7 +1527,8 @@
         "description": "Make an attack against a Vulnerable target within Far range. On a success, mark a Stress to deal 3d4+8 physical damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Skeleton_Archer.webp"
   },
   {
     "name": "SKELETON DREDGE",
@@ -1515,7 +1557,8 @@
         "description": "Spend a Fear to choose a target and spotlight all Dredges within Close range of them. Those Minions move into Melee range of the target and make one shared attack roll. On a success, they deal 1 physical damage each. Combine this damage."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": ""
   },
   {
     "name": "SKELETON KNIGHT",
@@ -1552,7 +1595,8 @@
         "description": "When the Knight is defeated, they make an attack against a target within Very Close range (prioritizing the creature who killed them). On a success, the target takes 1d4+8 physical damage and loses 1d4 Hope."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Skeleton_Knight.webp"
   },
   {
     "name": "SKELETON WARRIOR",
@@ -1584,7 +1628,8 @@
         "description": "When the Warrior is defeated, you can spotlight them and roll a d6. On a result of 6, if there are other adversaries on the battlefi eld, the Warrior re-forms with no marked HP."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Skeleton_Warrior.webp"
   },
   {
     "name": "SPELLBLADE",
@@ -1627,7 +1672,8 @@
         "description": "When the Spellblade makes a successful attack against a PC, you gain a Fear."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Spellblade.webp"
   },
   {
     "name": "SWARM OF RATS",
@@ -1653,7 +1699,8 @@
         "description": "All targets within Melee range have disadvantage on attacks against targets other than the Swarm."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Swarm_of_Rats.webp"
   },
   {
     "name": "SYLVAN SOLDIER",
@@ -1691,7 +1738,8 @@
         "description": "When the Soldier makes a successful attack, you can mark a Stress to become Hidden until the Soldier\u2019s next attack or a PC succeeds on an Instinct Roll (14) to fi nd them."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Sylvan_Soldier.webp"
   },
   {
     "name": "TANGLE BRAMBLE",
@@ -1725,7 +1773,8 @@
         "description": "When an attack from the Bramble causes a target to mark HP and there are three or more Tangle Bramble Minions within Close range, you can combine the Minions into a Tangle Bramble Swarm Horde. The Horde\u2019s HP is equal to the number of Minions combined."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Tangle_Bramble.webp"
   },
   {
     "name": "TANGLE BRAMBLE SWARM",
@@ -1757,7 +1806,8 @@
         "description": "When the Swarm succeeds on an attack, give the target a bramble token. If a target has any bramble tokens, they are Restrained until they clear all bramble tokens, which requires a successful Finesse or Strength Roll."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Tangle_Bramble_Swarms.webp"
   },
   {
     "name": "YOUNG DRYAD",
@@ -1795,7 +1845,8 @@
         "description": "When the Dryad makes a successful attack against a PC, you gain a Fear."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Young_Dryad.webp"
   },
   {
     "name": "ZOMBIE PACK",
@@ -1821,7 +1872,8 @@
         "description": "When the Zombies mark HP from an attack within Melee range, you can mark a Stress to make a standard attack against the attacker."
       }
     ],
-    "tier": 1
+    "tier": 1,
+    "portrait": ""
   },
   {
     "name": "BATTLE BOX",
@@ -1864,7 +1916,8 @@
       }
     ],
     "tier": 2,
-    "role": "Solo"
+    "role": "Solo",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Battle_Box.webp"
   },
   {
     "name": "CHAOS SKULL",
@@ -1906,7 +1959,8 @@
       }
     ],
     "tier": 2,
-    "role": "Ranged"
+    "role": "Ranged",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Chaos_Skull.webp"
   },
   {
     "name": "CONSCRIPT",
@@ -1930,7 +1984,8 @@
       }
     ],
     "tier": 2,
-    "role": "Minion"
+    "role": "Minion",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Conscript.webp"
   },
   {
     "name": "COURTESAN",
@@ -1958,7 +2013,8 @@
       }
     ],
     "tier": 2,
-    "role": "Social"
+    "role": "Social",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Courtesan.webp"
   },
   {
     "name": "CULT ADEPT",
@@ -2001,7 +2057,8 @@
       }
     ],
     "tier": 2,
-    "role": "Support"
+    "role": "Support",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Cult_Adept.webp"
   },
   {
     "name": "CULT FANG",
@@ -2033,7 +2090,8 @@
       }
     ],
     "tier": 2,
-    "role": "Skulk"
+    "role": "Skulk",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/mysterious_cloaked_figure.webp"
   },
   {
     "name": "CULT INITIATE",
@@ -2057,7 +2115,8 @@
       }
     ],
     "tier": 2,
-    "role": "Minion"
+    "role": "Minion",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Cult_Initiate.webp"
   },
   {
     "name": "DEMONIC HOUND PACK",
@@ -2089,7 +2148,8 @@
       }
     ],
     "tier": 2,
-    "role": "Horde"
+    "role": "Horde",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Demonic_Hound_Pack.webp"
   },
   {
     "name": "ELECTRIC EELS",
@@ -2115,7 +2175,8 @@
       }
     ],
     "tier": 2,
-    "role": "Horde"
+    "role": "Horde",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Electric_Eels.webp"
   },
   {
     "name": "ELITE SOLDIER",
@@ -2147,7 +2208,8 @@
       }
     ],
     "tier": 2,
-    "role": "Standard"
+    "role": "Standard",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Elite_Soldier.webp"
   },
   {
     "name": "FAILED EXPERIMENT",
@@ -2185,7 +2247,8 @@
       }
     ],
     "tier": 2,
-    "role": "Standard"
+    "role": "Standard",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Failed_Experiment.webp"
   },
   {
     "name": "GIANT BEASTMASTER",
@@ -2223,7 +2286,8 @@
         "description": "Twice per scene, summon a Bear, Dire Wolf, or similar Tier 1 animal adversary under the Beastmaster\u2019s control. The adversary appears at Close range and is immediately spotlighted."
       }
     ],
-    "tier": 2
+    "tier": 2,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Giant_Beastmaster.webp"
   },
   {
     "name": "GIANT BRAWLER",
@@ -2261,7 +2325,8 @@
       }
     ],
     "tier": 2,
-    "role": "Bruiser"
+    "role": "Bruiser",
+    "portrait": ""
   },
   {
     "name": "GIANT EAGLE",
@@ -2303,7 +2368,8 @@
       }
     ],
     "tier": 2,
-    "role": "Skulk"
+    "role": "Skulk",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Giant_Eagle.webp"
   },
   {
     "name": "GIANT RECRUIT",
@@ -2327,7 +2393,8 @@
       }
     ],
     "tier": 2,
-    "role": "Minion"
+    "role": "Minion",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Giant_Recruit.webp"
   },
   {
     "name": "GORGON",
@@ -2375,7 +2442,8 @@
       }
     ],
     "tier": 2,
-    "role": "Solo"
+    "role": "Solo",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Gorgon.webp"
   },
   {
     "name": "JUVENILE FLICKERFLY",
@@ -2417,7 +2485,8 @@
       }
     ],
     "tier": 2,
-    "role": "Solo"
+    "role": "Solo",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Juvenile_Flickerfly.webp"
   },
   {
     "name": "KNIGHT OF THE REALM",
@@ -2455,7 +2524,8 @@
       }
     ],
     "tier": 2,
-    "role": "Leader"
+    "role": "Leader",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Knight_of_the_Realm.webp"
   },
   {
     "name": "MASKED THIEF",
@@ -2488,7 +2558,8 @@
       }
     ],
     "tier": 2,
-    "role": "Skulk"
+    "role": "Skulk",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Masked_Thief.webp"
   },
   {
     "name": "MASTER ASSASSIN",
@@ -2531,7 +2602,8 @@
       }
     ],
     "tier": 2,
-    "role": "Leader"
+    "role": "Leader",
+    "portrait": ""
   },
   {
     "name": "MERCHANT BARON",
@@ -2564,7 +2636,8 @@
         "description": "Once per scene, mark a Stress to summon 1d4+1 Tier 1 adversaries, who appear at Far range, to enforce their will."
       }
     ],
-    "tier": 2
+    "tier": 2,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Merchant_Baron.webp"
   },
   {
     "name": "MINOTAUR WRECKER",
@@ -2602,7 +2675,8 @@
       }
     ],
     "tier": 2,
-    "role": "Bruiser"
+    "role": "Bruiser",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Minotaur Wrecker.webp"
   },
   {
     "name": "MORTAL HUNTER",
@@ -2645,7 +2719,8 @@
       }
     ],
     "tier": 2,
-    "role": "Leader"
+    "role": "Leader",
+    "portrait": ""
   },
   {
     "name": "ROYAL ADVISOR",
@@ -2683,7 +2758,8 @@
       }
     ],
     "tier": 2,
-    "role": "Social"
+    "role": "Social",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Royal_Advisor.webp"
   },
   {
     "name": "SHARK",
@@ -2721,7 +2797,8 @@
       }
     ],
     "tier": 2,
-    "role": "Bruiser"
+    "role": "Bruiser",
+    "portrait": ""
   },
   {
     "name": "SIREN",
@@ -2754,7 +2831,8 @@
       }
     ],
     "tier": 2,
-    "role": "Skulk"
+    "role": "Skulk",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Siren.webp"
   },
   {
     "name": "SPECTRAL ARCHER",
@@ -2787,7 +2865,8 @@
       }
     ],
     "tier": 2,
-    "role": "Ranged"
+    "role": "Ranged",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Spectral_Archer.webp"
   },
   {
     "name": "SPECTRAL CAPTAIN",
@@ -2830,7 +2909,8 @@
       }
     ],
     "tier": 2,
-    "role": "Leader"
+    "role": "Leader",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Spectral_Captain.webp"
   },
   {
     "name": "SPECTRAL GUARDIAN",
@@ -2863,7 +2943,8 @@
       }
     ],
     "tier": 2,
-    "role": "Standard"
+    "role": "Standard",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Spectral_Guardian.webp"
   },
   {
     "name": "ADULT FLICKERFLY",
@@ -2920,7 +3001,8 @@
       }
     ],
     "tier": 3,
-    "role": "Solo"
+    "role": "Solo",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Adult_Flickerfly.webp"
   },
   {
     "name": "DEMON OF AVARICE",
@@ -2958,7 +3040,8 @@
       }
     ],
     "tier": 3,
-    "role": "Support"
+    "role": "Support",
+    "portrait": ""
   },
   {
     "name": "DEMON OF DESPAIR",
@@ -3001,7 +3084,8 @@
       }
     ],
     "tier": 3,
-    "role": "Skulk"
+    "role": "Skulk",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Demon_of_Despair.webp"
   },
   {
     "name": "DEMON OF HUBRIS",
@@ -3049,7 +3133,8 @@
       }
     ],
     "tier": 3,
-    "role": "Leader"
+    "role": "Leader",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Demon_of_Hubris.webp"
   },
   {
     "name": "DEMON OF JEALOUSY",
@@ -3092,7 +3177,8 @@
       }
     ],
     "tier": 3,
-    "role": "Ranged"
+    "role": "Ranged",
+    "portrait": ""
   },
   {
     "name": "DEMON OF WRATH",
@@ -3135,7 +3221,8 @@
       }
     ],
     "tier": 3,
-    "role": "Bruiser"
+    "role": "Bruiser",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Demon_of_Wrath,.webp"
   },
   {
     "name": "DIRE BAT",
@@ -3173,7 +3260,8 @@
       }
     ],
     "tier": 3,
-    "role": "Skulk"
+    "role": "Skulk",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/giant_bat.webp"
   },
   {
     "name": "DRYAD",
@@ -3211,7 +3299,8 @@
       }
     ],
     "tier": 3,
-    "role": "Leader"
+    "role": "Leader",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Dryad.webp"
   },
   {
     "name": "ELEMENTAL SPARK",
@@ -3235,7 +3324,8 @@
       }
     ],
     "tier": 3,
-    "role": "Minion"
+    "role": "Minion",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Elemental_Spark.webp"
   },
   {
     "name": "GREATER EARTH ELEMENTAL",
@@ -3282,7 +3372,8 @@
       }
     ],
     "tier": 3,
-    "role": "Bruiser"
+    "role": "Bruiser",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Earth_Elemental.webp"
   },
   {
     "name": "GREATER WATER ELEMENTAL",
@@ -3319,7 +3410,8 @@
       }
     ],
     "tier": 3,
-    "role": "Support"
+    "role": "Support",
+    "portrait": ""
   },
   {
     "name": "HEAD VAMPIRE",
@@ -3367,7 +3459,8 @@
       }
     ],
     "tier": 3,
-    "role": "Leader"
+    "role": "Leader",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Head_Vampire.webp"
   },
   {
     "name": "HUGE GREEN OOZE",
@@ -3410,7 +3503,8 @@
       }
     ],
     "tier": 3,
-    "role": "Skulk"
+    "role": "Skulk",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Huge_Green_Ooze.webp"
   },
   {
     "name": "HYDRA",
@@ -3457,7 +3551,8 @@
       }
     ],
     "tier": 3,
-    "role": "Solo"
+    "role": "Solo",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Hydra.webp"
   },
   {
     "name": "MONARCH",
@@ -3490,7 +3585,8 @@
         "description": "Long-Term Countdown (8). Spend a Fear to activate after the Monarch\u2019s desire for war is fi rst revealed. When it triggers, the Monarch has a reason to rally the nation to war and the support to act on that reason. You gain 1d4 Fear."
       }
     ],
-    "tier": 3
+    "tier": 3,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Monarch.webp"
   },
   {
     "name": "OAK TREANT",
@@ -3528,7 +3624,8 @@
       }
     ],
     "tier": 3,
-    "role": "Bruiser"
+    "role": "Bruiser",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Oak_Treant.webp"
   },
   {
     "name": "SPY",
@@ -3561,7 +3658,8 @@
       }
     ],
     "tier": 3,
-    "role": "Social"
+    "role": "Social",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Spy.webp"
   },
   {
     "name": "STONEWRAITH",
@@ -3604,7 +3702,8 @@
       }
     ],
     "tier": 3,
-    "role": "Skulk"
+    "role": "Skulk",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Stonewraith.webp"
   },
   {
     "name": "TREANT SAPLING",
@@ -3628,7 +3727,8 @@
       }
     ],
     "tier": 3,
-    "role": "Minion"
+    "role": "Minion",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Treant_Sapling.webp"
   },
   {
     "name": "VAMPIRE",
@@ -3661,7 +3761,8 @@
       }
     ],
     "tier": 3,
-    "role": "Standard"
+    "role": "Standard",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Vampire.webp"
   },
   {
     "name": "VAULT GUARDIAN GAOLER",
@@ -3693,7 +3794,8 @@
       }
     ],
     "tier": 3,
-    "role": "Support"
+    "role": "Support",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Vault_Guardian_Gaoler.webp"
   },
   {
     "name": "VAULT GUARDIAN SENTINEL",
@@ -3735,7 +3837,8 @@
       }
     ],
     "tier": 3,
-    "role": "Bruiser"
+    "role": "Bruiser",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Vault_Guardian.webp"
   },
   {
     "name": "WAR WIZARD",
@@ -3783,7 +3886,8 @@
       }
     ],
     "tier": 3,
-    "role": "Ranged"
+    "role": "Ranged",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/War_Wizard.webp"
   },
   {
     "name": "ASHEN TYRANT",
@@ -3841,7 +3945,8 @@
       }
     ],
     "tier": 4,
-    "role": "Solo"
+    "role": "Solo",
+    "portrait": ""
   },
   {
     "name": "FALLEN SHOCK TROOP",
@@ -3875,7 +3980,8 @@
       }
     ],
     "tier": 4,
-    "role": "Minion"
+    "role": "Minion",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Fallen_Shock_Troop.webp"
   },
   {
     "name": "FALLEN SORCERER",
@@ -3918,7 +4024,8 @@
       }
     ],
     "tier": 4,
-    "role": "Support"
+    "role": "Support",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Fallen_Sorcerer.webp"
   },
   {
     "name": "HALLOWED ARCHER",
@@ -3950,7 +4057,8 @@
       }
     ],
     "tier": 4,
-    "role": "Ranged"
+    "role": "Ranged",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Hallowed_Archer.webp"
   },
   {
     "name": "HALLOWED SOLDIER",
@@ -3984,7 +4092,8 @@
       }
     ],
     "tier": 4,
-    "role": "Minion"
+    "role": "Minion",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Hallowed_Soldier.webp"
   },
   {
     "name": "HIGH SERAPH",
@@ -4032,7 +4141,8 @@
       }
     ],
     "tier": 4,
-    "role": "Leader"
+    "role": "Leader",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/High_Seraph.webp"
   },
   {
     "name": "KRAKEN",
@@ -4080,7 +4190,8 @@
       }
     ],
     "tier": 4,
-    "role": "Solo"
+    "role": "Solo",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Kraken.webp"
   },
   {
     "name": "MOLTEN SCOURGE",
@@ -4138,7 +4249,8 @@
       }
     ],
     "tier": 4,
-    "role": "Solo"
+    "role": "Solo",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Molten_Scourge.webp"
   },
   {
     "name": "OBSIDIAN PREDATOR",
@@ -4191,7 +4303,8 @@
       }
     ],
     "tier": 4,
-    "role": "Solo"
+    "role": "Solo",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Obsidian_Predator.webp"
   },
   {
     "name": "ORACLE OF DOOM",
@@ -4244,7 +4357,8 @@
         "description": "When the Oracle marks HP from an attack within Very Close range, you can mark a Stress to knock the attacker back to Close range and deal 2d10+6 magic damage to them."
       }
     ],
-    "tier": 4
+    "tier": 4,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Oracle-of_doom.webp"
   },
   {
     "name": "OUTER REALMS ABOMINATION",
@@ -4280,7 +4394,8 @@
       }
     ],
     "tier": 4,
-    "role": "Bruiser"
+    "role": "Bruiser",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Outer_Realms_Abomination.webp"
   },
   {
     "name": "OUTER REALMS CORRUPTER",
@@ -4312,7 +4427,8 @@
       }
     ],
     "tier": 4,
-    "role": "Support"
+    "role": "Support",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Outer_Realms_Corrupter.webp"
   },
   {
     "name": "OUTER REALMS THRALL",
@@ -4341,7 +4457,8 @@
       }
     ],
     "tier": 4,
-    "role": "Minion"
+    "role": "Minion",
+    "portrait": ""
   },
   {
     "name": "PERFECTED ZOMBIE",
@@ -4383,7 +4500,8 @@
       }
     ],
     "tier": 4,
-    "role": "Bruiser"
+    "role": "Bruiser",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Perfected_Dark.webp"
   },
   {
     "name": "UNDEFEATED CHAMPION",
@@ -4441,7 +4559,8 @@
       }
     ],
     "tier": 4,
-    "role": "Solo"
+    "role": "Solo",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Undefeated_Champion.webp"
   },
   {
     "name": "VAULT GUARDIAN TURRET",
@@ -4483,7 +4602,8 @@
       }
     ],
     "tier": 4,
-    "role": "Ranged"
+    "role": "Ranged",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/Vault_Guardian_Turret.webp"
   },
   {
     "name": "YOUNG ICE DRAGON",
@@ -4541,7 +4661,8 @@
       }
     ],
     "tier": 4,
-    "role": "Solo"
+    "role": "Solo",
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/young_ice_dragon.webp"
   },
   {
     "name": "ZOMBIE LEGION",
@@ -4577,6 +4698,7 @@
         "description": "When the Legion takes Minor damage from an attack within Melee range, you can mark a Stress to make a standard attack with advantage against the attacker."
       }
     ],
-    "tier": 4
+    "tier": 4,
+    "portrait": "https://pub-60d512a86ccb48519300274deb89b739.r2.dev/creatures/cursed_legion.webp"
   }
 ]
