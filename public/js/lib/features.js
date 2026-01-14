@@ -22,6 +22,12 @@ export function getEntitlement() {
 }
 
 function updateUIForEntitlement() {
+  // Update tier badge
+  const tierBadge = document.getElementById('user-tier');
+  if (tierBadge) {
+    tierBadge.textContent = currentEntitlement.toUpperCase();
+  }
+
   // Show/hide elements based on entitlement
   document.querySelectorAll('[data-requires]').forEach(el => {
     const required = el.dataset.requires;
