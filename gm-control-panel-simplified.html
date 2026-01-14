@@ -1098,6 +1098,50 @@
       font-weight: 600;
     }
 
+    .adv-attack-section {
+      margin: 8px 0;
+      padding: 8px;
+      background: rgba(244, 67, 54, 0.1);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      border-radius: 6px;
+    }
+
+    .attack-header {
+      font-size: 0.75rem;
+      color: #ff8a80;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .attack-details {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 0.75rem;
+    }
+
+    .attack-mod {
+      color: #fff;
+      font-weight: 600;
+      background: rgba(244, 67, 54, 0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .attack-damage {
+      color: #ffab91;
+      font-weight: 500;
+    }
+
+    .attack-range {
+      color: #888;
+      font-style: italic;
+    }
+
+    .attack-summary {
+      color: #ccc;
+    }
+
     .encounter-empty {
       text-align: center;
       color: #666;
@@ -3563,10 +3607,6 @@
 
                 <div class="adv-stats">
                   <div class="stat-item">
-                    <div class="stat-label">Attack</div>
-                    <div class="stat-value attack">${adv.attack || '-'}</div>
-                  </div>
-                  <div class="stat-item">
                     <div class="stat-label">Defense</div>
                     <div class="stat-value defense">${adv.defense || '-'}</div>
                   </div>
@@ -3575,6 +3615,24 @@
                     <div class="stat-value">${adv.type || adv.role || '-'}</div>
                   </div>
                 </div>
+
+                ${adv.attackData ? `
+                <div class="adv-attack-section">
+                  <div class="attack-header">Attack: ${adv.attackData.name || 'Attack'}</div>
+                  <div class="attack-details">
+                    <span class="attack-mod">${adv.attackData.modifier >= 0 ? '+' : ''}${adv.attackData.modifier}</span>
+                    <span class="attack-damage">${adv.attackData.damage}</span>
+                    <span class="attack-range">${adv.attackData.range || 'Melee'}</span>
+                  </div>
+                </div>
+                ` : (adv.attack ? `
+                <div class="adv-attack-section">
+                  <div class="attack-header">Attack</div>
+                  <div class="attack-details">
+                    <span class="attack-summary">${adv.attack}</span>
+                  </div>
+                </div>
+                ` : '')}
 
                 ${adv.thresholds ? `
                 <div class="adv-thresholds">
@@ -4596,6 +4654,7 @@
             difficulty: creature.difficulty || 10,
             thresholds: creature.thresholds || null,
             attack: attackStr,
+            attackData: creature.attack || null,
             defense: creature.difficulty || 10,
             experience: creature.experience || '',
             features: features,
