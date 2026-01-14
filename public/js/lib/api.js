@@ -44,10 +44,57 @@ export const api = {
     delete: (id) => apiCall(`/campaigns/${id}`, { method: 'DELETE' }),
   },
 
+  scenes: {
+    list: (campaignId) => apiCall(`/campaigns/${campaignId}/scenes`),
+    get: (campaignId, sceneId) => apiCall(`/campaigns/${campaignId}/scenes/${sceneId}`),
+    create: (campaignId, data) => apiCall(`/campaigns/${campaignId}/scenes`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    update: (campaignId, sceneId, data) => apiCall(`/campaigns/${campaignId}/scenes/${sceneId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+    delete: (campaignId, sceneId) => apiCall(`/campaigns/${campaignId}/scenes/${sceneId}`, { method: 'DELETE' }),
+  },
+
   upload: {
     requestUrl: (metadata) => apiCall('/upload', {
       method: 'POST',
       body: JSON.stringify(metadata)
     }),
+    // Upload file to R2 and return public URL
+    uploadFile: async (file) => {
+      const token = await getIdToken();
+
+      // Step 1: Request upload URL
+      const { fileId, uploadUrl } = await apiCall('/upload', {
+        method: 'POST',
+        body: JSON.stringify({
+          filename: file.name,
+          size: file.size,
+          contentType: file.type,
+        }),
+      });
+
+      // Step 2: Upload file data
+      const response = await fetch(`${API_BASE}${uploadUrl}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: file,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const error = new Error(data.error || 'Upload failed');
+        error.status = response.status;
+        throw error;
+      }
+
+      return data;
+    },
   },
 };
