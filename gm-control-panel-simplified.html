@@ -2575,6 +2575,13 @@
     </svg>`)}`;
 
     function getDefaultImageForAdversary(adv) {
+      // Try to find CDN portrait from bestiary database
+      if (adversaryDatabase && adversaryDatabase.length > 0) {
+        const bestiary = adversaryDatabase.find(b => b.name === adv.name);
+        if (bestiary && bestiary.portrait) {
+          return bestiary.portrait;
+        }
+      }
       return DEFAULT_NPC_IMAGE;
     }
 
@@ -3843,13 +3850,16 @@
         currentEncounter = { name: 'Custom Encounter', adversaries: [] };
       }
 
+      // Use CDN portrait from bestiary if available
+      const initialPortraits = adv.portrait ? [adv.portrait] : [];
+
       const newAdv = {
         ...adv,
         id: 'adv-' + Math.random().toString(36).substr(2, 9),
         currentHp: adv.hp,
         currentStress: adv.stress,
         conditions: { hidden: false, restrained: false, vulnerable: false },
-        portraits: [],
+        portraits: initialPortraits,
         activePortraitIndex: 0
       };
 
@@ -4540,7 +4550,7 @@
     // ========== Adversary Database ==========
     async function loadAdversaryDatabase() {
       try {
-        const response = await fetch('daggerheart_creatures_fixed.json');
+        const response = await fetch('daggerheart_creatures.json');
         const creatures = await response.json();
 
         // Transform JSON data to match expected format
@@ -4591,7 +4601,8 @@
             abilities: abilities,
             traits: traits,
             description: creature.description || '',
-            motives: creature.motives || ''
+            motives: creature.motives || '',
+            portrait: creature.portrait || null
           };
         });
 

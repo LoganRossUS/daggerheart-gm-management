@@ -480,7 +480,7 @@
     // Load creature data from JSON file
     async function loadCreatureDatabase() {
       try {
-        const response = await fetch('daggerheart_creatures_fixed.json');
+        const response = await fetch('daggerheart_creatures.json');
         const creatures = await response.json();
 
         // Transform JSON data to match expected format
@@ -519,7 +519,8 @@
             attack: attackStr,
             defense: creature.difficulty || 10,
             traits: traits,
-            abilities: abilities
+            abilities: abilities,
+            portrait: creature.portrait || null
           };
         });
 
@@ -1943,7 +1944,7 @@
         stress: template.stress,
         attack: template.attack,
         defense: template.difficulty,
-        portrait: "",
+        portrait: template.portrait || "",
         traits: [...template.traits],
         abilities: [...template.abilities],
         conditions: {
