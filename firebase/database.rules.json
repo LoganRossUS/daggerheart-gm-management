@@ -1,0 +1,18 @@
+{
+  "rules": {
+    "rooms": {
+      "$roomCode": {
+        ".read": "auth != null",
+        ".write": "auth != null && (!data.exists() || data.child('owner').val() === auth.uid)",
+        "state": {
+          ".write": "auth != null && root.child('rooms').child($roomCode).child('owner').val() === auth.uid"
+        },
+        "tokens": {
+          "$tokenId": {
+            ".write": "auth != null && (data.child('playerId').val() === auth.uid || root.child('rooms').child($roomCode).child('owner').val() === auth.uid)"
+          }
+        }
+      }
+    }
+  }
+}
