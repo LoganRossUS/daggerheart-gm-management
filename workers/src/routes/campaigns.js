@@ -261,6 +261,11 @@ async function updateScene(userId, campaignId, sceneId, data, env, { jsonRespons
       return errorResponse('Scene not found', 404);
     }
 
+    // Check if battleMap contains base64 data (too large for Firestore)
+    if (data.encounter?.battleMap?.map?.mapImage?.startsWith('data:')) {
+      return errorResponse('Scene contains base64 image data which is too large. Please upload images to cloud storage.', 400);
+    }
+
     const updated = {
       ...existing,
       ...data,
@@ -270,12 +275,18 @@ async function updateScene(userId, campaignId, sceneId, data, env, { jsonRespons
     // Don't allow overwriting metadata
     updated.createdAt = existing.createdAt;
 
+    // Check approximate document size (rough estimate)
+    const jsonSize = JSON.stringify(updated).length;
+    if (jsonSize > 900000) { // ~900KB, leaving buffer for Firestore overhead
+      return errorResponse('Scene data too large. Please use cloud storage for images.', 400);
+    }
+
     await setFirestoreDoc(`users/${userId}/campaigns/${campaignId}/scenes/${sceneId}`, updated, env);
 
     return jsonResponse(updated);
   } catch (err) {
     console.error('Update scene error:', err);
-    return errorResponse('Failed to update scene', 500);
+    return errorResponse(`Failed to update scene: ${err.message}`, 500);
   }
 }
 
