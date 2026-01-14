@@ -1,6 +1,6 @@
 import { getIdToken } from './auth.js';
 
-const API_BASE = '/api';
+const API_BASE = 'https://daggerheart-api.tristatehelpdesk812.workers.dev/api';
 
 async function apiCall(path, options = {}) {
   const token = await getIdToken();
