@@ -24,8 +24,9 @@ export async function handleCampaigns(request, env, { jsonResponse, errorRespons
     return errorResponse('Authentication failed', 401);
   }
 
-  // Check entitlement
-  const entitlement = await getFirestoreDoc(`users/${userId}/entitlement`, env);
+  // Check entitlement (stored as field on user document)
+  const userDoc = await getFirestoreDoc(`users/${userId}`, env);
+  const entitlement = userDoc?.entitlement;
 
   if (!entitlement || !['basic', 'premium'].includes(entitlement.tier)) {
     return errorResponse('Upgrade required for cloud save', 403);
