@@ -95,7 +95,7 @@ export async function handleUpload(request, env, { jsonResponse, errorResponse }
       expiresIn,
       uploadMethod: 'PUT',
       // The actual upload will go through a separate endpoint
-      uploadUrl: `/api/upload/${fileId}/data`,
+      uploadUrl: `/upload/${fileId}/data`,
     });
   } catch (err) {
     console.error('Upload URL generation error:', err);
