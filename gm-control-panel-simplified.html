@@ -2575,9 +2575,10 @@
     </svg>`)}`;
 
     function getDefaultImageForAdversary(adv) {
-      // Try to find CDN portrait from bestiary database
+      // Try to find CDN portrait from bestiary database (case-insensitive)
       if (adversaryDatabase && adversaryDatabase.length > 0) {
-        const bestiary = adversaryDatabase.find(b => b.name === adv.name);
+        const advNameUpper = adv.name.toUpperCase();
+        const bestiary = adversaryDatabase.find(b => b.name.toUpperCase() === advNameUpper);
         if (bestiary && bestiary.portrait) {
           return bestiary.portrait;
         }
@@ -3430,12 +3431,12 @@
         adversaries: [
           {
             id: 'sample-1',
-            name: 'Skeleton Warrior',
+            name: 'APPRENTICE ASSASSIN',
             tier: 1,
-            hp: 6,
-            currentHp: 6,
-            stress: 3,
-            currentStress: 3,
+            hp: 1,
+            currentHp: 1,
+            stress: 1,
+            currentStress: 1,
             role: 'Minion',
             conditions: { hidden: false, restrained: false, vulnerable: false },
             portraits: [],
@@ -3443,26 +3444,26 @@
           },
           {
             id: 'sample-2',
-            name: 'Skeleton Archer',
+            name: 'ARCHER GUARD',
             tier: 1,
-            hp: 4,
-            currentHp: 4,
+            hp: 3,
+            currentHp: 3,
             stress: 2,
             currentStress: 2,
-            role: 'Minion',
+            role: 'Ranged',
             conditions: { hidden: false, restrained: false, vulnerable: false },
             portraits: [],
             activePortraitIndex: 0
           },
           {
             id: 'sample-3',
-            name: 'Necromancer',
-            tier: 2,
-            hp: 15,
-            currentHp: 15,
-            stress: 8,
-            currentStress: 8,
-            role: 'Solo',
+            name: 'ASSASSIN POISONER',
+            tier: 1,
+            hp: 4,
+            currentHp: 4,
+            stress: 4,
+            currentStress: 4,
+            role: 'Skulk',
             conditions: { hidden: false, restrained: false, vulnerable: false },
             portraits: [],
             activePortraitIndex: 0
