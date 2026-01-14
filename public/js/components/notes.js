@@ -152,3 +152,15 @@ async function deleteCurrentNote() {
 export function getNotes() {
   return notes;
 }
+
+export function resetNotes() {
+  currentCampaignId = null;
+  notes = [];
+  selectedNoteId = null;
+
+  // Clear the notes panel UI
+  const panel = document.getElementById('notes-panel');
+  if (panel) {
+    panel.innerHTML = '';
+  }
+}
