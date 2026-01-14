@@ -101,6 +101,40 @@ export async function handleCampaigns(request, env, { jsonResponse, errorRespons
     return deleteScene(userId, deleteSceneMatch[1], deleteSceneMatch[2], env, { jsonResponse, errorResponse });
   }
 
+  // === CHARACTERS ROUTES ===
+
+  // GET /api/campaigns/:id/characters - List characters
+  const listCharsMatch = path.match(/^\/api\/campaigns\/([^/]+)\/characters$/);
+  if (listCharsMatch && method === 'GET') {
+    return listCharacters(userId, listCharsMatch[1], env, { jsonResponse, errorResponse });
+  }
+
+  // POST /api/campaigns/:id/characters - Create character
+  const createCharMatch = path.match(/^\/api\/campaigns\/([^/]+)\/characters$/);
+  if (createCharMatch && method === 'POST') {
+    const body = await request.json();
+    return createCharacter(userId, createCharMatch[1], body, env, { jsonResponse, errorResponse });
+  }
+
+  // GET /api/campaigns/:campaignId/characters/:characterId - Get character
+  const getCharMatch = path.match(/^\/api\/campaigns\/([^/]+)\/characters\/([^/]+)$/);
+  if (getCharMatch && method === 'GET') {
+    return getCharacter(userId, getCharMatch[1], getCharMatch[2], env, { jsonResponse, errorResponse });
+  }
+
+  // PUT /api/campaigns/:campaignId/characters/:characterId - Update character
+  const updateCharMatch = path.match(/^\/api\/campaigns\/([^/]+)\/characters\/([^/]+)$/);
+  if (updateCharMatch && method === 'PUT') {
+    const body = await request.json();
+    return updateCharacter(userId, updateCharMatch[1], updateCharMatch[2], body, env, { jsonResponse, errorResponse });
+  }
+
+  // DELETE /api/campaigns/:campaignId/characters/:characterId - Delete character
+  const deleteCharMatch = path.match(/^\/api\/campaigns\/([^/]+)\/characters\/([^/]+)$/);
+  if (deleteCharMatch && method === 'DELETE') {
+    return deleteCharacter(userId, deleteCharMatch[1], deleteCharMatch[2], env, { jsonResponse, errorResponse });
+  }
+
   return errorResponse('Not Found', 404);
 }
 
@@ -143,13 +177,13 @@ async function getCampaign(userId, campaignId, env, { jsonResponse, errorRespons
       return errorResponse('Campaign not found', 404);
     }
 
-    // Also fetch notes for this campaign
-    const notes = await listFirestoreDocs(
-      `users/${userId}/campaigns/${campaignId}/notes`,
-      env
-    );
+    // Also fetch notes and characters for this campaign
+    const [notes, characters] = await Promise.all([
+      listFirestoreDocs(`users/${userId}/campaigns/${campaignId}/notes`, env),
+      listFirestoreDocs(`users/${userId}/campaigns/${campaignId}/characters`, env)
+    ]);
 
-    return jsonResponse({ ...campaign, notes });
+    return jsonResponse({ ...campaign, notes, characters });
   } catch (err) {
     console.error('Get campaign error:', err);
     return errorResponse('Failed to get campaign', 500);
@@ -297,5 +331,119 @@ async function deleteScene(userId, campaignId, sceneId, env, { jsonResponse, err
   } catch (err) {
     console.error('Delete scene error:', err);
     return errorResponse('Failed to delete scene', 500);
+  }
+}
+
+// === CHARACTER FUNCTIONS ===
+
+async function listCharacters(userId, campaignId, env, { jsonResponse, errorResponse }) {
+  try {
+    // Verify campaign exists
+    const campaign = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}`, env);
+    if (!campaign) {
+      return errorResponse('Campaign not found', 404);
+    }
+
+    const characters = await listFirestoreDocs(`users/${userId}/campaigns/${campaignId}/characters`, env);
+    return jsonResponse({ characters });
+  } catch (err) {
+    console.error('List characters error:', err);
+    return errorResponse('Failed to list characters', 500);
+  }
+}
+
+async function createCharacter(userId, campaignId, data, env, { jsonResponse, errorResponse }) {
+  try {
+    // Verify campaign exists
+    const campaign = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}`, env);
+    if (!campaign) {
+      return errorResponse('Campaign not found', 404);
+    }
+
+    const characterId = data.id || crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    const character = {
+      name: data.name || 'New Character',
+      level: data.level || 1,
+      ancestry: data.ancestry || '',
+      characterClass: data.characterClass || '',
+      subclass: data.subclass || '',
+      currentHp: data.currentHp || 0,
+      maxHp: data.maxHp || 0,
+      currentStress: data.currentStress || 0,
+      maxStress: data.maxStress || 0,
+      armor: data.armor || 0,
+      evasion: data.evasion || 10,
+      minorThreshold: data.minorThreshold || 0,
+      majorThreshold: data.majorThreshold || 0,
+      severeThreshold: data.severeThreshold || 0,
+      domains: data.domains || [],
+      experiences: data.experiences || [],
+      abilities: data.abilities || [],
+      feats: data.feats || [],
+      notes: data.notes || '',
+      portrait: data.portrait || null,
+      createdAt: data.createdAt || now,
+      updatedAt: now,
+    };
+
+    await setFirestoreDoc(`users/${userId}/campaigns/${campaignId}/characters/${characterId}`, character, env);
+
+    return jsonResponse({ characterId, ...character });
+  } catch (err) {
+    console.error('Create character error:', err);
+    return errorResponse('Failed to create character', 500);
+  }
+}
+
+async function getCharacter(userId, campaignId, characterId, env, { jsonResponse, errorResponse }) {
+  try {
+    const character = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}/characters/${characterId}`, env);
+
+    if (!character) {
+      return errorResponse('Character not found', 404);
+    }
+
+    return jsonResponse(character);
+  } catch (err) {
+    console.error('Get character error:', err);
+    return errorResponse('Failed to get character', 500);
+  }
+}
+
+async function updateCharacter(userId, campaignId, characterId, data, env, { jsonResponse, errorResponse }) {
+  try {
+    const existing = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}/characters/${characterId}`, env);
+
+    if (!existing) {
+      return errorResponse('Character not found', 404);
+    }
+
+    const updated = {
+      ...existing,
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Don't allow overwriting metadata
+    updated.createdAt = existing.createdAt;
+
+    await setFirestoreDoc(`users/${userId}/campaigns/${campaignId}/characters/${characterId}`, updated, env);
+
+    return jsonResponse(updated);
+  } catch (err) {
+    console.error('Update character error:', err);
+    return errorResponse('Failed to update character', 500);
+  }
+}
+
+async function deleteCharacter(userId, campaignId, characterId, env, { jsonResponse, errorResponse }) {
+  try {
+    await deleteFirestoreDoc(`users/${userId}/campaigns/${campaignId}/characters/${characterId}`, env);
+    return jsonResponse({ success: true });
+  } catch (err) {
+    console.error('Delete character error:', err);
+    return errorResponse('Failed to delete character', 500);
   }
 }

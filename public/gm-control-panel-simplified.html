@@ -1432,6 +1432,817 @@
       background: #fff;
     }
 
+    /* Reference Sub-tabs */
+    .reference-subtabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .reference-subtab {
+      padding: 8px 16px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px 6px 0 0;
+      background: rgba(0,0,0,0.3);
+      color: #888;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .reference-subtab:hover {
+      background: rgba(255,255,255,0.05);
+      color: #e0e0e0;
+    }
+
+    .reference-subtab.active {
+      background: rgba(179, 136, 255, 0.2);
+      border-bottom-color: transparent;
+      color: #ffd700;
+    }
+
+    .reference-subpanel {
+      display: none;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .reference-subpanel.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Campaign Notes in Reference Tab */
+    .campaign-notes-container {
+      display: flex;
+      flex: 1;
+      gap: 15px;
+      min-height: 0;
+    }
+
+    .notes-sidebar {
+      width: 250px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .notes-categories {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .category-btn {
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      background: rgba(0,0,0,0.3);
+      color: #aaa;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+
+    .category-btn:hover {
+      background: rgba(255,255,255,0.05);
+      color: #e0e0e0;
+    }
+
+    .category-btn.active {
+      background: rgba(179, 136, 255, 0.2);
+      border-color: #b388ff;
+      color: #e0e0e0;
+    }
+
+    .notes-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 6px;
+      padding: 8px;
+    }
+
+    .note-item {
+      padding: 8px 10px;
+      border-radius: 4px;
+      background: rgba(0,0,0,0.3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .note-item:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .note-item.selected {
+      background: rgba(179, 136, 255, 0.2);
+      border-left: 3px solid #b388ff;
+    }
+
+    .note-category-icon {
+      color: #b388ff;
+      font-size: 0.7rem;
+    }
+
+    .note-title {
+      flex: 1;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .add-note-btn {
+      padding: 10px;
+      border: 1px dashed rgba(179, 136, 255, 0.4);
+      border-radius: 6px;
+      background: transparent;
+      color: #b388ff;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .add-note-btn:hover {
+      background: rgba(179, 136, 255, 0.1);
+    }
+
+    .notes-editor {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .notes-editor input[type="text"],
+    .notes-editor select {
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+    }
+
+    .notes-editor input[type="text"]:focus,
+    .notes-editor select:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
+    .notes-editor textarea {
+      flex: 1;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      resize: none;
+      min-height: 200px;
+    }
+
+    .notes-editor textarea:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
+    .note-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .note-actions button {
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .note-actions #save-note-btn {
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      border: none;
+      color: #1a1a2e;
+      font-weight: 700;
+    }
+
+    .note-actions #delete-note-btn {
+      background: transparent;
+      border: 1px solid rgba(244, 67, 54, 0.5);
+      color: #f44336;
+    }
+
+    .notes-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #666;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .notes-empty-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+
+    /* Characters Tab */
+    .characters-container {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 15px;
+      height: 100%;
+    }
+
+    .characters-sidebar {
+      display: flex;
+      flex-direction: column;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .characters-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .characters-header h3 {
+      font-size: 0.9rem;
+      color: #4CAF50;
+      margin: 0;
+    }
+
+    .add-character-btn {
+      padding: 5px 10px;
+      border: 1px dashed rgba(76, 175, 80, 0.5);
+      border-radius: 4px;
+      background: transparent;
+      color: #4CAF50;
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .add-character-btn:hover {
+      background: rgba(76, 175, 80, 0.1);
+    }
+
+    .characters-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .characters-empty {
+      color: #666;
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 20px 10px;
+    }
+
+    .character-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      border-left: 3px solid #4CAF50;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .character-item:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .character-item.selected {
+      background: rgba(76, 175, 80, 0.15);
+      border-left-color: #81c784;
+    }
+
+    .character-item-portrait {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.4);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .character-item-portrait img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .character-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .character-item-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .character-item-meta {
+      font-size: 0.7rem;
+      color: #888;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .character-editor {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      overflow-y: auto;
+    }
+
+    .character-editor-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #666;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .editor-empty-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      color: #4CAF50;
+    }
+
+    .character-editor-form {
+      padding: 20px;
+    }
+
+    .character-form-header {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .character-portrait-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .character-portrait {
+      width: 120px;
+      height: 120px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.4);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .character-portrait img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .portrait-placeholder {
+      color: #666;
+      font-size: 0.75rem;
+    }
+
+    .portrait-upload-btn {
+      padding: 6px 12px;
+      border: 1px solid rgba(76, 175, 80, 0.5);
+      border-radius: 4px;
+      background: transparent;
+      color: #4CAF50;
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .portrait-upload-btn:hover {
+      background: rgba(76, 175, 80, 0.1);
+    }
+
+    .character-basic-info {
+      flex: 1;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      color: #888;
+      margin-bottom: 4px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-input,
+    .form-select {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+
+    .form-textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-textarea:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+
+    .character-stats-section,
+    .character-domain-section,
+    .character-experiences-section,
+    .character-abilities-section,
+    .character-feats-section,
+    .character-notes-section {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .character-stats-section h4,
+    .character-domain-section h4,
+    .character-experiences-section h4,
+    .character-abilities-section h4,
+    .character-feats-section h4,
+    .character-notes-section h4 {
+      font-size: 0.85rem;
+      color: #4CAF50;
+      margin-bottom: 12px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .stat-box {
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      padding: 10px;
+    }
+
+    .stat-box label {
+      display: block;
+      font-size: 0.7rem;
+      color: #888;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .stat-input {
+      width: 50px;
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .stat-input.single {
+      width: 70px;
+    }
+
+    .stat-input:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+
+    .stat-divider {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .thresholds-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .threshold-box {
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .threshold-box.minor {
+      border-left: 3px solid #ffc107;
+    }
+
+    .threshold-box.major {
+      border-left: 3px solid #ff9800;
+    }
+
+    .threshold-box.severe {
+      border-left: 3px solid #f44336;
+    }
+
+    .threshold-box label {
+      display: block;
+      font-size: 0.7rem;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .threshold-input {
+      width: 60px;
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .threshold-input:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+
+    .domain-checkboxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .domain-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .domain-checkbox:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .domain-checkbox input[type="checkbox"] {
+      accent-color: #4CAF50;
+    }
+
+    .experiences-list,
+    .feats-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .experience-item,
+    .feat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 4px;
+    }
+
+    .experience-item span,
+    .feat-item span {
+      flex: 1;
+      font-size: 0.85rem;
+    }
+
+    .remove-item-btn {
+      width: 20px;
+      height: 20px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(244, 67, 54, 0.2);
+      color: #f44336;
+      font-size: 0.7rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .remove-item-btn:hover {
+      background: rgba(244, 67, 54, 0.4);
+    }
+
+    .add-experience-row,
+    .add-feat-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .add-item-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(76, 175, 80, 0.5);
+      border-radius: 4px;
+      background: transparent;
+      color: #4CAF50;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .add-item-btn:hover {
+      background: rgba(76, 175, 80, 0.1);
+    }
+
+    .abilities-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .ability-card {
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      padding: 12px;
+      border-left: 3px solid #b388ff;
+    }
+
+    .ability-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .ability-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #e0e0e0;
+    }
+
+    .ability-type {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      background: rgba(179, 136, 255, 0.2);
+      color: #b388ff;
+    }
+
+    .ability-description {
+      font-size: 0.8rem;
+      color: #aaa;
+      line-height: 1.4;
+    }
+
+    .ability-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .add-ability-btn {
+      padding: 8px 14px;
+      border: 1px dashed rgba(179, 136, 255, 0.4);
+      border-radius: 4px;
+      background: transparent;
+      color: #b388ff;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .add-ability-btn:hover {
+      background: rgba(179, 136, 255, 0.1);
+    }
+
+    .character-form-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      padding-top: 15px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .save-character-btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #4CAF50, #388E3C);
+      color: white;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .save-character-btn:hover {
+      transform: scale(1.02);
+    }
+
+    .delete-character-btn {
+      padding: 10px 24px;
+      border: 1px solid rgba(244, 67, 54, 0.5);
+      border-radius: 6px;
+      background: transparent;
+      color: #f44336;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .delete-character-btn:hover {
+      background: rgba(244, 67, 54, 0.1);
+    }
+
     /* Autocomplete Dropdown */
     .autocomplete-container {
       position: relative;
@@ -2575,6 +3386,7 @@
     <button class="tab-btn active" onclick="switchTab('battle')">Battle <span class="tab-badge" id="battleBadge">0</span></button>
     <button class="tab-btn" onclick="switchTab('encounter')">Encounter <span class="tab-badge" id="encounterBadge">0</span></button>
     <button class="tab-btn" onclick="switchTab('queue')">Queue <span class="tab-badge" id="queueBadge">0</span></button>
+    <button class="tab-btn" onclick="switchTab('characters')">Characters <span class="tab-badge" id="charactersBadge">0</span></button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
     <button class="tab-btn" onclick="switchTab('reference')">Reference</button>
   </div>
@@ -2677,6 +3489,260 @@
       </div>
     </div>
 
+    <!-- Characters Tab -->
+    <div class="tab-panel" id="charactersTab">
+      <div class="characters-container">
+        <div class="characters-sidebar">
+          <div class="characters-header">
+            <h3>Player Characters</h3>
+            <button class="add-character-btn" onclick="addNewCharacter()">+ Add PC</button>
+          </div>
+          <div class="characters-list" id="charactersList">
+            <div class="characters-empty">
+              No characters yet. Click "+ Add PC" to create a player character.
+            </div>
+          </div>
+        </div>
+        <div class="character-editor" id="characterEditor">
+          <div class="character-editor-empty">
+            <div class="editor-empty-icon">⚔</div>
+            <div>Select a character to view details</div>
+            <div style="margin-top: 8px; font-size: 0.8rem; color: #666;">
+              Or click "+ Add PC" to create a new player character
+            </div>
+          </div>
+          <div class="character-editor-form" id="characterEditorForm" style="display: none;">
+            <div class="character-form-header">
+              <div class="character-portrait-section">
+                <div class="character-portrait" id="characterPortrait">
+                  <span class="portrait-placeholder">No Image</span>
+                </div>
+                <input type="file" id="characterImageInput" accept="image/*" style="display: none;" onchange="handleCharacterImageUpload(event)">
+                <button class="portrait-upload-btn" onclick="showCharacterImageDialog()">Upload Portrait</button>
+              </div>
+              <div class="character-basic-info">
+                <div class="form-group">
+                  <label>Character Name</label>
+                  <input type="text" id="charName" class="form-input" placeholder="Enter character name...">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Level</label>
+                    <input type="number" id="charLevel" class="form-input" min="1" max="10" value="1">
+                  </div>
+                  <div class="form-group">
+                    <label>Ancestry</label>
+                    <select id="charAncestry" class="form-select">
+                      <option value="">Select Ancestry...</option>
+                      <option value="clank">Clank</option>
+                      <option value="daemon">Daemon</option>
+                      <option value="drakona">Drakona</option>
+                      <option value="dwarf">Dwarf</option>
+                      <option value="elf">Elf</option>
+                      <option value="faerie">Faerie</option>
+                      <option value="faun">Faun</option>
+                      <option value="firbolg">Firbolg</option>
+                      <option value="fungril">Fungril</option>
+                      <option value="galapa">Galapa</option>
+                      <option value="giant">Giant</option>
+                      <option value="goblin">Goblin</option>
+                      <option value="halfling">Halfling</option>
+                      <option value="human">Human</option>
+                      <option value="infernis">Infernis</option>
+                      <option value="katari">Katari</option>
+                      <option value="orc">Orc</option>
+                      <option value="ribbet">Ribbet</option>
+                      <option value="simiah">Simiah</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Class</label>
+                    <select id="charClass" class="form-select" onchange="updateSubclassOptions()">
+                      <option value="">Select Class...</option>
+                      <option value="bard">Bard</option>
+                      <option value="druid">Druid</option>
+                      <option value="guardian">Guardian</option>
+                      <option value="ranger">Ranger</option>
+                      <option value="rogue">Rogue</option>
+                      <option value="seraph">Seraph</option>
+                      <option value="sorcerer">Sorcerer</option>
+                      <option value="warrior">Warrior</option>
+                      <option value="wizard">Wizard</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Subclass</label>
+                    <select id="charSubclass" class="form-select">
+                      <option value="">Select Class first...</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="character-stats-section">
+              <h4>Combat Stats</h4>
+              <div class="stats-grid">
+                <div class="stat-box">
+                  <label>Hit Points</label>
+                  <div class="stat-row">
+                    <input type="number" id="charCurrentHp" class="stat-input" min="0" placeholder="Current">
+                    <span class="stat-divider">/</span>
+                    <input type="number" id="charMaxHp" class="stat-input" min="1" placeholder="Max">
+                  </div>
+                </div>
+                <div class="stat-box">
+                  <label>Stress</label>
+                  <div class="stat-row">
+                    <input type="number" id="charCurrentStress" class="stat-input" min="0" placeholder="Current">
+                    <span class="stat-divider">/</span>
+                    <input type="number" id="charMaxStress" class="stat-input" min="1" placeholder="Max">
+                  </div>
+                </div>
+                <div class="stat-box">
+                  <label>Armor</label>
+                  <input type="number" id="charArmor" class="stat-input single" min="0" value="0">
+                </div>
+                <div class="stat-box">
+                  <label>Evasion</label>
+                  <input type="number" id="charEvasion" class="stat-input single" min="0" value="10">
+                </div>
+              </div>
+
+              <h4>Thresholds</h4>
+              <div class="thresholds-grid">
+                <div class="threshold-box minor">
+                  <label>Minor</label>
+                  <input type="number" id="charMinorThreshold" class="threshold-input" min="1" placeholder="HP">
+                </div>
+                <div class="threshold-box major">
+                  <label>Major</label>
+                  <input type="number" id="charMajorThreshold" class="threshold-input" min="1" placeholder="HP">
+                </div>
+                <div class="threshold-box severe">
+                  <label>Severe</label>
+                  <input type="number" id="charSevereThreshold" class="threshold-input" min="1" placeholder="HP">
+                </div>
+              </div>
+            </div>
+
+            <div class="character-domain-section">
+              <h4>Domain</h4>
+              <div class="domain-checkboxes">
+                <label class="domain-checkbox"><input type="checkbox" id="domainBlade" value="blade"> Blade</label>
+                <label class="domain-checkbox"><input type="checkbox" id="domainBone" value="bone"> Bone</label>
+                <label class="domain-checkbox"><input type="checkbox" id="domainCodex" value="codex"> Codex</label>
+                <label class="domain-checkbox"><input type="checkbox" id="domainGrace" value="grace"> Grace</label>
+                <label class="domain-checkbox"><input type="checkbox" id="domainMidnight" value="midnight"> Midnight</label>
+                <label class="domain-checkbox"><input type="checkbox" id="domainSage" value="sage"> Sage</label>
+                <label class="domain-checkbox"><input type="checkbox" id="domainSplendor" value="splendor"> Splendor</label>
+                <label class="domain-checkbox"><input type="checkbox" id="domainValor" value="valor"> Valor</label>
+              </div>
+            </div>
+
+            <div class="character-experiences-section">
+              <h4>Experiences</h4>
+              <div class="experiences-list" id="experiencesList">
+                <!-- Experiences rendered here -->
+              </div>
+              <div class="add-experience-row">
+                <input type="text" id="newExperienceInput" class="form-input" placeholder="Add an experience...">
+                <button class="add-item-btn" onclick="addExperience()">+</button>
+              </div>
+            </div>
+
+            <div class="character-abilities-section">
+              <h4>Abilities</h4>
+              <div class="abilities-list" id="abilitiesList">
+                <!-- Abilities rendered here -->
+              </div>
+              <button class="add-ability-btn" onclick="addAbility()">+ Add Ability</button>
+            </div>
+
+            <div class="character-feats-section">
+              <h4>Feats</h4>
+              <div class="feats-list" id="featsList">
+                <!-- Feats rendered here -->
+              </div>
+              <div class="add-feat-row">
+                <input type="text" id="newFeatInput" class="form-input" placeholder="Add a feat...">
+                <button class="add-item-btn" onclick="addFeat()">+</button>
+              </div>
+            </div>
+
+            <div class="character-notes-section">
+              <h4>Character Notes</h4>
+              <textarea id="charNotes" class="form-textarea" placeholder="Backstory, personality, goals, etc..."></textarea>
+            </div>
+
+            <div class="character-form-actions">
+              <button class="save-character-btn" onclick="saveCurrentCharacter()">Save Character</button>
+              <button class="delete-character-btn" onclick="deleteCurrentCharacter()">Delete Character</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Character Image Source Dialog -->
+    <div id="characterImageSourceDialog" class="image-dialog-overlay" onclick="closeCharacterImageDialog(event)">
+      <div class="image-dialog" onclick="event.stopPropagation()">
+        <h3>Add Character Portrait</h3>
+        <div class="image-dialog-options">
+          <button class="image-dialog-btn" onclick="chooseCharacterFileUpload()">
+            Upload from Computer
+          </button>
+          <button class="image-dialog-btn" onclick="showCharacterUrlInput()">
+            Use Image URL
+          </button>
+        </div>
+        <div id="characterUrlInputSection" class="url-input-section">
+          <label>Image URL:</label>
+          <div class="url-input-row">
+            <input type="url" id="characterImageUrlInput" placeholder="https://..." onkeyup="handleCharacterUrlKeyup(event)" oninput="previewCharacterUrlImage()">
+            <button class="url-add-btn" id="characterUrlAddBtn" onclick="addCharacterUrl()" disabled>Add</button>
+          </div>
+          <div id="characterUrlPreview" class="url-preview"></div>
+        </div>
+        <button class="image-dialog-cancel" onclick="closeCharacterImageDialog()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Add Ability Modal -->
+    <div id="addAbilityModal" class="stage-modal" onclick="closeAbilityModal(event)">
+      <div class="stage-modal-content" onclick="event.stopPropagation()">
+        <div class="stage-modal-header">
+          <div class="stage-modal-title">Add Ability</div>
+          <button class="stage-modal-close" onclick="closeAbilityModal()">×</button>
+        </div>
+        <div class="stage-modal-body">
+          <div class="stage-form-group">
+            <label class="stage-form-label">Ability Name</label>
+            <input type="text" class="stage-form-input" id="abilityName" placeholder="Enter ability name...">
+          </div>
+          <div class="stage-form-group">
+            <label class="stage-form-label">Type</label>
+            <select class="stage-form-input" id="abilityType">
+              <option value="passive">Passive</option>
+              <option value="action">Action</option>
+              <option value="reaction">Reaction</option>
+              <option value="spell">Spell</option>
+            </select>
+          </div>
+          <div class="stage-form-group">
+            <label class="stage-form-label">Description</label>
+            <textarea class="stage-form-textarea" id="abilityDescription" placeholder="Describe what this ability does..."></textarea>
+          </div>
+        </div>
+        <div class="stage-modal-footer">
+          <button class="stage-cancel-btn" onclick="closeAbilityModal()">Cancel</button>
+          <button class="stage-save-btn" onclick="saveAbility()">Add Ability</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Settings Tab -->
     <div class="tab-panel" id="settingsTab">
       <div class="settings-grid">
@@ -2737,23 +3803,75 @@
     <!-- Reference Tab -->
     <div class="tab-panel" id="referenceTab">
       <div class="reference-container">
-        <div class="reference-header">
-          <h3>Daggerheart SRD Reference</h3>
-          <div class="reference-controls">
-            <a href="https://www.daggerheart.com/wp-content/uploads/2025/05/DH-SRD-May202025.pdf"
-               target="_blank"
-               class="reference-btn">
-              Open in New Tab
-            </a>
+        <div class="reference-subtabs">
+          <button class="reference-subtab active" onclick="switchReferenceSubtab('srd')">SRD Reference</button>
+          <button class="reference-subtab" onclick="switchReferenceSubtab('notes')">Campaign Notes</button>
+        </div>
+
+        <!-- SRD Sub-panel -->
+        <div class="reference-subpanel active" id="srdSubpanel">
+          <div class="reference-header">
+            <h3>Daggerheart SRD Reference</h3>
+            <div class="reference-controls">
+              <a href="https://www.daggerheart.com/wp-content/uploads/2025/05/DH-SRD-May202025.pdf"
+                 target="_blank"
+                 class="reference-btn">
+                Open in New Tab
+              </a>
+            </div>
+          </div>
+          <div class="reference-pdf-wrapper">
+            <iframe
+              id="srdPdfViewer"
+              src="https://www.daggerheart.com/wp-content/uploads/2025/05/DH-SRD-May202025.pdf"
+              class="reference-pdf-frame"
+              title="Daggerheart SRD PDF">
+            </iframe>
           </div>
         </div>
-        <div class="reference-pdf-wrapper">
-          <iframe
-            id="srdPdfViewer"
-            src="https://www.daggerheart.com/wp-content/uploads/2025/05/DH-SRD-May202025.pdf"
-            class="reference-pdf-frame"
-            title="Daggerheart SRD PDF">
-          </iframe>
+
+        <!-- Campaign Notes Sub-panel -->
+        <div class="reference-subpanel" id="notesSubpanel">
+          <div class="campaign-notes-container" id="notes-panel">
+            <div class="notes-sidebar">
+              <div class="notes-categories">
+                <button class="category-btn active" data-category="all" onclick="filterNotesByCategory('all')">All Notes</button>
+                <button class="category-btn" data-category="session" onclick="filterNotesByCategory('session')">[S] Session Notes</button>
+                <button class="category-btn" data-category="npc" onclick="filterNotesByCategory('npc')">[N] NPCs</button>
+                <button class="category-btn" data-category="location" onclick="filterNotesByCategory('location')">[L] Locations</button>
+                <button class="category-btn" data-category="plot" onclick="filterNotesByCategory('plot')">[P] Plot Threads</button>
+                <button class="category-btn" data-category="rules" onclick="filterNotesByCategory('rules')">[R] House Rules</button>
+              </div>
+              <div class="notes-list" id="notes-list">
+                <!-- Notes rendered here -->
+              </div>
+              <button class="add-note-btn" id="add-note-btn" onclick="createNewNote()">+ Add Note</button>
+            </div>
+            <div class="notes-editor" id="notes-editor">
+              <div class="notes-empty" id="notes-empty-state">
+                <div class="notes-empty-icon">📝</div>
+                <div>No note selected</div>
+                <div style="margin-top: 8px; font-size: 0.8rem;">
+                  Select a note from the list or create a new one
+                </div>
+              </div>
+              <div id="notes-editor-form" style="display: none;">
+                <input type="text" id="note-title" placeholder="Note title...">
+                <select id="note-category">
+                  <option value="session">Session Notes</option>
+                  <option value="npc">NPCs</option>
+                  <option value="location">Locations</option>
+                  <option value="plot">Plot Threads</option>
+                  <option value="rules">House Rules</option>
+                </select>
+                <textarea id="note-content" placeholder="Write your note here... (Markdown supported)"></textarea>
+                <div class="note-actions">
+                  <button id="delete-note-btn" onclick="deleteCurrentNote()">Delete</button>
+                  <button id="save-note-btn" onclick="saveCurrentNote()">Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2948,6 +4066,31 @@
     let stagedBattles = [];
     let editingStagedBattleId = null;
 
+    // ========== Characters State ==========
+    let playerCharacters = [];
+    let selectedCharacterId = null;
+    let currentCharacterAbilities = [];
+    let currentCharacterExperiences = [];
+    let currentCharacterFeats = [];
+
+    // ========== Notes State ==========
+    let campaignNotes = [];
+    let selectedNoteId = null;
+    let currentNoteCategory = 'all';
+
+    // Subclass options by class
+    const SUBCLASS_OPTIONS = {
+      bard: ['Wordsmith', 'Troubadour'],
+      druid: ['Warden of Renewal', 'Warden of the Seasons'],
+      guardian: ['Stalwart', 'Vengeance'],
+      ranger: ['Beastbound', 'Wayfinder'],
+      rogue: ['Syndicate', 'Nightwalker'],
+      seraph: ['Winged Sentinel', 'Divine Herald'],
+      sorcerer: ['Primal', 'Elemental Origin'],
+      warrior: ['Call of the Brave', 'Call of the Slayer'],
+      wizard: ['School of Knowledge', 'School of War']
+    };
+
     // Default silhouette image
     const DEFAULT_NPC_IMAGE = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
       <defs>
@@ -3006,6 +4149,7 @@
       const battleBadge = document.getElementById('battleBadge');
       const encounterBadge = document.getElementById('encounterBadge');
       const queueBadge = document.getElementById('queueBadge');
+      const charactersBadge = document.getElementById('charactersBadge');
 
       if (battleBadge) {
         battleBadge.textContent = battleMapTokens.length;
@@ -3018,6 +4162,10 @@
 
       if (queueBadge) {
         queueBadge.textContent = stagedBattles.length;
+      }
+
+      if (charactersBadge) {
+        charactersBadge.textContent = playerCharacters.length;
       }
     }
 
@@ -5800,6 +6948,525 @@
         stagedBattles = state.battleQueue;
         renderBattleQueue();
       }
+    };
+
+    // ========== Reference Tab Sub-tabs ==========
+    function switchReferenceSubtab(subtab) {
+      document.querySelectorAll('.reference-subtab').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.reference-subpanel').forEach(panel => panel.classList.remove('active'));
+
+      document.querySelector(`.reference-subtab[onclick="switchReferenceSubtab('${subtab}')"]`).classList.add('active');
+      document.getElementById(subtab + 'Subpanel').classList.add('active');
+
+      if (subtab === 'notes') {
+        renderNotesList();
+      }
+    }
+
+    // ========== Campaign Notes Management ==========
+    function filterNotesByCategory(category) {
+      currentNoteCategory = category;
+      document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.category-btn[data-category="${category}"]`).classList.add('active');
+      renderNotesList();
+    }
+
+    function renderNotesList() {
+      const list = document.getElementById('notes-list');
+      if (!list) return;
+
+      const filteredNotes = currentNoteCategory === 'all'
+        ? campaignNotes
+        : campaignNotes.filter(n => n.category === currentNoteCategory);
+
+      if (filteredNotes.length === 0) {
+        list.innerHTML = '<div class="characters-empty">No notes yet</div>';
+        return;
+      }
+
+      const categoryIcons = { session: 'S', npc: 'N', location: 'L', plot: 'P', rules: 'R' };
+
+      list.innerHTML = filteredNotes.map(note => `
+        <div class="note-item ${note.id === selectedNoteId ? 'selected' : ''}"
+             data-note-id="${note.id}" onclick="selectNote('${note.id}')">
+          <span class="note-category-icon">[${categoryIcons[note.category] || 'S'}]</span>
+          <span class="note-title">${note.title || 'Untitled'}</span>
+        </div>
+      `).join('');
+    }
+
+    function selectNote(noteId) {
+      selectedNoteId = noteId;
+      const note = campaignNotes.find(n => n.id === noteId);
+
+      if (note) {
+        document.getElementById('notes-empty-state').style.display = 'none';
+        document.getElementById('notes-editor-form').style.display = 'flex';
+        document.getElementById('note-title').value = note.title || '';
+        document.getElementById('note-category').value = note.category || 'session';
+        document.getElementById('note-content').value = note.content || '';
+      }
+
+      renderNotesList();
+    }
+
+    function createNewNote() {
+      const newNote = {
+        id: 'note-' + Math.random().toString(36).substr(2, 9),
+        title: 'New Note',
+        category: currentNoteCategory === 'all' ? 'session' : currentNoteCategory,
+        content: '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      campaignNotes.push(newNote);
+      selectNote(newNote.id);
+      scheduleAutoSaveIfAvailable();
+    }
+
+    function saveCurrentNote() {
+      if (!selectedNoteId) return;
+
+      const noteIndex = campaignNotes.findIndex(n => n.id === selectedNoteId);
+      if (noteIndex === -1) return;
+
+      campaignNotes[noteIndex] = {
+        ...campaignNotes[noteIndex],
+        title: document.getElementById('note-title').value,
+        category: document.getElementById('note-category').value,
+        content: document.getElementById('note-content').value,
+        updatedAt: new Date().toISOString()
+      };
+
+      renderNotesList();
+      scheduleAutoSaveIfAvailable();
+    }
+
+    function deleteCurrentNote() {
+      if (!selectedNoteId) return;
+      if (!confirm('Delete this note?')) return;
+
+      campaignNotes = campaignNotes.filter(n => n.id !== selectedNoteId);
+      selectedNoteId = null;
+
+      document.getElementById('notes-empty-state').style.display = 'flex';
+      document.getElementById('notes-editor-form').style.display = 'none';
+
+      renderNotesList();
+      scheduleAutoSaveIfAvailable();
+    }
+
+    // ========== Character Management ==========
+    function addNewCharacter() {
+      const newChar = {
+        id: 'char-' + Math.random().toString(36).substr(2, 9),
+        name: 'New Character',
+        level: 1,
+        ancestry: '',
+        characterClass: '',
+        subclass: '',
+        currentHp: 0,
+        maxHp: 0,
+        currentStress: 0,
+        maxStress: 0,
+        armor: 0,
+        evasion: 10,
+        minorThreshold: 0,
+        majorThreshold: 0,
+        severeThreshold: 0,
+        domains: [],
+        experiences: [],
+        abilities: [],
+        feats: [],
+        notes: '',
+        portrait: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      playerCharacters.push(newChar);
+      selectCharacter(newChar.id);
+      updateTabBadges();
+      scheduleAutoSaveIfAvailable();
+    }
+
+    function renderCharactersList() {
+      const list = document.getElementById('charactersList');
+      if (!list) return;
+
+      if (playerCharacters.length === 0) {
+        list.innerHTML = `
+          <div class="characters-empty">
+            No characters yet. Click "+ Add PC" to create a player character.
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = playerCharacters.map(char => `
+        <div class="character-item ${char.id === selectedCharacterId ? 'selected' : ''}"
+             data-character-id="${char.id}" onclick="selectCharacter('${char.id}')">
+          <div class="character-item-portrait">
+            ${char.portrait ? `<img src="${char.portrait}" alt="${char.name}">` : ''}
+          </div>
+          <div class="character-item-info">
+            <div class="character-item-name">${char.name || 'Unnamed'}</div>
+            <div class="character-item-meta">
+              Level ${char.level} ${char.ancestry ? capitalizeFirst(char.ancestry) : ''} ${char.characterClass ? capitalizeFirst(char.characterClass) : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function capitalizeFirst(str) {
+      return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+    }
+
+    function selectCharacter(charId) {
+      selectedCharacterId = charId;
+      const char = playerCharacters.find(c => c.id === charId);
+
+      if (!char) {
+        document.querySelector('.character-editor-empty').style.display = 'flex';
+        document.getElementById('characterEditorForm').style.display = 'none';
+        return;
+      }
+
+      document.querySelector('.character-editor-empty').style.display = 'none';
+      document.getElementById('characterEditorForm').style.display = 'block';
+
+      // Populate form fields
+      document.getElementById('charName').value = char.name || '';
+      document.getElementById('charLevel').value = char.level || 1;
+      document.getElementById('charAncestry').value = char.ancestry || '';
+      document.getElementById('charClass').value = char.characterClass || '';
+      updateSubclassOptions();
+      document.getElementById('charSubclass').value = char.subclass || '';
+
+      document.getElementById('charCurrentHp').value = char.currentHp || '';
+      document.getElementById('charMaxHp').value = char.maxHp || '';
+      document.getElementById('charCurrentStress').value = char.currentStress || '';
+      document.getElementById('charMaxStress').value = char.maxStress || '';
+      document.getElementById('charArmor').value = char.armor || 0;
+      document.getElementById('charEvasion').value = char.evasion || 10;
+
+      document.getElementById('charMinorThreshold').value = char.minorThreshold || '';
+      document.getElementById('charMajorThreshold').value = char.majorThreshold || '';
+      document.getElementById('charSevereThreshold').value = char.severeThreshold || '';
+
+      // Set domains
+      const domains = ['blade', 'bone', 'codex', 'grace', 'midnight', 'sage', 'splendor', 'valor'];
+      domains.forEach(d => {
+        const checkbox = document.getElementById('domain' + capitalizeFirst(d));
+        if (checkbox) checkbox.checked = (char.domains || []).includes(d);
+      });
+
+      // Set experiences, abilities, feats
+      currentCharacterExperiences = char.experiences || [];
+      currentCharacterAbilities = char.abilities || [];
+      currentCharacterFeats = char.feats || [];
+      renderExperiencesList();
+      renderAbilitiesList();
+      renderFeatsList();
+
+      document.getElementById('charNotes').value = char.notes || '';
+
+      // Portrait
+      const portraitEl = document.getElementById('characterPortrait');
+      if (char.portrait) {
+        portraitEl.innerHTML = `<img src="${char.portrait}" alt="${char.name}">`;
+      } else {
+        portraitEl.innerHTML = '<span class="portrait-placeholder">No Image</span>';
+      }
+
+      renderCharactersList();
+    }
+
+    function updateSubclassOptions() {
+      const classSelect = document.getElementById('charClass');
+      const subclassSelect = document.getElementById('charSubclass');
+      const selectedClass = classSelect.value;
+
+      if (!selectedClass || !SUBCLASS_OPTIONS[selectedClass]) {
+        subclassSelect.innerHTML = '<option value="">Select Class first...</option>';
+        return;
+      }
+
+      subclassSelect.innerHTML = '<option value="">Select Subclass...</option>' +
+        SUBCLASS_OPTIONS[selectedClass].map(sc => `<option value="${sc.toLowerCase().replace(/\s+/g, '-')}">${sc}</option>`).join('');
+    }
+
+    function renderExperiencesList() {
+      const list = document.getElementById('experiencesList');
+      if (!list) return;
+
+      list.innerHTML = currentCharacterExperiences.map((exp, index) => `
+        <div class="experience-item">
+          <span>${exp}</span>
+          <button class="remove-item-btn" onclick="removeExperience(${index})">×</button>
+        </div>
+      `).join('');
+    }
+
+    function addExperience() {
+      const input = document.getElementById('newExperienceInput');
+      const value = input.value.trim();
+      if (!value) return;
+
+      currentCharacterExperiences.push(value);
+      input.value = '';
+      renderExperiencesList();
+    }
+
+    function removeExperience(index) {
+      currentCharacterExperiences.splice(index, 1);
+      renderExperiencesList();
+    }
+
+    function renderFeatsList() {
+      const list = document.getElementById('featsList');
+      if (!list) return;
+
+      list.innerHTML = currentCharacterFeats.map((feat, index) => `
+        <div class="feat-item">
+          <span>${feat}</span>
+          <button class="remove-item-btn" onclick="removeFeat(${index})">×</button>
+        </div>
+      `).join('');
+    }
+
+    function addFeat() {
+      const input = document.getElementById('newFeatInput');
+      const value = input.value.trim();
+      if (!value) return;
+
+      currentCharacterFeats.push(value);
+      input.value = '';
+      renderFeatsList();
+    }
+
+    function removeFeat(index) {
+      currentCharacterFeats.splice(index, 1);
+      renderFeatsList();
+    }
+
+    function renderAbilitiesList() {
+      const list = document.getElementById('abilitiesList');
+      if (!list) return;
+
+      if (currentCharacterAbilities.length === 0) {
+        list.innerHTML = '';
+        return;
+      }
+
+      list.innerHTML = currentCharacterAbilities.map((ability, index) => `
+        <div class="ability-card">
+          <div class="ability-card-header">
+            <span class="ability-name">${ability.name}</span>
+            <span class="ability-type">${ability.type}</span>
+          </div>
+          <div class="ability-description">${ability.description}</div>
+          <div class="ability-actions">
+            <button class="remove-item-btn" onclick="removeAbility(${index})">×</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addAbility() {
+      document.getElementById('addAbilityModal').classList.add('visible');
+      document.getElementById('abilityName').value = '';
+      document.getElementById('abilityType').value = 'passive';
+      document.getElementById('abilityDescription').value = '';
+    }
+
+    function closeAbilityModal(e) {
+      if (e && e.target !== e.currentTarget) return;
+      document.getElementById('addAbilityModal').classList.remove('visible');
+    }
+
+    function saveAbility() {
+      const name = document.getElementById('abilityName').value.trim();
+      const type = document.getElementById('abilityType').value;
+      const description = document.getElementById('abilityDescription').value.trim();
+
+      if (!name) {
+        alert('Please enter an ability name');
+        return;
+      }
+
+      currentCharacterAbilities.push({ name, type, description });
+      renderAbilitiesList();
+      closeAbilityModal();
+    }
+
+    function removeAbility(index) {
+      currentCharacterAbilities.splice(index, 1);
+      renderAbilitiesList();
+    }
+
+    function getSelectedDomains() {
+      const domains = [];
+      const domainNames = ['blade', 'bone', 'codex', 'grace', 'midnight', 'sage', 'splendor', 'valor'];
+      domainNames.forEach(d => {
+        const checkbox = document.getElementById('domain' + capitalizeFirst(d));
+        if (checkbox && checkbox.checked) domains.push(d);
+      });
+      return domains;
+    }
+
+    function saveCurrentCharacter() {
+      if (!selectedCharacterId) return;
+
+      const charIndex = playerCharacters.findIndex(c => c.id === selectedCharacterId);
+      if (charIndex === -1) return;
+
+      const existingChar = playerCharacters[charIndex];
+
+      playerCharacters[charIndex] = {
+        ...existingChar,
+        name: document.getElementById('charName').value,
+        level: parseInt(document.getElementById('charLevel').value) || 1,
+        ancestry: document.getElementById('charAncestry').value,
+        characterClass: document.getElementById('charClass').value,
+        subclass: document.getElementById('charSubclass').value,
+        currentHp: parseInt(document.getElementById('charCurrentHp').value) || 0,
+        maxHp: parseInt(document.getElementById('charMaxHp').value) || 0,
+        currentStress: parseInt(document.getElementById('charCurrentStress').value) || 0,
+        maxStress: parseInt(document.getElementById('charMaxStress').value) || 0,
+        armor: parseInt(document.getElementById('charArmor').value) || 0,
+        evasion: parseInt(document.getElementById('charEvasion').value) || 10,
+        minorThreshold: parseInt(document.getElementById('charMinorThreshold').value) || 0,
+        majorThreshold: parseInt(document.getElementById('charMajorThreshold').value) || 0,
+        severeThreshold: parseInt(document.getElementById('charSevereThreshold').value) || 0,
+        domains: getSelectedDomains(),
+        experiences: currentCharacterExperiences,
+        abilities: currentCharacterAbilities,
+        feats: currentCharacterFeats,
+        notes: document.getElementById('charNotes').value,
+        updatedAt: new Date().toISOString()
+      };
+
+      renderCharactersList();
+      updateTabBadges();
+      scheduleAutoSaveIfAvailable();
+      alert('Character saved!');
+    }
+
+    function deleteCurrentCharacter() {
+      if (!selectedCharacterId) return;
+      if (!confirm('Delete this character? This cannot be undone.')) return;
+
+      playerCharacters = playerCharacters.filter(c => c.id !== selectedCharacterId);
+      selectedCharacterId = null;
+
+      document.querySelector('.character-editor-empty').style.display = 'flex';
+      document.getElementById('characterEditorForm').style.display = 'none';
+
+      renderCharactersList();
+      updateTabBadges();
+      scheduleAutoSaveIfAvailable();
+    }
+
+    // Character Image Upload
+    function showCharacterImageDialog() {
+      document.getElementById('characterImageSourceDialog').style.display = 'flex';
+      document.getElementById('characterUrlInputSection').style.display = 'none';
+    }
+
+    function closeCharacterImageDialog(e) {
+      if (e && e.target !== e.currentTarget) return;
+      document.getElementById('characterImageSourceDialog').style.display = 'none';
+    }
+
+    function chooseCharacterFileUpload() {
+      closeCharacterImageDialog();
+      document.getElementById('characterImageInput').click();
+    }
+
+    function showCharacterUrlInput() {
+      document.getElementById('characterUrlInputSection').style.display = 'block';
+    }
+
+    async function handleCharacterImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file || !selectedCharacterId) return;
+
+      const imageUrl = await uploadImageToCloud(file);
+      setCharacterPortrait(imageUrl);
+    }
+
+    function handleCharacterUrlKeyup(event) {
+      if (event.key === 'Enter') {
+        addCharacterUrl();
+      }
+    }
+
+    function previewCharacterUrlImage() {
+      const url = document.getElementById('characterImageUrlInput').value.trim();
+      const preview = document.getElementById('characterUrlPreview');
+      const addBtn = document.getElementById('characterUrlAddBtn');
+
+      if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+        preview.innerHTML = `<img src="${url}" alt="Preview" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`;
+        addBtn.disabled = false;
+      } else {
+        preview.innerHTML = '';
+        addBtn.disabled = true;
+      }
+    }
+
+    function addCharacterUrl() {
+      const url = document.getElementById('characterImageUrlInput').value.trim();
+      if (!url) return;
+
+      setCharacterPortrait(url);
+      closeCharacterImageDialog();
+      document.getElementById('characterImageUrlInput').value = '';
+      document.getElementById('characterUrlPreview').innerHTML = '';
+    }
+
+    function setCharacterPortrait(imageUrl) {
+      if (!selectedCharacterId) return;
+
+      const charIndex = playerCharacters.findIndex(c => c.id === selectedCharacterId);
+      if (charIndex === -1) return;
+
+      playerCharacters[charIndex].portrait = imageUrl;
+
+      const portraitEl = document.getElementById('characterPortrait');
+      portraitEl.innerHTML = `<img src="${imageUrl}" alt="Character portrait">`;
+
+      renderCharactersList();
+    }
+
+    // Helper to trigger auto-save if cloud features are available
+    function scheduleAutoSaveIfAvailable() {
+      if (window.cloudFeatures?.scheduleAutoSave) {
+        window.cloudFeatures.scheduleAutoSave();
+      }
+    }
+
+    // Expose character and note functions for cloud save/load integration
+    window.getCharactersState = function() {
+      return playerCharacters;
+    };
+
+    window.setCharactersState = function(chars) {
+      playerCharacters = chars || [];
+      renderCharactersList();
+      updateTabBadges();
+    };
+
+    window.getNotesState = function() {
+      return campaignNotes;
+    };
+
+    window.setNotesState = function(notes) {
+      campaignNotes = notes || [];
+      renderNotesList();
     };
   </script>
 

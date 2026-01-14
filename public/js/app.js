@@ -42,8 +42,16 @@ function clearCampaignState() {
   // Clear save status
   updateSaveStatus('');
 
-  // Reset notes
+  // Reset notes (legacy module)
   resetNotes();
+
+  // Clear embedded notes and characters
+  if (typeof window.setNotesState === 'function') {
+    window.setNotesState([]);
+  }
+  if (typeof window.setCharactersState === 'function') {
+    window.setCharactersState([]);
+  }
 }
 
 // Initialize auth and entitlements (non-blocking for demo mode)
@@ -142,11 +150,23 @@ async function loadCampaign(campaignId) {
     currentCampaignId = campaignId;
     currentSceneId = null;
 
-    // Initialize notes if we have the notes feature
+    // Load full campaign data including notes and characters
     const campaign = await api.campaigns.get(campaignId);
+
+    // Initialize notes if we have the notes feature
     if (canUse('notes')) {
+      // Use embedded notes panel (new system)
+      if (typeof window.setNotesState === 'function') {
+        window.setNotesState(campaign.notes || []);
+      }
+      // Also support legacy notes module
       initNotes(campaignId);
       setNotes(campaign.notes);
+    }
+
+    // Load characters into the embedded Characters tab
+    if (typeof window.setCharactersState === 'function') {
+      window.setCharactersState(campaign.characters || []);
     }
 
     // Load scenes for this campaign
@@ -234,18 +254,36 @@ export async function saveScene() {
   }
 }
 
-// Legacy function - now redirects to saveScene
+// Save campaign-level data (notes and characters)
 export async function saveCampaign() {
-  // Save notes to campaign level
-  if (currentCampaignId && canUse('cloudSave')) {
-    try {
-      await api.campaigns.update(currentCampaignId, { notes: getNotes() });
-    } catch (err) {
-      console.error('Failed to save campaign notes:', err);
+  if (!currentCampaignId || !canUse('cloudSave')) return;
+
+  try {
+    updateSaveStatus('Saving...');
+
+    // Get notes from embedded panel or legacy module
+    const notes = typeof window.getNotesState === 'function'
+      ? window.getNotesState()
+      : getNotes();
+
+    // Get characters from embedded panel
+    const characters = typeof window.getCharactersState === 'function'
+      ? window.getCharactersState()
+      : [];
+
+    // Save campaign-level data
+    await api.campaigns.update(currentCampaignId, { notes, characters });
+
+    // Also save scene data if we have a scene selected
+    if (currentSceneId) {
+      await saveScene();
     }
+
+    updateSaveStatus('Saved');
+  } catch (err) {
+    console.error('Failed to save campaign:', err);
+    updateSaveStatus('Save failed');
   }
-  // Save scene data
-  await saveScene();
 }
 
 export async function createNewCampaign() {
@@ -303,10 +341,10 @@ export async function createNewScene() {
 }
 
 export function scheduleAutoSave() {
-  if (!currentCampaignId || !currentSceneId || !canUse('cloudSave')) return;
+  if (!currentCampaignId || !canUse('cloudSave')) return;
 
   if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
-  autoSaveTimeout = setTimeout(saveScene, 2000);
+  autoSaveTimeout = setTimeout(saveCampaign, 2000);
   updateSaveStatus('Unsaved changes');
 }
 
