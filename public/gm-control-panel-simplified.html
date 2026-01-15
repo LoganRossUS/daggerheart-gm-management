@@ -4884,7 +4884,7 @@
 
       // Strip base64 images from tokens before storing (keep URL images)
       // Format must match what battle-map.html expects: { type: 'tokens', tokens: [...] }
-      // Also filter hidden tokens for localStorage (player display uses this)
+      // Player display only gets visible tokens
       const tokensForStorage = visibleTokensForPlayers.map(token => ({
         ...token,
         image: token.image && (token.image.startsWith('http://') || token.image.startsWith('https://'))
@@ -4894,6 +4894,19 @@
       localStorage.setItem('daggerheart-battle-tokens', JSON.stringify({
         type: 'tokens',
         tokens: tokensForStorage,
+        timestamp: Date.now()
+      }));
+
+      // Store ALL tokens for GM state (including hidden ones) so they persist on reload
+      const allTokensForGmStorage = battleMapTokens.map(token => ({
+        ...token,
+        image: token.image && (token.image.startsWith('http://') || token.image.startsWith('https://'))
+          ? token.image
+          : null
+      }));
+      localStorage.setItem('daggerheart-gm-tokens', JSON.stringify({
+        type: 'tokens',
+        tokens: allTokensForGmStorage,
         timestamp: Date.now()
       }));
 
@@ -7533,6 +7546,7 @@
         'daggerheart-spotlight',
         'daggerheart-encounter',
         'daggerheart-battle-tokens',
+        'daggerheart-gm-tokens',
         'daggerheart-battle-grid',
         'daggerheart-staged-battles',
         'daggerheart-battle-map-state',
@@ -7610,8 +7624,9 @@
         }
       }
 
-      // Load tokens
-      const tokensData = localStorage.getItem('daggerheart-battle-tokens');
+      // Load tokens - use GM tokens (includes hidden) with fallback to old key
+      const gmTokensData = localStorage.getItem('daggerheart-gm-tokens');
+      const tokensData = gmTokensData || localStorage.getItem('daggerheart-battle-tokens');
       if (tokensData) {
         const parsed = JSON.parse(tokensData);
         // Handle both old format (array) and new format ({ type: 'tokens', tokens: [...] })
