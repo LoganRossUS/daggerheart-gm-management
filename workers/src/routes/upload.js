@@ -1,6 +1,9 @@
 import { verifyIdToken, getFirestoreDoc, setFirestoreDoc } from '../lib/firebase.js';
 
-const STORAGE_LIMIT_BYTES = 250 * 1024 * 1024; // 250MB for basic tier
+const STORAGE_LIMITS = {
+  basic: 250 * 1024 * 1024,    // 250MB for basic tier
+  premium: 10 * 1024 * 1024 * 1024, // 10GB for premium tier
+};
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per file
 
 export async function handleUpload(request, env, { jsonResponse, errorResponse }) {
@@ -56,8 +59,13 @@ export async function handleUpload(request, env, { jsonResponse, errorResponse }
     return errorResponse(`File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`, 400);
   }
 
-  if (usage.storageBytes + size > STORAGE_LIMIT_BYTES) {
-    return errorResponse('Storage limit exceeded. Delete some files or upgrade your plan.', 403);
+  // Get storage limit based on tier
+  const storageLimit = STORAGE_LIMITS[entitlement.tier] || STORAGE_LIMITS.basic;
+
+  if (usage.storageBytes + size > storageLimit) {
+    const limitMB = storageLimit / (1024 * 1024);
+    const limitDisplay = limitMB >= 1024 ? `${limitMB / 1024}GB` : `${limitMB}MB`;
+    return errorResponse(`Storage limit exceeded (${limitDisplay}). Delete some files or upgrade your plan.`, 403);
   }
 
   // Generate presigned URL for R2 upload
