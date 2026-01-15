@@ -2470,6 +2470,133 @@
       cursor: pointer;
     }
 
+    /* Image Gallery Browser */
+    .image-gallery-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2100;
+    }
+
+    .image-gallery-overlay.visible {
+      display: flex;
+    }
+
+    .image-gallery {
+      background: #1a1a2e;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 700px;
+      width: 95%;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .image-gallery h3 {
+      margin-bottom: 15px;
+      color: #ffd700;
+      flex-shrink: 0;
+    }
+
+    .image-gallery-loading {
+      text-align: center;
+      padding: 40px;
+      color: #888;
+    }
+
+    .image-gallery-empty {
+      text-align: center;
+      padding: 40px;
+      color: #888;
+    }
+
+    .image-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+      overflow-y: auto;
+      padding: 5px;
+      flex: 1;
+      min-height: 200px;
+    }
+
+    .image-gallery-item {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+      position: relative;
+      background: #2a2a3e;
+    }
+
+    .image-gallery-item:hover {
+      border-color: #b388ff;
+      transform: scale(1.02);
+    }
+
+    .image-gallery-item.selected {
+      border-color: #ffd700;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    }
+
+    .image-gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .image-gallery-item-name {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.8);
+      color: #e0e0e0;
+      font-size: 0.65rem;
+      padding: 4px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .image-gallery-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      flex-shrink: 0;
+    }
+
+    .image-gallery-select-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .image-gallery-select-btn:disabled {
+      background: #444;
+      cursor: not-allowed;
+    }
+
+    .image-gallery-cancel-btn {
+      padding: 12px 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      background: transparent;
+      color: #888;
+      cursor: pointer;
+    }
+
     /* Link to full version */
     .full-version-link {
       text-align: center;
@@ -3938,6 +4065,9 @@
           <button class="image-dialog-btn" onclick="chooseCharacterFileUpload()">
             Upload from Computer
           </button>
+          <button class="image-dialog-btn" onclick="browseCharacterImages()">
+            Browse My Uploads
+          </button>
           <button class="image-dialog-btn" onclick="showCharacterUrlInput()">
             Use Image URL
           </button>
@@ -4143,6 +4273,9 @@
         <button class="image-dialog-btn" onclick="chooseFileUpload()">
           Upload from Computer
         </button>
+        <button class="image-dialog-btn" onclick="browseAdversaryImages()">
+          Browse My Uploads
+        </button>
         <button class="image-dialog-btn" onclick="showUrlInput()">
           Use Image URL
         </button>
@@ -4167,6 +4300,9 @@
         <button class="image-dialog-btn" onclick="chooseMapFileUpload()">
           Upload from Computer
         </button>
+        <button class="image-dialog-btn" onclick="browseMapImages()">
+          Browse My Uploads
+        </button>
         <button class="image-dialog-btn" onclick="showMapUrlInput()">
           Use Image URL (CDN)
         </button>
@@ -4190,6 +4326,9 @@
       <div class="image-dialog-options">
         <button class="image-dialog-btn" onclick="choosePlayerTokenFileUpload()">
           Upload from Computer
+        </button>
+        <button class="image-dialog-btn" onclick="browsePlayerTokenImages()">
+          Browse My Uploads
         </button>
         <button class="image-dialog-btn" onclick="showPlayerTokenUrlInput()">
           Use Image URL (CDN)
@@ -4218,6 +4357,9 @@
         <button class="image-dialog-btn" onclick="chooseNpcFileUpload()">
           Upload from Computer
         </button>
+        <button class="image-dialog-btn" onclick="browseNpcImages()">
+          Browse My Uploads
+        </button>
         <button class="image-dialog-btn" onclick="showNpcUrlInput()">
           Use Image URL (CDN)
         </button>
@@ -4231,6 +4373,20 @@
         <div id="npcUrlPreview" class="url-preview"></div>
       </div>
       <button class="image-dialog-cancel" onclick="closeNpcImageDialog()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Image Gallery Browser Modal -->
+  <div id="imageGalleryOverlay" class="image-gallery-overlay" onclick="closeImageGallery(event)">
+    <div class="image-gallery" onclick="event.stopPropagation()">
+      <h3>My Uploaded Images</h3>
+      <div id="imageGalleryContent">
+        <div class="image-gallery-loading">Loading images...</div>
+      </div>
+      <div class="image-gallery-actions">
+        <button class="image-gallery-select-btn" id="gallerySelectBtn" onclick="selectGalleryImage()" disabled>Select Image</button>
+        <button class="image-gallery-cancel-btn" onclick="closeImageGallery()">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -6099,6 +6255,138 @@
       closeNpcImageDialog();
     }
 
+    // ===== Image Gallery Browser Functions =====
+    let galleryCallback = null;
+    let selectedGalleryImageUrl = null;
+    let cachedGalleryImages = null;
+
+    async function openImageGallery(callback) {
+      galleryCallback = callback;
+      selectedGalleryImageUrl = null;
+      document.getElementById('gallerySelectBtn').disabled = true;
+      document.getElementById('imageGalleryOverlay').classList.add('visible');
+
+      const content = document.getElementById('imageGalleryContent');
+      content.innerHTML = '<div class="image-gallery-loading">Loading images...</div>';
+
+      // Check if cloud features available
+      if (!window.cloudFeatures?.canUse?.('cloudSave')) {
+        content.innerHTML = '<div class="image-gallery-empty">Cloud storage requires a subscription to browse uploaded images.</div>';
+        return;
+      }
+
+      try {
+        const result = await window.cloudFeatures.listFiles();
+        cachedGalleryImages = result.files;
+
+        if (!result.files || result.files.length === 0) {
+          content.innerHTML = '<div class="image-gallery-empty">No images uploaded yet. Upload some images first!</div>';
+          return;
+        }
+
+        renderGalleryImages(result.files);
+      } catch (err) {
+        console.error('Failed to load images:', err);
+        content.innerHTML = '<div class="image-gallery-empty">Failed to load images. Please try again.</div>';
+      }
+    }
+
+    function renderGalleryImages(files) {
+      const content = document.getElementById('imageGalleryContent');
+      content.innerHTML = `<div class="image-gallery-grid">
+        ${files.map(file => `
+          <div class="image-gallery-item" onclick="selectGalleryItem(this, '${file.url}')" data-url="${file.url}">
+            <img src="${file.url}" alt="${file.filename}" loading="lazy">
+            <div class="image-gallery-item-name">${file.filename}</div>
+          </div>
+        `).join('')}
+      </div>`;
+    }
+
+    function selectGalleryItem(element, url) {
+      // Remove previous selection
+      document.querySelectorAll('.image-gallery-item.selected').forEach(el => el.classList.remove('selected'));
+
+      // Select current
+      element.classList.add('selected');
+      selectedGalleryImageUrl = url;
+      document.getElementById('gallerySelectBtn').disabled = false;
+    }
+
+    function selectGalleryImage() {
+      if (selectedGalleryImageUrl && galleryCallback) {
+        galleryCallback(selectedGalleryImageUrl);
+      }
+      closeImageGallery();
+    }
+
+    function closeImageGallery(event) {
+      if (event && event.target !== document.getElementById('imageGalleryOverlay')) return;
+      document.getElementById('imageGalleryOverlay').classList.remove('visible');
+      galleryCallback = null;
+      selectedGalleryImageUrl = null;
+    }
+
+    // Gallery openers for each context
+    function browseMapImages() {
+      document.getElementById('mapImageSourceDialog').classList.remove('visible');
+      openImageGallery((url) => {
+        setMapFromUrl(url);
+      });
+    }
+
+    function browsePlayerTokenImages() {
+      document.getElementById('playerTokenImageSourceDialog').classList.remove('visible');
+      openImageGallery((url) => {
+        if (pendingPlayerTokenImageId) {
+          const token = battleMapTokens.find(t => t.id === pendingPlayerTokenImageId);
+          if (token) {
+            token.image = url;
+            renderTokenList();
+            syncBattleMap();
+          }
+          pendingPlayerTokenImageId = null;
+        }
+      });
+    }
+
+    function browseNpcImages() {
+      document.getElementById('npcImageSourceDialog').classList.remove('visible');
+      openImageGallery((url) => {
+        currentNpcImage = url;
+        updateNpcPreview();
+        syncNpcToStorage();
+      });
+    }
+
+    function browseAdversaryImages() {
+      document.getElementById('imageSourceDialog').classList.remove('visible');
+      openImageGallery((url) => {
+        if (pendingImageUploadAdversaryId) {
+          const adv = currentEncounter?.adversaries.find(a => a.id === pendingImageUploadAdversaryId);
+          if (adv) {
+            if (!adv.portraits) adv.portraits = [];
+            adv.portraits.push(url);
+            adv.activePortraitIndex = adv.portraits.length - 1;
+
+            const token = battleMapTokens.find(t => t.id === adv.id);
+            if (token) {
+              token.image = url;
+              syncBattleMap();
+            }
+
+            renderEncounter();
+            saveEncounterState();
+
+            if (spotlightedAdversary === adv.id) {
+              syncSpotlight();
+            }
+          }
+          pendingImageUploadAdversaryId = null;
+        }
+      });
+    }
+
     async function handleAdversaryImageUpload(event) {
       const files = event.target.files;
       if (!files.length || !pendingImageUploadAdversaryId) return;
@@ -7848,6 +8136,13 @@
 
     function showCharacterUrlInput() {
       document.getElementById('characterUrlInputSection').style.display = 'block';
+    }
+
+    function browseCharacterImages() {
+      document.getElementById('characterImageSourceDialog').style.display = 'none';
+      openImageGallery((url) => {
+        setCharacterPortrait(url);
+      });
     }
 
     async function handleCharacterImageUpload(event) {

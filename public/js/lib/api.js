@@ -115,4 +115,9 @@ export const api = {
       return data;
     },
   },
+
+  files: {
+    list: () => apiCall('/files'),
+    delete: (fileId) => apiCall(`/files/${fileId}`, { method: 'DELETE' }),
+  },
 };
