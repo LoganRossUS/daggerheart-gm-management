@@ -1,7 +1,7 @@
 // Main app integration for auth and cloud features
 // This module is loaded alongside the existing embedded JS in the GM control panel
 
-import { initAuth, onAuthChange, signIn, signOut, getCurrentUser } from './lib/auth.js';
+import { initAuth, onAuthChange, signOut, getCurrentUser } from './lib/auth.js';
 import { initEntitlements, waitForEntitlement } from './lib/entitlements.js';
 import { api } from './lib/api.js';
 import { canUse, getEntitlement } from './lib/features.js';
@@ -73,12 +73,9 @@ function setupAuthUI() {
   const userName = document.getElementById('user-name');
   const userTier = document.getElementById('user-tier');
 
-  loginBtn?.addEventListener('click', async () => {
-    try {
-      await signIn();
-    } catch (err) {
-      console.error('Sign in failed:', err);
-    }
+  loginBtn?.addEventListener('click', () => {
+    // Redirect to landing page for authentication options
+    window.location.href = '/';
   });
 
   logoutBtn?.addEventListener('click', async () => {
