@@ -375,6 +375,14 @@ export async function uploadFile(file) {
   return api.upload.uploadFile(file);
 }
 
+// List user's uploaded files from R2 storage
+export async function listFiles() {
+  if (!canUse('cloudSave')) {
+    throw new Error('Cloud storage requires subscription');
+  }
+  return api.files.list();
+}
+
 export async function deleteScene() {
   if (!currentCampaignId || !currentSceneId || !canUse('campaigns')) return;
 
@@ -485,4 +493,5 @@ window.cloudFeatures = {
   canUse,
   getEntitlement,
   uploadFile,
+  listFiles,
 };
