@@ -1,7 +1,7 @@
 const FEATURES = {
   cloudSave: ['basic', 'premium'],
   campaigns: ['basic', 'premium'],
-  notes: ['basic', 'premium'],
+  notes: ['demo', 'basic', 'premium'],
   battlemapUpload: ['basic', 'premium'],
   communityRepo: ['premium'],
 };
