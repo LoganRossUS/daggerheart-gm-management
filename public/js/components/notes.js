@@ -158,9 +158,10 @@ export function resetNotes() {
   notes = [];
   selectedNoteId = null;
 
-  // Clear the notes panel UI
-  const panel = document.getElementById('notes-panel');
-  if (panel) {
-    panel.innerHTML = '';
+  // Only clear the notes list if it exists (don't wipe the entire panel)
+  // The embedded panel in gm-control-panel has its own structure that shouldn't be cleared
+  const notesList = document.getElementById('notes-list');
+  if (notesList) {
+    notesList.innerHTML = '';
   }
 }
