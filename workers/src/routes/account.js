@@ -63,14 +63,42 @@ async function deleteAccount(userId, env, { jsonResponse, errorResponse }) {
       await deleteFirestoreDoc(`users/${userId}/campaigns/${campaign.id}`, env);
     }
 
-    // Delete all user files from R2
+    // Delete all user files from R2 and their Firestore metadata
     try {
-      const r2 = env.R2_BUCKET;
-      if (r2) {
-        const objects = await r2.list({ prefix: `users/${userId}/` });
-        for (const obj of objects.objects) {
-          await r2.delete(obj.key);
+      // First, get file metadata from Firestore
+      const files = await listFirestoreDocs(`users/${userId}/files`, env);
+
+      // Delete each file from R2 and its metadata
+      for (const file of files) {
+        if (file.key && env.STORAGE) {
+          try {
+            await env.STORAGE.delete(file.key);
+          } catch (r2Err) {
+            console.error(`Failed to delete R2 file ${file.key}:`, r2Err);
+          }
         }
+        await deleteFirestoreDoc(`users/${userId}/files/${file.id}`, env);
+      }
+
+      // Also try to list and delete any files directly from R2 (in case metadata is out of sync)
+      if (env.STORAGE) {
+        let cursor;
+        do {
+          const listed = await env.STORAGE.list({
+            prefix: `user-uploads/${userId}/`,
+            cursor
+          });
+
+          for (const obj of listed.objects) {
+            try {
+              await env.STORAGE.delete(obj.key);
+            } catch (delErr) {
+              console.error(`Failed to delete R2 object ${obj.key}:`, delErr);
+            }
+          }
+
+          cursor = listed.truncated ? listed.cursor : null;
+        } while (cursor);
       }
     } catch (r2Err) {
       console.error('Failed to delete R2 files:', r2Err);
