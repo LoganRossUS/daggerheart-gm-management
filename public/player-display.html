@@ -421,6 +421,94 @@
       -webkit-text-fill-color: transparent;
     }
 
+    /* Countdown Display */
+    #countdownDisplay {
+      position: absolute;
+      top: 70px;
+      left: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 50;
+    }
+
+    .countdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, rgba(42, 26, 53, 0.9), rgba(26, 13, 36, 0.9));
+      border-radius: 8px;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      box-shadow: 0 0 15px rgba(123, 45, 142, 0.3);
+    }
+
+    .countdown-item .cd-name {
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      color: #e0e0e0;
+      text-shadow: 0 0 10px rgba(179, 136, 255, 0.5);
+    }
+
+    .countdown-item .cd-value {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(180deg, #b388ff, #7c4dff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .countdown-item .cd-type {
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .countdown-item.type-tension {
+      border-color: rgba(255, 152, 0, 0.5);
+      box-shadow: 0 0 15px rgba(255, 152, 0, 0.3);
+    }
+
+    .countdown-item.type-tension .cd-value {
+      background: linear-gradient(180deg, #ff9800, #f57c00);
+      -webkit-background-clip: text;
+    }
+
+    .countdown-item.type-campaign {
+      border-color: rgba(255, 215, 0, 0.5);
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+
+    .countdown-item.type-campaign .cd-value {
+      background: linear-gradient(180deg, #ffd700, #b8860b);
+      -webkit-background-clip: text;
+    }
+
+    .countdown-item.type-environment {
+      border-color: rgba(76, 175, 80, 0.5);
+      box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+    }
+
+    .countdown-item.type-environment .cd-value {
+      background: linear-gradient(180deg, #4CAF50, #2e7d32);
+      -webkit-background-clip: text;
+    }
+
+    .countdown-item.type-adversary {
+      border-color: rgba(244, 67, 54, 0.5);
+      box-shadow: 0 0 15px rgba(244, 67, 54, 0.3);
+    }
+
+    .countdown-item.type-adversary .cd-value {
+      background: linear-gradient(180deg, #f44336, #c62828);
+      -webkit-background-clip: text;
+    }
+
     /* NPC Portrait Display */
     #npcPortrait {
       position: absolute;
@@ -928,7 +1016,12 @@
   <div id="title">
     <h1>DAGGERHEART</h1>
   </div>
-  
+
+  <!-- Countdown Display -->
+  <div id="countdownDisplay">
+    <!-- Countdowns will be rendered here dynamically -->
+  </div>
+
   <!-- Fear Counter -->
   <div id="fearCounter">
     <div class="label">FEAR</div>
@@ -1141,7 +1234,44 @@
         skull.style.filter = `drop-shadow(0 0 ${isActive ? 12 : 6}px ${isActive ? 'rgba(179, 136, 255, 0.6)' : 'rgba(255, 215, 0, 0.3)'})`;
       }
     }
-    
+
+    // Update countdown display
+    function updateCountdowns(countdownList) {
+      console.log('updateCountdowns called with:', countdownList);
+      const container = document.getElementById('countdownDisplay');
+      container.innerHTML = '';
+
+      if (!countdownList || countdownList.length === 0) {
+        return;
+      }
+
+      countdownList.forEach(cd => {
+        const item = document.createElement('div');
+        item.className = `countdown-item type-${cd.type || 'custom'}`;
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'cd-name';
+        nameEl.textContent = cd.name;
+
+        const valueEl = document.createElement('div');
+        valueEl.className = 'cd-value';
+        valueEl.textContent = cd.value;
+
+        item.appendChild(nameEl);
+        item.appendChild(valueEl);
+
+        // Add type indicator if not custom
+        if (cd.type && cd.type !== 'custom') {
+          const typeEl = document.createElement('div');
+          typeEl.className = 'cd-type';
+          typeEl.textContent = cd.type;
+          item.appendChild(typeEl);
+        }
+
+        container.appendChild(item);
+      });
+    }
+
     // Create 3D die HTML with all faces
     function create3DDie(sides, extraClass = '') {
       const container = document.createElement('div');
@@ -2067,6 +2197,16 @@
             console.log('Received NPC update:', data);
             updateNpcPortrait(data);
           }
+        }
+      });
+
+      // Subscribe to countdown updates
+      roomRef.child('countdowns').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.timestamp) {
+          lastHeartbeatReceived = Date.now();
+          console.log('Received countdown update:', data);
+          updateCountdowns(data.countdowns || []);
         }
       });
 
