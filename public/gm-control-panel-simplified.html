@@ -3458,6 +3458,71 @@
     } catch (e) {
       console.error('Firebase initialization error:', e);
     }
+
+    // Cleanup stale rooms from the database
+    // Runs automatically when GM panel loads to remove old abandoned rooms
+    async function cleanupStaleRooms() {
+      if (!database) {
+        console.log('Firebase not available for cleanup');
+        return;
+      }
+
+      const STALE_THRESHOLD_HOURS = 24; // Rooms older than 24 hours with inactive GM
+      const STALE_THRESHOLD_MS = STALE_THRESHOLD_HOURS * 60 * 60 * 1000;
+      const now = Date.now();
+
+      try {
+        const roomsSnapshot = await database.ref('rooms').once('value');
+        const rooms = roomsSnapshot.val();
+
+        if (!rooms) {
+          console.log('No rooms to cleanup');
+          return;
+        }
+
+        let deletedCount = 0;
+        const deletePromises = [];
+
+        for (const [roomCode, roomData] of Object.entries(rooms)) {
+          const gmData = roomData?.gm;
+
+          // Delete room if:
+          // 1. No GM data exists, or
+          // 2. GM is not active AND timestamp is older than threshold, or
+          // 3. GM timestamp is older than threshold (regardless of active status - they crashed)
+          const shouldDelete =
+            !gmData ||
+            (!gmData.active && gmData.timestamp && (now - gmData.timestamp) > STALE_THRESHOLD_MS) ||
+            (gmData.timestamp && (now - gmData.timestamp) > STALE_THRESHOLD_MS);
+
+          if (shouldDelete) {
+            deletePromises.push(
+              database.ref('rooms/' + roomCode).remove()
+                .then(() => {
+                  deletedCount++;
+                  console.log(`Cleaned up stale room: ${roomCode}`);
+                })
+                .catch(err => console.error(`Failed to delete room ${roomCode}:`, err))
+            );
+          }
+        }
+
+        await Promise.all(deletePromises);
+
+        if (deletedCount > 0) {
+          console.log(`Room cleanup complete: ${deletedCount} stale room(s) removed`);
+        } else {
+          console.log('Room cleanup complete: no stale rooms found');
+        }
+      } catch (e) {
+        console.error('Error during room cleanup:', e);
+      }
+    }
+
+    // Run cleanup when page loads
+    if (database) {
+      cleanupStaleRooms();
+    }
   </script>
 </head>
 <body>
