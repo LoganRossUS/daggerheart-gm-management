@@ -393,6 +393,96 @@
       color: #ffd700;
     }
 
+    /* Quick Note Section */
+    .quicknote-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-left: 15px;
+      border-left: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .quicknote-label {
+      font-size: 0.7rem;
+      color: #888;
+    }
+
+    .quicknote-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #4fc3f7, #0288d1);
+      color: white;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quicknote-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .quicknote-input-container {
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quicknote-input-container.active {
+      display: flex;
+    }
+
+    .quicknote-input {
+      width: 200px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+    }
+
+    .quicknote-input:focus {
+      outline: none;
+      border-color: #4fc3f7;
+    }
+
+    .quicknote-save-btn {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #4CAF50, #2e7d32);
+      color: white;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quicknote-save-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .quicknote-cancel-btn {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+      color: #888;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quicknote-cancel-btn:hover {
+      background: rgba(255,255,255,0.2);
+      color: #e0e0e0;
+    }
+
     /* Tab Navigation */
     .tab-nav {
       display: flex;
@@ -3438,6 +3528,20 @@
         display: none;
       }
 
+      .quicknote-section {
+        width: 100%;
+        order: 2;
+        border-left: none;
+        padding-left: 0;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+      }
+
+      .quicknote-input {
+        flex: 1;
+        width: auto;
+      }
+
       .preview-grid {
         grid-template-columns: 1fr;
       }
@@ -4854,6 +4958,16 @@
       </div>
       <div class="last-roll-display">
         <div class="last-roll-result" id="lastRoll">-</div>
+      </div>
+    </div>
+
+    <div class="quicknote-section">
+      <span class="quicknote-label">NOTE</span>
+      <button class="quicknote-btn" id="quickNoteAddBtn" onclick="showQuickNoteInput()">+ Add</button>
+      <div class="quicknote-input-container" id="quickNoteInputContainer">
+        <input type="text" class="quicknote-input" id="quickNoteInput" placeholder="Enter quick note..." onkeydown="handleQuickNoteKeydown(event)">
+        <button class="quicknote-save-btn" onclick="saveQuickNote()">Save</button>
+        <button class="quicknote-cancel-btn" onclick="hideQuickNoteInput()">X</button>
       </div>
     </div>
   </div>
@@ -10080,6 +10194,59 @@
 
       renderNotesList();
       scheduleAutoSaveIfAvailable();
+    }
+
+    // ========== Quick Note Functions ==========
+    function showQuickNoteInput() {
+      document.getElementById('quickNoteAddBtn').style.display = 'none';
+      document.getElementById('quickNoteInputContainer').classList.add('active');
+      document.getElementById('quickNoteInput').focus();
+    }
+
+    function hideQuickNoteInput() {
+      document.getElementById('quickNoteAddBtn').style.display = 'inline-block';
+      document.getElementById('quickNoteInputContainer').classList.remove('active');
+      document.getElementById('quickNoteInput').value = '';
+    }
+
+    function handleQuickNoteKeydown(event) {
+      if (event.key === 'Enter') {
+        saveQuickNote();
+      } else if (event.key === 'Escape') {
+        hideQuickNoteInput();
+      }
+    }
+
+    function saveQuickNote() {
+      const noteText = document.getElementById('quickNoteInput').value.trim();
+      if (!noteText) {
+        hideQuickNoteInput();
+        return;
+      }
+
+      const newNote = {
+        id: 'note-' + Math.random().toString(36).substr(2, 9),
+        title: noteText.length > 50 ? noteText.substring(0, 50) + '...' : noteText,
+        category: 'session',
+        content: noteText,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      campaignNotes.push(newNote);
+      renderNotesList();
+      scheduleAutoSaveIfAvailable();
+      hideQuickNoteInput();
+
+      // Show brief confirmation
+      const btn = document.getElementById('quickNoteAddBtn');
+      const originalText = btn.textContent;
+      btn.textContent = 'Saved!';
+      btn.style.background = 'linear-gradient(135deg, #4CAF50, #2e7d32)';
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '';
+      }, 1500);
     }
 
     // ========== Character Management ==========
