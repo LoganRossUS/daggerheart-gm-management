@@ -1,0 +1,2871 @@
+{
+  "primary_weapons": {
+    "tier_1": {
+      "level_range": "1",
+      "physical": [
+        {
+          "name": "Broadsword",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Reliable",
+            "description": "+1 to attack rolls"
+          }
+        },
+        {
+          "name": "Longsword",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+3",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Battleaxe",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+3",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Greatsword",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+3",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Massive",
+            "description": "−1 to Evasion; on a successful attack, roll an additional damage die and discard the lowest result."
+          }
+        },
+        {
+          "name": "Mace",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d8+1",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Warhammer",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d12+3",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Heavy",
+            "description": "−1 to Evasion"
+          }
+        },
+        {
+          "name": "Dagger",
+          "trait": "Finesse",
+          "range": "Melee",
+          "damage": "d8+1",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Quarterstaff",
+          "trait": "Instinct",
+          "range": "Melee",
+          "damage": "d10+3",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Cutlass",
+          "trait": "Presence",
+          "range": "Melee",
+          "damage": "d8+1",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Rapier",
+          "trait": "Presence",
+          "range": "Melee",
+          "damage": "d8",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Quick",
+            "description": "When you make an attack, you can mark a Stress to target another creature within range."
+          }
+        },
+        {
+          "name": "Halberd",
+          "trait": "Strength",
+          "range": "Very Close",
+          "damage": "d10+2",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Cumbersome",
+            "description": "−1 to Finesse"
+          }
+        },
+        {
+          "name": "Spear",
+          "trait": "Finesse",
+          "range": "Very Close",
+          "damage": "d10+2",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Cumbersome",
+            "description": "−1 to Finesse"
+          }
+        },
+        {
+          "name": "Shortbow",
+          "trait": "Agility",
+          "range": "Far",
+          "damage": "d6+3",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Crossbow",
+          "trait": "Finesse",
+          "range": "Far",
+          "damage": "d6+1",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Longbow",
+          "trait": "Agility",
+          "range": "Very Far",
+          "damage": "d8+3",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Cumbersome",
+            "description": "−1 to Finesse"
+          }
+        }
+      ],
+      "magic": [
+        {
+          "name": "Arcane Gauntlets",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+3",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Hallowed Axe",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d8+1",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Glowing Rings",
+          "trait": "Agility",
+          "range": "Very Close",
+          "damage": "d10+1",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Hand Runes",
+          "trait": "Instinct",
+          "range": "Very Close",
+          "damage": "d10",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Returning Blade",
+          "trait": "Finesse",
+          "range": "Close",
+          "damage": "d8",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Returning",
+            "description": "When this weapon is thrown within its range, it appears in your hand immediately after the attack."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Shortstaff",
+          "trait": "Instinct",
+          "range": "Close",
+          "damage": "d8+1",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Dualstaff",
+          "trait": "Instinct",
+          "range": "Far",
+          "damage": "d6+3",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Scepter",
+          "trait": "Presence",
+          "range": "Far",
+          "damage": "d6",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Versatile",
+            "description": "This weapon can also be used with these statistics—Presence, Melee, d8."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Wand",
+          "trait": "Knowledge",
+          "range": "Far",
+          "damage": "d6+1",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Greatstaff",
+          "trait": "Knowledge",
+          "range": "Very Far",
+          "damage": "d6",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Powerful",
+            "description": "On a successful attack, roll an additional damage die and discard the lowest result."
+          },
+          "requires_spellcast": true
+        }
+      ]
+    },
+    "tier_2": {
+      "level_range": "2-4",
+      "physical": [
+        {
+          "name": "Improved Broadsword",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+3",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Reliable",
+            "description": "+1 to attack rolls"
+          }
+        },
+        {
+          "name": "Improved Longsword",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+6",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Improved Battleaxe",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+6",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Improved Greatsword",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+6",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Massive",
+            "description": "−1 to Evasion; on a successful attack, roll an additional damage die and discard the lowest result."
+          }
+        },
+        {
+          "name": "Improved Mace",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d8+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Improved Warhammer",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d12+6",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Heavy",
+            "description": "−1 to Evasion"
+          }
+        },
+        {
+          "name": "Improved Dagger",
+          "trait": "Finesse",
+          "range": "Melee",
+          "damage": "d8+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Improved Quarterstaff",
+          "trait": "Instinct",
+          "range": "Melee",
+          "damage": "d10+6",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Improved Cutlass",
+          "trait": "Presence",
+          "range": "Melee",
+          "damage": "d8+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Improved Rapier",
+          "trait": "Presence",
+          "range": "Melee",
+          "damage": "d8+3",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Quick",
+            "description": "When you make an attack, you can mark a Stress to target another creature within range."
+          }
+        },
+        {
+          "name": "Improved Halberd",
+          "trait": "Strength",
+          "range": "Very Close",
+          "damage": "d10+5",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Cumbersome",
+            "description": "−1 to Finesse"
+          }
+        },
+        {
+          "name": "Improved Spear",
+          "trait": "Finesse",
+          "range": "Very Close",
+          "damage": "d10+5",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Cumbersome",
+            "description": "−1 to Finesse"
+          }
+        },
+        {
+          "name": "Improved Shortbow",
+          "trait": "Agility",
+          "range": "Far",
+          "damage": "d6+6",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Improved Crossbow",
+          "trait": "Finesse",
+          "range": "Far",
+          "damage": "d6+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Improved Longbow",
+          "trait": "Agility",
+          "range": "Very Far",
+          "damage": "d8+6",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Cumbersome",
+            "description": "−1 to Finesse"
+          }
+        },
+        {
+          "name": "Gilded Falchion",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Powerful",
+            "description": "On a successful attack, roll an additional damage die and discard the lowest result."
+          }
+        },
+        {
+          "name": "Knuckle Blades",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+6",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Brutal",
+            "description": "When you roll the maximum value on a damage die, roll an additional damage die."
+          }
+        },
+        {
+          "name": "Urok Broadsword",
+          "trait": "Finesse",
+          "range": "Melee",
+          "damage": "d8+3",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Deadly",
+            "description": "When you deal Severe damage, the target must mark an additional HP."
+          }
+        },
+        {
+          "name": "Bladed Whip",
+          "trait": "Agility",
+          "range": "Very Close",
+          "damage": "d8+3",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Quick",
+            "description": "When you make an attack, you can mark a Stress to target another creature within range."
+          }
+        },
+        {
+          "name": "Steelforged Halberd",
+          "trait": "Strength",
+          "range": "Very Close",
+          "damage": "d8+4",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Scary",
+            "description": "On a successful attack, the target must mark a Stress."
+          }
+        },
+        {
+          "name": "War Scythe",
+          "trait": "Finesse",
+          "range": "Very Close",
+          "damage": "d8+5",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Reliable",
+            "description": "+1 to attack rolls"
+          }
+        },
+        {
+          "name": "Blunderbuss",
+          "trait": "Finesse",
+          "range": "Close",
+          "damage": "d8+6",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Reloading",
+            "description": "After you make an attack, roll a d6. On a result of 1, you must mark a Stress to reload this weapon before you can fire it again."
+          }
+        },
+        {
+          "name": "Greatbow",
+          "trait": "Strength",
+          "range": "Far",
+          "damage": "d6+6",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Powerful",
+            "description": "On a successful attack, roll an additional damage die and discard the lowest result."
+          }
+        },
+        {
+          "name": "Finehair Bow",
+          "trait": "Agility",
+          "range": "Very Far",
+          "damage": "d6+5",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Reliable",
+            "description": "+1 to attack rolls"
+          }
+        }
+      ],
+      "magic": [
+        {
+          "name": "Improved Arcane Gauntlets",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+6",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Improved Hallowed Axe",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d8+4",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Improved Glowing Rings",
+          "trait": "Agility",
+          "range": "Very Close",
+          "damage": "d10+5",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Improved Hand Runes",
+          "trait": "Instinct",
+          "range": "Very Close",
+          "damage": "d10+3",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Improved Returning Blade",
+          "trait": "Finesse",
+          "range": "Close",
+          "damage": "d8+3",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Returning",
+            "description": "When this weapon is thrown within its range, it appears in your hand immediately after the attack."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Improved Shortstaff",
+          "trait": "Instinct",
+          "range": "Close",
+          "damage": "d8+4",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Improved Dualstaff",
+          "trait": "Instinct",
+          "range": "Far",
+          "damage": "d6+6",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Improved Scepter",
+          "trait": "Presence",
+          "range": "Far",
+          "damage": "d6+3",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Versatile",
+            "description": "This weapon can also be used with these statistics—Presence, Melee, d8+3."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Improved Wand",
+          "trait": "Knowledge",
+          "range": "Far",
+          "damage": "d6+4",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Improved Greatstaff",
+          "trait": "Knowledge",
+          "range": "Very Far",
+          "damage": "d6+3",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Powerful",
+            "description": "On a successful attack, roll an additional damage die and discard the lowest result."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Ego Blade",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d12+4",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Pompous",
+            "description": "You must have a Presence of 0 or lower to use this weapon."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Casting Sword",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+4",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Versatile",
+            "description": "This weapon can also be used with these statistics—Knowledge, Far, d6+3."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Devouring Dagger",
+          "trait": "Finesse",
+          "range": "Melee",
+          "damage": "d8+4",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Scary",
+            "description": "On a successful attack, the target must mark a Stress."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Hammer of Exota",
+          "trait": "Instinct",
+          "range": "Melee",
+          "damage": "d8+6",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Eruptive",
+            "description": "On a successful attack against a target within Melee range, all other adversaries within Very Close range must succeed on a reaction roll (14) or take half damage."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Yutari Bloodbow",
+          "trait": "Finesse",
+          "range": "Far",
+          "damage": "d6+4",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Brutal",
+            "description": "When you roll the maximum value on a damage die, roll an additional damage die."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Elder Bow",
+          "trait": "Instinct",
+          "range": "Far",
+          "damage": "d6+4",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Powerful",
+            "description": "On a successful attack, roll an additional damage die and discard the lowest result."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Scepter of Elias",
+          "trait": "Presence",
+          "range": "Far",
+          "damage": "d6+3",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Invigorating",
+            "description": "On a successful attack, roll a d4. On a result of 4, clear a Stress."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Wand of Enthrallment",
+          "trait": "Presence",
+          "range": "Far",
+          "damage": "d6+4",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Persuasive",
+            "description": "Before you make a Presence Roll, you can mark a Stress to gain a +2 bonus to the result."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Keeper's Staff",
+          "trait": "Knowledge",
+          "range": "Far",
+          "damage": "d6+4",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Reliable",
+            "description": "+1 to attack rolls"
+          },
+          "requires_spellcast": true
+        }
+      ]
+    },
+    "tier_3": {
+      "level_range": "5-7",
+      "physical": [
+        {
+          "name": "Advanced Broadsword",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+6",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Reliable",
+            "description": "+1 to attack rolls"
+          }
+        },
+        {
+          "name": "Advanced Longsword",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+9",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Advanced Battleaxe",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+9",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Advanced Greatsword",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+9",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Massive",
+            "description": "−1 to Evasion; on a successful attack, roll an additional damage die and discard the lowest result."
+          }
+        },
+        {
+          "name": "Advanced Mace",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d8+7",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Advanced Warhammer",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d12+9",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Heavy",
+            "description": "−1 to Evasion"
+          }
+        },
+        {
+          "name": "Advanced Dagger",
+          "trait": "Finesse",
+          "range": "Melee",
+          "damage": "d8+7",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Advanced Quarterstaff",
+          "trait": "Instinct",
+          "range": "Melee",
+          "damage": "d10+9",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Advanced Cutlass",
+          "trait": "Presence",
+          "range": "Melee",
+          "damage": "d8+7",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Advanced Rapier",
+          "trait": "Presence",
+          "range": "Melee",
+          "damage": "d8+6",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Quick",
+            "description": "When you make an attack, you can mark a Stress to target another creature within range."
+          }
+        },
+        {
+          "name": "Advanced Halberd",
+          "trait": "Strength",
+          "range": "Very Close",
+          "damage": "d10+8",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Cumbersome",
+            "description": "−1 to Finesse"
+          }
+        },
+        {
+          "name": "Advanced Spear",
+          "trait": "Finesse",
+          "range": "Very Close",
+          "damage": "d10+8",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Cumbersome",
+            "description": "−1 to Finesse"
+          }
+        },
+        {
+          "name": "Advanced Shortbow",
+          "trait": "Agility",
+          "range": "Far",
+          "damage": "d6+9",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Advanced Crossbow",
+          "trait": "Finesse",
+          "range": "Far",
+          "damage": "d6+7",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Advanced Longbow",
+          "trait": "Agility",
+          "range": "Very Far",
+          "damage": "d8+9",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Cumbersome",
+            "description": "−1 to Finesse"
+          }
+        },
+        {
+          "name": "Flickerfly Blade",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+5",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Sharpwing",
+            "description": "Gain a bonus to your damage rolls equal to your Agility."
+          }
+        },
+        {
+          "name": "Bravesword",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d12+7",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Brave",
+            "description": "−1 to Evasion; +3 to Severe damage threshold"
+          }
+        },
+        {
+          "name": "Hammer of Wrath",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+7",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Devastating",
+            "description": "Before you make an attack roll, you can mark a Stress to use a d20 as your damage die."
+          }
+        },
+        {
+          "name": "Labrys Axe",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+7",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Protective",
+            "description": "+1 to Armor Score"
+          }
+        },
+        {
+          "name": "Meridian Cutlass",
+          "trait": "Presence",
+          "range": "Melee",
+          "damage": "d10+5",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Dueling",
+            "description": "When there are no other creatures within Close range of the target, gain advantage on your attack roll against them."
+          }
+        },
+        {
+          "name": "Retractable Saber",
+          "trait": "Presence",
+          "range": "Melee",
+          "damage": "d10+7",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Retractable",
+            "description": "The blade can be hidden in the hilt to avoid detection."
+          }
+        },
+        {
+          "name": "Double Flail",
+          "trait": "Agility",
+          "range": "Very Close",
+          "damage": "d10+8",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Powerful",
+            "description": "On a successful attack, roll an additional damage die and discard the lowest result."
+          }
+        },
+        {
+          "name": "Talon Blades",
+          "trait": "Finesse",
+          "range": "Close",
+          "damage": "d10+7",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Brutal",
+            "description": "When you roll the maximum value on a damage die, roll an additional damage die."
+          }
+        },
+        {
+          "name": "Black Powder Revolver",
+          "trait": "Finesse",
+          "range": "Far",
+          "damage": "d6+8",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Reloading",
+            "description": "After you make an attack, roll a d6. On a result of 1, you must mark a Stress to reload this weapon before you can fire it again."
+          }
+        },
+        {
+          "name": "Spiked Bow",
+          "trait": "Agility",
+          "range": "Very Far",
+          "damage": "d6+7",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Versatile",
+            "description": "This weapon can also be used with these statistics—Agility, Melee, d10+5."
+          }
+        }
+      ],
+      "magic": [
+        {
+          "name": "Advanced Arcane Gauntlets",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+9",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Advanced Hallowed Axe",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d8+7",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Advanced Glowing Rings",
+          "trait": "Agility",
+          "range": "Very Close",
+          "damage": "d10+8",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Advanced Hand Runes",
+          "trait": "Instinct",
+          "range": "Very Close",
+          "damage": "d10+6",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Advanced Returning Blade",
+          "trait": "Finesse",
+          "range": "Close",
+          "damage": "d8+6",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Returning",
+            "description": "When this weapon is thrown within its range, it appears in your hand immediately after the attack."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Advanced Shortstaff",
+          "trait": "Instinct",
+          "range": "Close",
+          "damage": "d8+7",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Advanced Dualstaff",
+          "trait": "Instinct",
+          "range": "Far",
+          "damage": "d6+9",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Advanced Scepter",
+          "trait": "Presence",
+          "range": "Far",
+          "damage": "d6+6",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Versatile",
+            "description": "This weapon can also be used with these statistics—Presence, Melee, d8+6."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Advanced Wand",
+          "trait": "Knowledge",
+          "range": "Far",
+          "damage": "d6+7",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Advanced Greatstaff",
+          "trait": "Knowledge",
+          "range": "Very Far",
+          "damage": "d6+6",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Powerful",
+            "description": "On a successful attack, roll an additional damage die and discard the lowest result."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Sword of Eternity",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d10+7",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Timeless",
+            "description": "Once per long rest, you can undo the last attack you made, returning the game state to before the attack."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Duskblade",
+          "trait": "Finesse",
+          "range": "Melee",
+          "damage": "d8+7",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Shadowed",
+            "description": "While in dim light or darkness, gain advantage on attack rolls with this weapon."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Runic Maul",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d12+9",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Inscribed",
+            "description": "When you critically succeed on an attack, the target becomes Vulnerable."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Thornwhip Staff",
+          "trait": "Instinct",
+          "range": "Close",
+          "damage": "d8+7",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Entangling",
+            "description": "On a successful attack, you can spend a Hope to Restrain the target until the end of their next turn."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Radiant Bow",
+          "trait": "Presence",
+          "range": "Far",
+          "damage": "d6+7",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Illuminating",
+            "description": "Your attacks with this weapon illuminate the area around the target until the end of your next turn."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Staff of Whispers",
+          "trait": "Knowledge",
+          "range": "Far",
+          "damage": "d6+7",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Telepathic",
+            "description": "You can communicate telepathically with any creature you can see within Far range."
+          },
+          "requires_spellcast": true
+        }
+      ]
+    },
+    "tier_4": {
+      "level_range": "8-10",
+      "physical": [
+        {
+          "name": "Legendary Broadsword",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+9",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Reliable",
+            "description": "+1 to attack rolls"
+          }
+        },
+        {
+          "name": "Legendary Longsword",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+12",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Legendary Battleaxe",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+12",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Legendary Greatsword",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+12",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Massive",
+            "description": "−1 to Evasion; on a successful attack, roll an additional damage die and discard the lowest result."
+          }
+        },
+        {
+          "name": "Legendary Mace",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d8+10",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Legendary Warhammer",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d12+12",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Heavy",
+            "description": "−1 to Evasion"
+          }
+        },
+        {
+          "name": "Legendary Dagger",
+          "trait": "Finesse",
+          "range": "Melee",
+          "damage": "d8+10",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Legendary Quarterstaff",
+          "trait": "Instinct",
+          "range": "Melee",
+          "damage": "d10+12",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Legendary Cutlass",
+          "trait": "Presence",
+          "range": "Melee",
+          "damage": "d8+10",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Legendary Rapier",
+          "trait": "Presence",
+          "range": "Melee",
+          "damage": "d8+9",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Quick",
+            "description": "When you make an attack, you can mark a Stress to target another creature within range."
+          }
+        },
+        {
+          "name": "Legendary Halberd",
+          "trait": "Strength",
+          "range": "Very Close",
+          "damage": "d10+11",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Cumbersome",
+            "description": "−1 to Finesse"
+          }
+        },
+        {
+          "name": "Legendary Spear",
+          "trait": "Finesse",
+          "range": "Very Close",
+          "damage": "d10+11",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Cumbersome",
+            "description": "−1 to Finesse"
+          }
+        },
+        {
+          "name": "Legendary Shortbow",
+          "trait": "Agility",
+          "range": "Far",
+          "damage": "d6+12",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": null
+        },
+        {
+          "name": "Legendary Crossbow",
+          "trait": "Finesse",
+          "range": "Far",
+          "damage": "d6+10",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Legendary Longbow",
+          "trait": "Agility",
+          "range": "Very Far",
+          "damage": "d8+12",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Cumbersome",
+            "description": "−1 to Finesse"
+          }
+        },
+        {
+          "name": "Dual-Ended Sword",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d10+9",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Quick",
+            "description": "When you make an attack, you can mark a Stress to target another creature within range."
+          }
+        },
+        {
+          "name": "Impact Gauntlet",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+11",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Concussive",
+            "description": "On a successful attack, you can spend a Hope to knock the target back to Far range."
+          }
+        },
+        {
+          "name": "Sledge Axe",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d12+13",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Destructive",
+            "description": "−1 to Agility; on a successful attack, all adversaries within Very Close range must mark a Stress."
+          }
+        },
+        {
+          "name": "Curved Dagger",
+          "trait": "Finesse",
+          "range": "Melee",
+          "damage": "d8+9",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Serrated",
+            "description": "When you roll a 1 on a damage die, it deals 8 damage instead."
+          }
+        },
+        {
+          "name": "Extended Polearm",
+          "trait": "Finesse",
+          "range": "Very Close",
+          "damage": "d8+10",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Long",
+            "description": "This weapon's attack targets all adversaries in a line within range."
+          }
+        },
+        {
+          "name": "Swinging Ropeblade",
+          "trait": "Presence",
+          "range": "Close",
+          "damage": "d8+9",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Grappling",
+            "description": "On a successful attack, you can spend a Hope to Restrain the target or pull them into Melee range with you."
+          }
+        },
+        {
+          "name": "Ricochet Axes",
+          "trait": "Agility",
+          "range": "Far",
+          "damage": "d6+11",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Bouncing",
+            "description": "Mark 1 or more Stress to hit that many targets in range of the attack."
+          }
+        },
+        {
+          "name": "Aantari Bow",
+          "trait": "Finesse",
+          "range": "Far",
+          "damage": "d6+11",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Reliable",
+            "description": "+1 to attack rolls"
+          }
+        },
+        {
+          "name": "Hand Cannon",
+          "trait": "Finesse",
+          "range": "Very Far",
+          "damage": "d6+12",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Reloading",
+            "description": "After you make an attack, roll a d6. On a result of 1, you must mark a Stress to reload this weapon before you can fire it again."
+          }
+        }
+      ],
+      "magic": [
+        {
+          "name": "Legendary Arcane Gauntlets",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+12",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Legendary Hallowed Axe",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d8+10",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Legendary Glowing Rings",
+          "trait": "Agility",
+          "range": "Very Close",
+          "damage": "d10+11",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Legendary Hand Runes",
+          "trait": "Instinct",
+          "range": "Very Close",
+          "damage": "d10+9",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Legendary Returning Blade",
+          "trait": "Finesse",
+          "range": "Close",
+          "damage": "d8+9",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Returning",
+            "description": "When this weapon is thrown within its range, it appears in your hand immediately after the attack."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Legendary Shortstaff",
+          "trait": "Instinct",
+          "range": "Close",
+          "damage": "d8+10",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Legendary Dualstaff",
+          "trait": "Instinct",
+          "range": "Far",
+          "damage": "d8+12",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Legendary Scepter",
+          "trait": "Presence",
+          "range": "Far",
+          "damage": "d6+9",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Versatile",
+            "description": "This weapon can also be used with these statistics—Presence, Melee, d8+6."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Legendary Wand",
+          "trait": "Knowledge",
+          "range": "Far",
+          "damage": "d6+10",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": null,
+          "requires_spellcast": true
+        },
+        {
+          "name": "Legendary Greatstaff",
+          "trait": "Knowledge",
+          "range": "Very Far",
+          "damage": "d6+9",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Powerful",
+            "description": "On a successful attack, roll an additional damage die and discard the lowest result."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Sword of Light & Flame",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d10+11",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Hot",
+            "description": "This weapon cuts through solid material."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Siphoning Gauntlets",
+          "trait": "Presence",
+          "range": "Melee",
+          "damage": "d10+9",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Lifestealing",
+            "description": "On a successful attack, roll a d6. On a result of 6, clear a Hit Point or clear a Stress."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Midas Scythe",
+          "trait": "Knowledge",
+          "range": "Melee",
+          "damage": "d10+9",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Greedy",
+            "description": "Spend a handful of gold to gain a +1 bonus to your Proficiency on a damage roll."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Floating Bladeshards",
+          "trait": "Instinct",
+          "range": "Close",
+          "damage": "d8+9",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Powerful",
+            "description": "On a successful attack, roll an additional damage die and discard the lowest result."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Bloodstaff",
+          "trait": "Instinct",
+          "range": "Far",
+          "damage": "d20+7",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Painful",
+            "description": "Each time you make a successful attack, you must mark a Stress."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Thistlebow",
+          "trait": "Instinct",
+          "range": "Far",
+          "damage": "d6+13",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Reliable",
+            "description": "+1 to attack rolls"
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Wand of Essek",
+          "trait": "Knowledge",
+          "range": "Far",
+          "damage": "d8+13",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Timebending",
+            "description": "You can choose the target of your attack after making your attack roll."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Magus Revolver",
+          "trait": "Finesse",
+          "range": "Very Far",
+          "damage": "d6+13",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Reloading",
+            "description": "After you make an attack, roll a d6. On a result of 1, you must mark a Stress to reload this weapon before you can fire it again."
+          },
+          "requires_spellcast": true
+        },
+        {
+          "name": "Fusion Gloves",
+          "trait": "Knowledge",
+          "range": "Very Far",
+          "damage": "d6+9",
+          "damage_type": "magic",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Bonded",
+            "description": "Gain a bonus to your damage rolls equal to your level."
+          },
+          "requires_spellcast": true
+        }
+      ]
+    }
+  },
+  "secondary_weapons": {
+    "tier_1": {
+      "level_range": "1",
+      "weapons": [
+        {
+          "name": "Shortsword",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Paired",
+            "description": "+2 to primary weapon damage to targets within Melee range"
+          }
+        },
+        {
+          "name": "Round Shield",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Protective",
+            "description": "+1 to Armor Score"
+          }
+        },
+        {
+          "name": "Tower Shield",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d6",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Barrier",
+            "description": "+2 to Armor Score; −1 to Evasion"
+          }
+        },
+        {
+          "name": "Small Dagger",
+          "trait": "Finesse",
+          "range": "Melee",
+          "damage": "d8",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Paired",
+            "description": "+2 to primary weapon damage to targets within Melee range"
+          }
+        },
+        {
+          "name": "Whip",
+          "trait": "Presence",
+          "range": "Very Close",
+          "damage": "d6",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Startling",
+            "description": "Mark a Stress to crack the whip and force all adversaries within Melee range back to Close range."
+          }
+        },
+        {
+          "name": "Grappler",
+          "trait": "Finesse",
+          "range": "Close",
+          "damage": "d6",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Hooked",
+            "description": "On a successful attack, you can pull the target into Melee range."
+          }
+        },
+        {
+          "name": "Hand Crossbow",
+          "trait": "Finesse",
+          "range": "Far",
+          "damage": "d6+1",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        }
+      ]
+    },
+    "tier_2": {
+      "level_range": "2-4",
+      "weapons": [
+        {
+          "name": "Improved Shortsword",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+2",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Paired",
+            "description": "+3 to primary weapon damage to targets within Melee range"
+          }
+        },
+        {
+          "name": "Improved Round Shield",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d4+2",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Protective",
+            "description": "+2 to Armor Score"
+          }
+        },
+        {
+          "name": "Improved Tower Shield",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d6+2",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Barrier",
+            "description": "+3 to Armor Score; −1 to Evasion"
+          }
+        },
+        {
+          "name": "Improved Small Dagger",
+          "trait": "Finesse",
+          "range": "Melee",
+          "damage": "d8+2",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Paired",
+            "description": "+3 to primary weapon damage to targets within Melee range"
+          }
+        },
+        {
+          "name": "Improved Whip",
+          "trait": "Presence",
+          "range": "Very Close",
+          "damage": "d6+2",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Startling",
+            "description": "Mark a Stress to crack the whip and force all adversaries within Melee range back to Close range."
+          }
+        },
+        {
+          "name": "Improved Grappler",
+          "trait": "Finesse",
+          "range": "Close",
+          "damage": "d6+2",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Hooked",
+            "description": "On a successful attack, you can pull the target into Melee range."
+          }
+        },
+        {
+          "name": "Improved Hand Crossbow",
+          "trait": "Finesse",
+          "range": "Far",
+          "damage": "d6+3",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Spiked Shield",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d6+2",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Double Duty",
+            "description": "+1 to Armor Score; +1 to primary weapon damage within Melee range"
+          }
+        },
+        {
+          "name": "Parrying Dagger",
+          "trait": "Finesse",
+          "range": "Melee",
+          "damage": "d6+2",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Parry",
+            "description": "When you are attacked, roll this weapon's damage dice. If any of the attacker's damage dice rolled the same value as your dice, the matching results are discarded from the attacker's damage dice before the damage you take is totaled."
+          }
+        },
+        {
+          "name": "Returning Axe",
+          "trait": "Agility",
+          "range": "Close",
+          "damage": "d6+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Returning",
+            "description": "When this weapon is thrown within its range, it appears in your hand immediately after the attack."
+          }
+        }
+      ]
+    },
+    "tier_3": {
+      "level_range": "5-7",
+      "weapons": [
+        {
+          "name": "Advanced Shortsword",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Paired",
+            "description": "+4 to primary weapon damage to targets within Melee range"
+          }
+        },
+        {
+          "name": "Advanced Round Shield",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d4+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Protective",
+            "description": "+3 to Armor Score"
+          }
+        },
+        {
+          "name": "Advanced Tower Shield",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d6+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Barrier",
+            "description": "+4 to Armor Score; −1 to Evasion"
+          }
+        },
+        {
+          "name": "Advanced Small Dagger",
+          "trait": "Finesse",
+          "range": "Melee",
+          "damage": "d8+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Paired",
+            "description": "+4 to primary weapon damage to targets within Melee range"
+          }
+        },
+        {
+          "name": "Advanced Whip",
+          "trait": "Presence",
+          "range": "Very Close",
+          "damage": "d6+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Startling",
+            "description": "Mark a Stress to crack the whip and force all adversaries within Melee range back to Close range."
+          }
+        },
+        {
+          "name": "Advanced Grappler",
+          "trait": "Finesse",
+          "range": "Close",
+          "damage": "d6+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Hooked",
+            "description": "On a successful attack, you can pull the target into Melee range."
+          }
+        },
+        {
+          "name": "Advanced Hand Crossbow",
+          "trait": "Finesse",
+          "range": "Far",
+          "damage": "d6+5",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Buckler",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d4+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Deflecting",
+            "description": "When you are attacked, you can mark an Armor Slot to gain a bonus to your Evasion equal to your Armor Score against the attack."
+          }
+        },
+        {
+          "name": "Powered Gauntlet",
+          "trait": "Knowledge",
+          "range": "Close",
+          "damage": "d6+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Charged",
+            "description": "Mark a Stress to gain a +1 bonus to your Proficiency on a primary weapon attack."
+          }
+        },
+        {
+          "name": "Hand Sling",
+          "trait": "Finesse",
+          "range": "Very Far",
+          "damage": "d6+4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Versatile",
+            "description": "This weapon can also be used with these statistics—Finesse, Close, d8+4."
+          }
+        }
+      ]
+    },
+    "tier_4": {
+      "level_range": "8-10",
+      "weapons": [
+        {
+          "name": "Legendary Shortsword",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+6",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Paired",
+            "description": "+5 to primary weapon damage to targets within Melee range"
+          }
+        },
+        {
+          "name": "Legendary Round Shield",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d4+6",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Protective",
+            "description": "+4 to Armor Score"
+          }
+        },
+        {
+          "name": "Legendary Tower Shield",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d6+6",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Barrier",
+            "description": "+5 to Armor Score; −1 to Evasion."
+          }
+        },
+        {
+          "name": "Legendary Small Dagger",
+          "trait": "Finesse",
+          "range": "Melee",
+          "damage": "d8+6",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Paired",
+            "description": "+5 to primary weapon damage to targets within Melee range"
+          }
+        },
+        {
+          "name": "Legendary Whip",
+          "trait": "Presence",
+          "range": "Very Close",
+          "damage": "d6+6",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Startling",
+            "description": "Mark a Stress to crack the whip and force all adversaries within Melee range back to Close range."
+          }
+        },
+        {
+          "name": "Legendary Grappler",
+          "trait": "Finesse",
+          "range": "Close",
+          "damage": "d6+6",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Hooked",
+            "description": "On a successful attack, you can pull the target into Melee range."
+          }
+        },
+        {
+          "name": "Legendary Hand Crossbow",
+          "trait": "Finesse",
+          "range": "Far",
+          "damage": "d6+7",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": null
+        },
+        {
+          "name": "Braveshield",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d4+6",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Sheltering",
+            "description": "When you mark an Armor Slot, it reduces damage for you and all allies within Melee range of you who took the same damage."
+          }
+        },
+        {
+          "name": "Knuckle Claws",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d6+8",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Doubled Up",
+            "description": "When you make an attack with your primary weapon, you can deal damage to another target within Melee range."
+          }
+        },
+        {
+          "name": "Primer Shard",
+          "trait": "Instinct",
+          "range": "Very Close",
+          "damage": "d4",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Locked On",
+            "description": "On a successful attack, your next attack against the same target with your primary weapon automatically succeeds."
+          }
+        }
+      ]
+    }
+  },
+  "combat_wheelchairs": {
+    "light_frame": {
+      "description": "Though tough, these wheelchairs have light frames that allow the chair to move with your character in more acrobatic ways. These models are best suited to adventurers who rely on speed and flexibility.",
+      "category": "Primary",
+      "tiers": [
+        {
+          "tier": 1,
+          "name": "Light-Frame Wheelchair",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Quick",
+            "description": "When you make an attack, you can mark a Stress to target another creature within range."
+          }
+        },
+        {
+          "tier": 2,
+          "name": "Improved Light-Frame Wheelchair",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+3",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Quick",
+            "description": "When you make an attack, you can mark a Stress to target another creature within range."
+          }
+        },
+        {
+          "tier": 3,
+          "name": "Advanced Light-Frame Wheelchair",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+6",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Quick",
+            "description": "When you make an attack, you can mark a Stress to target another creature within range."
+          }
+        },
+        {
+          "tier": 4,
+          "name": "Legendary Light-Frame Wheelchair",
+          "trait": "Agility",
+          "range": "Melee",
+          "damage": "d8+9",
+          "damage_type": "physical",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Quick",
+            "description": "When you make an attack, you can mark a Stress to target another creature within range."
+          }
+        }
+      ]
+    },
+    "heavy_frame": {
+      "description": "These wheelchairs have bulky and heavier frames, allowing the chair to lend its weight to your character's attacks. It also makes them a bigger target.",
+      "category": "Primary",
+      "tiers": [
+        {
+          "tier": 1,
+          "name": "Heavy-Frame Wheelchair",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d12+3",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Heavy",
+            "description": "−1 to Evasion"
+          }
+        },
+        {
+          "tier": 2,
+          "name": "Improved Heavy-Frame Wheelchair",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d12+6",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Heavy",
+            "description": "−1 to Evasion"
+          }
+        },
+        {
+          "tier": 3,
+          "name": "Advanced Heavy-Frame Wheelchair",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d12+9",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Heavy",
+            "description": "−1 to Evasion"
+          }
+        },
+        {
+          "tier": 4,
+          "name": "Legendary Heavy-Frame Wheelchair",
+          "trait": "Strength",
+          "range": "Melee",
+          "damage": "d12+12",
+          "damage_type": "physical",
+          "burden": "Two-Handed",
+          "feature": {
+            "name": "Heavy",
+            "description": "−1 to Evasion"
+          }
+        }
+      ]
+    },
+    "arcane_frame": {
+      "description": "These wheelchairs have frames that are attuned to your character and their magic, allowing them to channel their spells through the chair. Unlike other primary magic weapons, the arcane-frame model doesn't specify a trait to use when making an attack with it. Instead, you use the Spellcast trait indicated by your subclass.",
+      "category": "Primary",
+      "requires_spellcast": true,
+      "tiers": [
+        {
+          "tier": 1,
+          "name": "Arcane-Frame Wheelchair",
+          "trait": "Spellcast",
+          "range": "Far",
+          "damage": "d6",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Reliable",
+            "description": "+1 to attack rolls"
+          }
+        },
+        {
+          "tier": 2,
+          "name": "Improved Arcane-Frame Wheelchair",
+          "trait": "Spellcast",
+          "range": "Far",
+          "damage": "d6+3",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Reliable",
+            "description": "+1 to attack rolls"
+          }
+        },
+        {
+          "tier": 3,
+          "name": "Advanced Arcane-Frame Wheelchair",
+          "trait": "Spellcast",
+          "range": "Far",
+          "damage": "d6+6",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Reliable",
+            "description": "+1 to attack rolls"
+          }
+        },
+        {
+          "tier": 4,
+          "name": "Legendary Arcane-Frame Wheelchair",
+          "trait": "Spellcast",
+          "range": "Far",
+          "damage": "d6+9",
+          "damage_type": "magic",
+          "burden": "One-Handed",
+          "feature": {
+            "name": "Reliable",
+            "description": "+1 to attack rolls"
+          }
+        }
+      ]
+    }
+  },
+  "armor": {
+    "tier_1": {
+      "level_range": "1",
+      "armors": [
+        {
+          "name": "Gambeson Armor",
+          "base_thresholds": {
+            "major": 5,
+            "severe": 11
+          },
+          "base_score": 3,
+          "feature": {
+            "name": "Flexible",
+            "description": "+1 to Evasion"
+          }
+        },
+        {
+          "name": "Leather Armor",
+          "base_thresholds": {
+            "major": 6,
+            "severe": 13
+          },
+          "base_score": 3,
+          "feature": null
+        },
+        {
+          "name": "Chainmail Armor",
+          "base_thresholds": {
+            "major": 7,
+            "severe": 15
+          },
+          "base_score": 4,
+          "feature": {
+            "name": "Heavy",
+            "description": "−1 to Evasion"
+          }
+        },
+        {
+          "name": "Full Plate Armor",
+          "base_thresholds": {
+            "major": 8,
+            "severe": 17
+          },
+          "base_score": 4,
+          "feature": {
+            "name": "Very Heavy",
+            "description": "−2 to Evasion; −1 to Agility"
+          }
+        }
+      ]
+    },
+    "tier_2": {
+      "level_range": "2-4",
+      "armors": [
+        {
+          "name": "Improved Gambeson Armor",
+          "base_thresholds": {
+            "major": 7,
+            "severe": 16
+          },
+          "base_score": 4,
+          "feature": {
+            "name": "Flexible",
+            "description": "+1 to Evasion"
+          }
+        },
+        {
+          "name": "Improved Leather Armor",
+          "base_thresholds": {
+            "major": 9,
+            "severe": 20
+          },
+          "base_score": 4,
+          "feature": null
+        },
+        {
+          "name": "Improved Chainmail Armor",
+          "base_thresholds": {
+            "major": 11,
+            "severe": 24
+          },
+          "base_score": 5,
+          "feature": {
+            "name": "Heavy",
+            "description": "−1 to Evasion"
+          }
+        },
+        {
+          "name": "Improved Full Plate Armor",
+          "base_thresholds": {
+            "major": 13,
+            "severe": 28
+          },
+          "base_score": 5,
+          "feature": {
+            "name": "Very Heavy",
+            "description": "−2 to Evasion; −1 to Agility"
+          }
+        },
+        {
+          "name": "Elundrian Chain Armor",
+          "base_thresholds": {
+            "major": 9,
+            "severe": 21
+          },
+          "base_score": 4,
+          "feature": {
+            "name": "Warded",
+            "description": "You reduce incoming magic damage by your Armor Score before applying it to your damage thresholds."
+          }
+        },
+        {
+          "name": "Harrowbone Armor",
+          "base_thresholds": {
+            "major": 9,
+            "severe": 21
+          },
+          "base_score": 4,
+          "feature": {
+            "name": "Resilient",
+            "description": "Before you mark your last Armor Slot, roll a d6. On a result of 6, reduce the severity by one threshold without marking an Armor Slot."
+          }
+        },
+        {
+          "name": "Irontree Breastplate Armor",
+          "base_thresholds": {
+            "major": 9,
+            "severe": 20
+          },
+          "base_score": 4,
+          "feature": {
+            "name": "Reinforced",
+            "description": "When you mark your last Armor Slot, increase your damage thresholds by +2 until you clear at least 1 Armor Slot."
+          }
+        },
+        {
+          "name": "Runetan Floating Armor",
+          "base_thresholds": {
+            "major": 9,
+            "severe": 20
+          },
+          "base_score": 4,
+          "feature": {
+            "name": "Shifting",
+            "description": "When you are targeted for an attack, you can mark an Armor Slot to give the attack roll against you disadvantage."
+          }
+        },
+        {
+          "name": "Tyris Soft Armor",
+          "base_thresholds": {
+            "major": 8,
+            "severe": 18
+          },
+          "base_score": 5,
+          "feature": {
+            "name": "Quiet",
+            "description": "You gain a +2 bonus to rolls you make to move silently."
+          }
+        },
+        {
+          "name": "Rosewild Armor",
+          "base_thresholds": {
+            "major": 11,
+            "severe": 23
+          },
+          "base_score": 5,
+          "feature": {
+            "name": "Hopeful",
+            "description": "When you would spend a Hope, you can mark an Armor Slot instead."
+          }
+        }
+      ]
+    },
+    "tier_3": {
+      "level_range": "5-7",
+      "armors": [
+        {
+          "name": "Advanced Gambeson Armor",
+          "base_thresholds": {
+            "major": 9,
+            "severe": 23
+          },
+          "base_score": 5,
+          "feature": {
+            "name": "Flexible",
+            "description": "+1 to Evasion"
+          }
+        },
+        {
+          "name": "Advanced Leather Armor",
+          "base_thresholds": {
+            "major": 11,
+            "severe": 27
+          },
+          "base_score": 5,
+          "feature": null
+        },
+        {
+          "name": "Advanced Chainmail Armor",
+          "base_thresholds": {
+            "major": 13,
+            "severe": 31
+          },
+          "base_score": 6,
+          "feature": {
+            "name": "Heavy",
+            "description": "−1 to Evasion"
+          }
+        },
+        {
+          "name": "Advanced Full Plate Armor",
+          "base_thresholds": {
+            "major": 15,
+            "severe": 35
+          },
+          "base_score": 6,
+          "feature": {
+            "name": "Very Heavy",
+            "description": "−2 to Evasion; −1 to Agility"
+          }
+        },
+        {
+          "name": "Bellamoi Fine Armor",
+          "base_thresholds": {
+            "major": 11,
+            "severe": 27
+          },
+          "base_score": 5,
+          "feature": {
+            "name": "Gilded",
+            "description": "+1 to Presence"
+          }
+        },
+        {
+          "name": "Dragonscale Armor",
+          "base_thresholds": {
+            "major": 11,
+            "severe": 27
+          },
+          "base_score": 5,
+          "feature": {
+            "name": "Impenetrable",
+            "description": "Once per short rest, when you would mark your last Hit Point, you can instead mark a Stress."
+          }
+        },
+        {
+          "name": "Spiked Plate Armor",
+          "base_thresholds": {
+            "major": 10,
+            "severe": 25
+          },
+          "base_score": 5,
+          "feature": {
+            "name": "Sharp",
+            "description": "On a successful attack against a target within Melee range, add a d4 to the damage roll."
+          }
+        },
+        {
+          "name": "Bladefare Armor",
+          "base_thresholds": {
+            "major": 16,
+            "severe": 39
+          },
+          "base_score": 6,
+          "feature": {
+            "name": "Physical",
+            "description": "You can't mark an Armor Slot to reduce magic damage."
+          }
+        },
+        {
+          "name": "Monett's Cloak",
+          "base_thresholds": {
+            "major": 16,
+            "severe": 39
+          },
+          "base_score": 6,
+          "feature": {
+            "name": "Magic",
+            "description": "You can't mark an Armor Slot to reduce physical damage."
+          }
+        },
+        {
+          "name": "Runes of Fortification",
+          "base_thresholds": {
+            "major": 17,
+            "severe": 43
+          },
+          "base_score": 6,
+          "feature": {
+            "name": "Painful",
+            "description": "Each time you mark an Armor Slot, you must mark a Stress."
+          }
+        }
+      ]
+    },
+    "tier_4": {
+      "level_range": "8-10",
+      "armors": [
+        {
+          "name": "Legendary Gambeson Armor",
+          "base_thresholds": {
+            "major": 11,
+            "severe": 32
+          },
+          "base_score": 6,
+          "feature": {
+            "name": "Flexible",
+            "description": "+1 to Evasion"
+          }
+        },
+        {
+          "name": "Legendary Leather Armor",
+          "base_thresholds": {
+            "major": 13,
+            "severe": 36
+          },
+          "base_score": 6,
+          "feature": null
+        },
+        {
+          "name": "Legendary Chainmail Armor",
+          "base_thresholds": {
+            "major": 15,
+            "severe": 40
+          },
+          "base_score": 7,
+          "feature": {
+            "name": "Heavy",
+            "description": "−1 to Evasion"
+          }
+        },
+        {
+          "name": "Legendary Full Plate Armor",
+          "base_thresholds": {
+            "major": 17,
+            "severe": 44
+          },
+          "base_score": 7,
+          "feature": {
+            "name": "Very Heavy",
+            "description": "−2 to Evasion; −1 to Agility"
+          }
+        },
+        {
+          "name": "Dunamis Silkchain",
+          "base_thresholds": {
+            "major": 13,
+            "severe": 36
+          },
+          "base_score": 7,
+          "feature": {
+            "name": "Timeslowing",
+            "description": "Mark an Armor Slot to roll a d4 and add its result as a bonus to your Evasion against an incoming attack."
+          }
+        },
+        {
+          "name": "Channeling Armor",
+          "base_thresholds": {
+            "major": 13,
+            "severe": 36
+          },
+          "base_score": 5,
+          "feature": {
+            "name": "Channeling",
+            "description": "+1 to Spellcast Rolls"
+          }
+        },
+        {
+          "name": "Emberwoven Armor",
+          "base_thresholds": {
+            "major": 13,
+            "severe": 36
+          },
+          "base_score": 6,
+          "feature": {
+            "name": "Burning",
+            "description": "When an adversary attacks you within Melee range, they mark a Stress."
+          }
+        },
+        {
+          "name": "Full Fortified Armor",
+          "base_thresholds": {
+            "major": 15,
+            "severe": 40
+          },
+          "base_score": 4,
+          "feature": {
+            "name": "Fortified",
+            "description": "When you mark an Armor Slot, you reduce the severity of an attack by two thresholds instead of one."
+          }
+        },
+        {
+          "name": "Veritas Opal Armor",
+          "base_thresholds": {
+            "major": 13,
+            "severe": 36
+          },
+          "base_score": 6,
+          "feature": {
+            "name": "Truthseeking",
+            "description": "This armor glows when another creature within Close range tells a lie."
+          }
+        },
+        {
+          "name": "Savior Chainmail",
+          "base_thresholds": {
+            "major": 18,
+            "severe": 48
+          },
+          "base_score": 8,
+          "feature": {
+            "name": "Difficult",
+            "description": "−1 to all character traits and Evasion"
+          }
+        }
+      ]
+    }
+  },
+  "weapon_features": {
+    "Barrier": "+X to Armor Score; −1 to Evasion",
+    "Bonded": "Gain a bonus to your damage rolls equal to your level.",
+    "Bouncing": "Mark 1 or more Stress to hit that many targets in range of the attack.",
+    "Brave": "−1 to Evasion; +3 to Severe damage threshold",
+    "Brutal": "When you roll the maximum value on a damage die, roll an additional damage die.",
+    "Charged": "Mark a Stress to gain a +1 bonus to your Proficiency on a primary weapon attack.",
+    "Concussive": "On a successful attack, you can spend a Hope to knock the target back to Far range.",
+    "Cumbersome": "−1 to Finesse",
+    "Deadly": "When you deal Severe damage, the target must mark an additional HP.",
+    "Deflecting": "When you are attacked, you can mark an Armor Slot to gain a bonus to your Evasion equal to your Armor Score against the attack.",
+    "Destructive": "−1 to Agility; on a successful attack, all adversaries within Very Close range must mark a Stress.",
+    "Devastating": "Before you make an attack roll, you can mark a Stress to use a d20 as your damage die.",
+    "Double Duty": "+X to Armor Score; +X to primary weapon damage within Melee range",
+    "Doubled Up": "When you make an attack with your primary weapon, you can deal damage to another target within Melee range.",
+    "Dueling": "When there are no other creatures within Close range of the target, gain advantage on your attack roll against them.",
+    "Eruptive": "On a successful attack against a target within Melee range, all other adversaries within Very Close range must succeed on a reaction roll (14) or take half damage.",
+    "Grappling": "On a successful attack, you can spend a Hope to Restrain the target or pull them into Melee range with you.",
+    "Greedy": "Spend a handful of gold to gain a +1 bonus to your Proficiency on a damage roll.",
+    "Heavy": "−1 to Evasion",
+    "Hooked": "On a successful attack, you can pull the target into Melee range.",
+    "Hot": "This weapon cuts through solid material.",
+    "Invigorating": "On a successful attack, roll a d4. On a result of 4, clear a Stress.",
+    "Lifestealing": "On a successful attack, roll a d6. On a result of 6, clear a Hit Point or clear a Stress.",
+    "Locked On": "On a successful attack, your next attack against the same target with your primary weapon automatically succeeds.",
+    "Long": "This weapon's attack targets all adversaries in a line within range.",
+    "Massive": "−1 to Evasion; on a successful attack, roll an additional damage die and discard the lowest result.",
+    "Paired": "+X to primary weapon damage to targets within Melee range",
+    "Painful": "Each time you make a successful attack, you must mark a Stress.",
+    "Parry": "When you are attacked, roll this weapon's damage dice. If any of the attacker's damage dice rolled the same value as your dice, the matching results are discarded from the attacker's damage dice before the damage you take is totaled.",
+    "Persuasive": "Before you make a Presence Roll, you can mark a Stress to gain a +2 bonus to the result.",
+    "Pompous": "You must have a Presence of 0 or lower to use this weapon.",
+    "Powerful": "On a successful attack, roll an additional damage die and discard the lowest result.",
+    "Protective": "+X to Armor Score",
+    "Quick": "When you make an attack, you can mark a Stress to target another creature within range.",
+    "Reliable": "+1 to attack rolls",
+    "Reloading": "After you make an attack, roll a d6. On a result of 1, you must mark a Stress to reload this weapon before you can fire it again.",
+    "Retractable": "The blade can be hidden in the hilt to avoid detection.",
+    "Returning": "When this weapon is thrown within its range, it appears in your hand immediately after the attack.",
+    "Scary": "On a successful attack, the target must mark a Stress.",
+    "Serrated": "When you roll a 1 on a damage die, it deals 8 damage instead.",
+    "Sharpwing": "Gain a bonus to your damage rolls equal to your Agility.",
+    "Sheltering": "When you mark an Armor Slot, it reduces damage for you and all allies within Melee range of you who took the same damage.",
+    "Startling": "Mark a Stress to crack the whip and force all adversaries within Melee range back to Close range.",
+    "Timebending": "You can choose the target of your attack after making your attack roll.",
+    "Versatile": "This weapon can also be used with alternate statistics."
+  },
+  "armor_features": {
+    "Burning": "When an adversary attacks you within Melee range, they mark a Stress.",
+    "Channeling": "+1 to Spellcast Rolls",
+    "Difficult": "−1 to all character traits and Evasion",
+    "Flexible": "+1 to Evasion",
+    "Fortified": "When you mark an Armor Slot, you reduce the severity of an attack by two thresholds instead of one.",
+    "Gilded": "+1 to Presence",
+    "Heavy": "−1 to Evasion",
+    "Hopeful": "When you would spend a Hope, you can mark an Armor Slot instead.",
+    "Impenetrable": "Once per short rest, when you would mark your last Hit Point, you can instead mark a Stress.",
+    "Magic": "You can't mark an Armor Slot to reduce physical damage.",
+    "Painful": "Each time you mark an Armor Slot, you must mark a Stress.",
+    "Physical": "You can't mark an Armor Slot to reduce magic damage.",
+    "Quiet": "You gain a +2 bonus to rolls you make to move silently.",
+    "Reinforced": "When you mark your last Armor Slot, increase your damage thresholds by +2 until you clear at least 1 Armor Slot.",
+    "Resilient": "Before you mark your last Armor Slot, roll a d6. On a result of 6, reduce the severity by one threshold without marking an Armor Slot.",
+    "Sharp": "On a successful attack against a target within Melee range, add a d4 to the damage roll.",
+    "Shifting": "When you are targeted for an attack, you can mark an Armor Slot to give the attack roll against you disadvantage.",
+    "Timeslowing": "Mark an Armor Slot to roll a d4 and add its result as a bonus to your Evasion against an incoming attack.",
+    "Truthseeking": "This armor glows when another creature within Close range tells a lie.",
+    "Very Heavy": "−2 to Evasion; −1 to Agility",
+    "Warded": "You reduce incoming magic damage by your Armor Score before applying it to your damage thresholds."
+  },
+  "ranges": {
+    "Melee": "Adjacent to target",
+    "Very Close": "A few steps away",
+    "Close": "Across a room",
+    "Far": "Down a hall",
+    "Very Far": "At the edge of sight"
+  },
+  "unarmored_stats": {
+    "base_armor_score": 0,
+    "major_threshold": "Equal to level",
+    "severe_threshold": "Equal to twice level"
+  }
+}
