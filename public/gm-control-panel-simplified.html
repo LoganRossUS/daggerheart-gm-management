@@ -3763,6 +3763,323 @@
     #delete-note-btn:hover {
       background: rgba(198, 40, 40, 0.2);
     }
+
+    /* Loot Generator Styles */
+    .loot-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .loot-header {
+      margin-bottom: 20px;
+    }
+
+    .loot-header h3 {
+      font-size: 1.3rem;
+      color: #ffd700;
+      margin-bottom: 5px;
+    }
+
+    .loot-subtitle {
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    .loot-controls {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .loot-control-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .loot-control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .loot-label {
+      font-size: 0.75rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .loot-select {
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      background: rgba(0,0,0,0.3);
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .loot-select:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
+    .loot-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .loot-generate-btn {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      color: #1a1a2e;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .loot-generate-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    }
+
+    .loot-clear-btn {
+      padding: 12px 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      background: transparent;
+      color: #888;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .loot-clear-btn:hover {
+      border-color: rgba(255,255,255,0.4);
+      color: #e0e0e0;
+    }
+
+    .loot-results {
+      min-height: 200px;
+      margin-bottom: 20px;
+    }
+
+    .loot-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      color: #666;
+      text-align: center;
+    }
+
+    .loot-empty-icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
+
+    .loot-empty-hint {
+      font-size: 0.8rem;
+      margin-top: 8px;
+      color: #555;
+    }
+
+    .loot-items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 15px;
+    }
+
+    .loot-card {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 15px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: all 0.2s;
+    }
+
+    .loot-card:hover {
+      border-color: rgba(255,215,0,0.3);
+    }
+
+    .loot-card.common {
+      border-left: 3px solid #9e9e9e;
+    }
+
+    .loot-card.uncommon {
+      border-left: 3px solid #4CAF50;
+    }
+
+    .loot-card.rare {
+      border-left: 3px solid #2196F3;
+    }
+
+    .loot-card.legendary {
+      border-left: 3px solid #ffd700;
+    }
+
+    .loot-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .loot-card-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #e0e0e0;
+    }
+
+    .loot-card-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .loot-card-type {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(179, 136, 255, 0.2);
+      color: #b388ff;
+      text-transform: uppercase;
+    }
+
+    .loot-card-roll {
+      font-size: 0.7rem;
+      color: #666;
+    }
+
+    .loot-card-rarity {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      text-transform: capitalize;
+    }
+
+    .loot-card-rarity.common {
+      background: rgba(158, 158, 158, 0.2);
+      color: #9e9e9e;
+    }
+
+    .loot-card-rarity.uncommon {
+      background: rgba(76, 175, 80, 0.2);
+      color: #4CAF50;
+    }
+
+    .loot-card-rarity.rare {
+      background: rgba(33, 150, 243, 0.2);
+      color: #2196F3;
+    }
+
+    .loot-card-rarity.legendary {
+      background: rgba(255, 215, 0, 0.2);
+      color: #ffd700;
+    }
+
+    .loot-card-description {
+      font-size: 0.85rem;
+      color: #aaa;
+      line-height: 1.5;
+    }
+
+    .loot-reference {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+      overflow: hidden;
+    }
+
+    .loot-reference-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 15px;
+      cursor: pointer;
+      color: #888;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .loot-reference-header:hover {
+      background: rgba(255,255,255,0.05);
+      color: #aaa;
+    }
+
+    .loot-reference-toggle {
+      transition: transform 0.2s;
+    }
+
+    .loot-reference-toggle.open {
+      transform: rotate(180deg);
+    }
+
+    .loot-reference-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .loot-reference-content.open {
+      max-height: 200px;
+    }
+
+    .rarity-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      padding: 0 15px 15px;
+    }
+
+    .rarity-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 4px;
+      background: rgba(0,0,0,0.2);
+    }
+
+    .rarity-item.common .rarity-name {
+      color: #9e9e9e;
+    }
+
+    .rarity-item.uncommon .rarity-name {
+      color: #4CAF50;
+    }
+
+    .rarity-item.rare .rarity-name {
+      color: #2196F3;
+    }
+
+    .rarity-item.legendary .rarity-name {
+      color: #ffd700;
+    }
+
+    .rarity-name {
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .rarity-range {
+      font-size: 0.75rem;
+      color: #666;
+    }
   </style>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -3966,6 +4283,7 @@
     <button class="tab-btn" onclick="switchTab('queue')">Queue <span class="tab-badge" id="queueBadge">0</span></button>
     <button class="tab-btn" onclick="switchTab('characters')">Characters <span class="tab-badge" id="charactersBadge">0</span></button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
+    <button class="tab-btn" onclick="switchTab('loot')">Loot</button>
     <button class="tab-btn" onclick="switchTab('reference')">Reference</button>
   </div>
 
@@ -4403,6 +4721,91 @@
 
       <div class="full-version-link">
         <a href="gm-control-panel.html">Switch to Full GM Control Panel</a>
+      </div>
+    </div>
+
+    <!-- Loot Generator Tab -->
+    <div class="tab-panel" id="lootTab">
+      <div class="loot-container">
+        <div class="loot-header">
+          <h3>Loot Generator</h3>
+          <p class="loot-subtitle">Generate random treasure and consumables for your Daggerheart sessions</p>
+        </div>
+
+        <div class="loot-controls">
+          <div class="loot-control-row">
+            <div class="loot-control-group">
+              <label class="loot-label">Loot Type</label>
+              <select id="lootType" class="loot-select" onchange="updateLootOptions()">
+                <option value="treasure">Treasure (Permanent Items)</option>
+                <option value="consumable">Consumables</option>
+                <option value="both">Both (Mixed)</option>
+              </select>
+            </div>
+
+            <div class="loot-control-group">
+              <label class="loot-label">Rarity</label>
+              <select id="lootRarity" class="loot-select">
+                <option value="any">Any Rarity</option>
+                <option value="common">Common (1-24)</option>
+                <option value="uncommon">Uncommon (25-36)</option>
+                <option value="rare">Rare (37-48)</option>
+                <option value="legendary">Legendary (49-60)</option>
+              </select>
+            </div>
+
+            <div class="loot-control-group">
+              <label class="loot-label">Number of Items</label>
+              <select id="lootCount" class="loot-select">
+                <option value="1">1 Item</option>
+                <option value="2">2 Items</option>
+                <option value="3">3 Items</option>
+                <option value="4">4 Items</option>
+                <option value="5">5 Items</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="loot-actions">
+            <button class="loot-generate-btn" onclick="generateLoot()">Generate Loot</button>
+            <button class="loot-clear-btn" onclick="clearLootResults()">Clear</button>
+          </div>
+        </div>
+
+        <div class="loot-results" id="lootResults">
+          <div class="loot-empty">
+            <div class="loot-empty-icon">&#128176;</div>
+            <div>No loot generated yet</div>
+            <div class="loot-empty-hint">Select your options above and click "Generate Loot" to roll for treasure!</div>
+          </div>
+        </div>
+
+        <div class="loot-reference">
+          <div class="loot-reference-header" onclick="toggleLootReference()">
+            <span>Rarity Roll Reference</span>
+            <span class="loot-reference-toggle" id="lootReferenceToggle">&#9660;</span>
+          </div>
+          <div class="loot-reference-content" id="lootReferenceContent">
+            <div class="rarity-info">
+              <div class="rarity-item common">
+                <span class="rarity-name">Common</span>
+                <span class="rarity-range">Roll 1-24 (1d12 or 2d12)</span>
+              </div>
+              <div class="rarity-item uncommon">
+                <span class="rarity-name">Uncommon</span>
+                <span class="rarity-range">Roll 25-36 (2d12 or 3d12)</span>
+              </div>
+              <div class="rarity-item rare">
+                <span class="rarity-name">Rare</span>
+                <span class="rarity-range">Roll 37-48 (3d12 or 4d12)</span>
+              </div>
+              <div class="rarity-item legendary">
+                <span class="rarity-name">Legendary</span>
+                <span class="rarity-range">Roll 49-60 (4d12 or 5d12)</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -8143,6 +8546,254 @@
     };
 
     // ========== Reference Tab Sub-tabs ==========
+    // ========== Loot Generator ==========
+    const lootData = {
+      loot: [
+        { roll: 1, name: "Premium Bedroll", description: "During downtime, you automatically clear a Stress.", rarity: "common" },
+        { roll: 2, name: "Piper Whistle", description: "This handcrafted whistle has a distinctive sound. When you blow this whistle, its piercing tone can be heard within a 1-mile radius.", rarity: "common" },
+        { roll: 3, name: "Charging Quiver", description: "When you succeed on an attack with an arrow stored in this quiver, gain a bonus to the damage roll equal to your current tier.", rarity: "common" },
+        { roll: 4, name: "Alistair's Torch", description: "You can light this magic torch at will. The flame's light fills a much larger space than it should, enough to illuminate a cave bright as day.", rarity: "common" },
+        { roll: 5, name: "Speaking Orbs", description: "This pair of orbs allows any creatures holding them to communicate with each other across any distance.", rarity: "common" },
+        { roll: 6, name: "Manacles", description: "This pair of locking cuffs comes with a key.", rarity: "common" },
+        { roll: 7, name: "Arcane Cloak", description: "A creature with a Spellcast trait wearing this cloak can adjust its color, texture, and size at will.", rarity: "common" },
+        { roll: 8, name: "Woven Net", description: "You can make a Finesse Roll using this net to trap a small creature. A trapped target can break free with a successful Attack Roll (16).", rarity: "common" },
+        { roll: 9, name: "Fire Jar", description: "You can pour out the strange liquid contents of this jar to instantly produce fire. The contents regenerate when you take a long rest.", rarity: "common" },
+        { roll: 10, name: "Suspended Rod", description: "This flat rod is inscribed with runes. When you activate the rod, it is immediately suspended in place. Until the rod is deactivated, it can't move, doesn't abide by the rules of gravity, and remains in place.", rarity: "common" },
+        { roll: 11, name: "Glamour Stone", description: "Activate this pebble-sized stone to memorize the appearance of someone you can see. Spend a Hope to magically recreate this guise on yourself as an illusion.", rarity: "common" },
+        { roll: 12, name: "Empty Chest", description: "This magical chest appears empty. When you speak a specific trigger word or action and open the chest, you can see the items stored within it.", rarity: "common" },
+        { roll: 13, name: "Companion Case", description: "This case can fit a small animal companion. While the companion is inside, the animal and case are immune to all damage and harmful effects.", rarity: "common" },
+        { roll: 14, name: "Piercing Arrows", description: "Three times per rest when you succeed on an attack with one of these arrows, you can add your Proficiency to the damage roll.", rarity: "common" },
+        { roll: 15, name: "Valorstone", description: "You can attach this stone to armor that doesn't already have a feature. The armor gains the following feature. Resilient: Before you mark your last Armor Slot, roll a d6. On a result of 6, reduce the severity by one threshold without marking an Armor Slot.", rarity: "common" },
+        { roll: 16, name: "Skeleton Key", description: "When you use this key to open a locked door, you gain advantage on the Finesse Roll.", rarity: "common" },
+        { roll: 17, name: "Arcane Prism", description: "Position this prism in a location of your choosing and activate it. All allies within Close range of it gain a +1 bonus to their Spellcast Rolls. While activated, the prism can't be moved. Once the prism is deactivated, it can't be activated again until your next long rest.", rarity: "common" },
+        { roll: 18, name: "Minor Stamina Potion Recipe", description: "As a downtime move, you can use the bone of a creature to craft a Minor Stamina Potion.", rarity: "common" },
+        { roll: 19, name: "Minor Health Potion Recipe", description: "As a downtime move, you can use a vial of blood to craft a Minor Health Potion.", rarity: "common" },
+        { roll: 20, name: "Homing Compasses", description: "These two compasses point toward each other no matter how far apart they are.", rarity: "common" },
+        { roll: 21, name: "Corrector Sprite", description: "This tiny sprite sits in the curve of your ear canal and whispers helpful advice during combat. Once per short rest, you can gain advantage on an attack roll.", rarity: "common" },
+        { roll: 22, name: "Gecko Gloves", description: "You can climb up vertical surfaces and across ceilings.", rarity: "common" },
+        { roll: 23, name: "Lorekeeper", description: "You can store the name and details of up to three hostile creatures inside this book. You gain a +1 bonus to action rolls against those creatures.", rarity: "common" },
+        { roll: 24, name: "Vial of Darksmoke Recipe", description: "As a downtime move, you can mark a Stress to craft a Vial of Darksmoke.", rarity: "common" },
+        { roll: 25, name: "Bloodstone", description: "You can attach this stone to a weapon that doesn't already have a feature. The weapon gains the following feature. Brutal: When you roll the maximum value on a damage die, roll an additional damage die.", rarity: "uncommon" },
+        { roll: 26, name: "Greatstone", description: "You can attach this stone to a weapon that doesn't already have a feature. The weapon gains the following feature. Powerful: On a successful attack, roll an additional damage die and discard the lowest result.", rarity: "uncommon" },
+        { roll: 27, name: "Glider", description: "While falling, you can mark a Stress to deploy this small parachute and glide safely to the ground.", rarity: "uncommon" },
+        { roll: 28, name: "Ring of Silence", description: "Spend a Hope to activate this ring. Your footsteps are silent until your next rest.", rarity: "uncommon" },
+        { roll: 29, name: "Calming Pendant", description: "When you would mark your last Stress, roll a d6. On a result of 5 or higher, don't mark it.", rarity: "uncommon" },
+        { roll: 30, name: "Dual Flask", description: "This flask can hold two different liquids. You can swap between them by flipping a small switch on the flask's side.", rarity: "uncommon" },
+        { roll: 31, name: "Bag of Ficklesand", description: "You can convince this small bag of sand to be much heavier or lighter with a successful Presence Roll (10). Additionally, on a successful Finesse Roll (10), you can blow a bit of sand into a target's face to make them temporarily Vulnerable.", rarity: "uncommon" },
+        { roll: 32, name: "Ring of Resistance", description: "Once per long rest, you can activate this ring after a successful attack against you to halve the damage.", rarity: "uncommon" },
+        { roll: 33, name: "Phoenix Feather", description: "If you have at least one Phoenix Feather on you when you fall unconscious, you gain a +1 bonus to the roll you make to determine whether you gain a scar.", rarity: "uncommon" },
+        { roll: 34, name: "Box of Many Goods", description: "Once per long rest, you can open this small box and roll a d12. On a result of 1-6, it's empty. On a result of 7-10, it contains one random common consumable. On a result of 11-12, it contains two random common consumables.", rarity: "uncommon" },
+        { roll: 35, name: "Airblade Charm", description: "You can attach this charm to a weapon with a Melee range. Three times per rest, you can activate the charm and attack a target within Close range.", rarity: "uncommon" },
+        { roll: 36, name: "Portal Seed", description: "You can plant this seed in the ground to grow a portal in that spot. The portal is ready to use in 24 hours. You can use this portal to travel to any other location where you planted a portal seed. A portal can be destroyed by dealing any amount of magic damage to it.", rarity: "uncommon" },
+        { roll: 37, name: "Paragon's Chain", description: "As a downtime move, you can meditate on an ideal or principle you hold dear and focus your will into this chain. Once per long rest, you can spend a Hope to roll a d20 as your Hope Die for rolls that directly align with that principle.", rarity: "rare" },
+        { roll: 38, name: "Elusive Amulet", description: "Once per long rest, you can activate this amulet to become Hidden until you move. While Hidden in this way, you remain unseen even if an adversary moves to where they would normally see you.", rarity: "rare" },
+        { roll: 39, name: "Hopekeeper Locket", description: "During a long rest, if you have 6 Hope, you can spend a Hope to imbue this locket with your bountiful resolve. When you have 0 Hope, you can use the locket to immediately gain a Hope. The locket must be re-imbued before it can be used this way again.", rarity: "rare" },
+        { roll: 40, name: "Infinite Bag", description: "When you store items in this bag, they are kept in a pocket dimension that never runs out of space. You can retrieve an item at any time.", rarity: "rare" },
+        { roll: 41, name: "Stride Relic", description: "You gain a +1 bonus to your Agility. You can only carry one relic.", rarity: "rare" },
+        { roll: 42, name: "Bolster Relic", description: "You gain a +1 bonus to your Strength. You can only carry one relic.", rarity: "rare" },
+        { roll: 43, name: "Control Relic", description: "You gain a +1 bonus to your Finesse. You can only carry one relic.", rarity: "rare" },
+        { roll: 44, name: "Attune Relic", description: "You gain a +1 bonus to your Instinct. You can only carry one relic.", rarity: "rare" },
+        { roll: 45, name: "Charm Relic", description: "You gain a +1 bonus to your Presence. You can only carry one relic.", rarity: "rare" },
+        { roll: 46, name: "Enlighten Relic", description: "You gain a +1 bonus to your Knowledge. You can only carry one relic.", rarity: "rare" },
+        { roll: 47, name: "Honing Relic", description: "You gain a +1 bonus to an Experience of your choice. You can only carry one relic.", rarity: "rare" },
+        { roll: 48, name: "Flickerfly Pendant", description: "While you carry this pendant, your weapons with a Melee range that deal physical damage have a gossamer sheen and can attack targets within Very Close range.", rarity: "rare" },
+        { roll: 49, name: "Lakestrider Boots", description: "You can walk on the surface of water as if it were soft ground.", rarity: "legendary" },
+        { roll: 50, name: "Clay Companion", description: "When you sculpt this ball of clay into a clay animal companion, it behaves as that animal. For example, a clay spider can spin clay webs, while a clay bird can fly. The clay companion retains memory and identity across different shapes, but they can adopt new mannerisms with each form.", rarity: "legendary" },
+        { roll: 51, name: "Mythic Dust Recipe", description: "As a downtime move, you can use a handful of fine gold dust to craft Mythic Dust.", rarity: "legendary" },
+        { roll: 52, name: "Shard of Memory", description: "Once per long rest, you can spend 2 Hope to recall a domain card from your vault instead of paying its Recall Cost.", rarity: "legendary" },
+        { roll: 53, name: "Gem of Alacrity", description: "You can attach this gem to a weapon, allowing you to use your Agility when making an attack with that weapon.", rarity: "legendary" },
+        { roll: 54, name: "Gem of Might", description: "You can attach this gem to a weapon, allowing you to use your Strength when making an attack with that weapon.", rarity: "legendary" },
+        { roll: 55, name: "Gem of Precision", description: "You can attach this gem to a weapon, allowing you to use your Finesse when making an attack with that weapon.", rarity: "legendary" },
+        { roll: 56, name: "Gem of Insight", description: "You can attach this gem to a weapon, allowing you to use your Instinct when making an attack with that weapon.", rarity: "legendary" },
+        { roll: 57, name: "Gem of Audacity", description: "You can attach this gem to a weapon, allowing you to use your Presence when making an attack with that weapon.", rarity: "legendary" },
+        { roll: 58, name: "Gem of Sagacity", description: "You can attach this gem to a weapon, allowing you to use your Knowledge when making an attack with that weapon.", rarity: "legendary" },
+        { roll: 59, name: "Ring of Unbreakable Resolve", description: "Once per session, when the GM spends a Fear, you can spend 4 Hope to cancel the effects of that spent Fear.", rarity: "legendary" },
+        { roll: 60, name: "Belt of Unity", description: "Once per session, you can spend 5 Hope to lead a Tag Team Roll with three PCs instead of two.", rarity: "legendary" }
+      ],
+      consumables: [
+        { roll: 1, name: "Stride Potion", description: "You gain a +1 bonus to your next Agility Roll.", rarity: "common" },
+        { roll: 2, name: "Bolster Potion", description: "You gain a +1 bonus to your next Strength Roll.", rarity: "common" },
+        { roll: 3, name: "Control Potion", description: "You gain a +1 bonus to your next Finesse Roll.", rarity: "common" },
+        { roll: 4, name: "Attune Potion", description: "You gain a +1 bonus to your next Instinct Roll.", rarity: "common" },
+        { roll: 5, name: "Charm Potion", description: "You gain a +1 bonus to your next Presence Roll.", rarity: "common" },
+        { roll: 6, name: "Enlighten Potion", description: "You gain a +1 bonus to your next Knowledge Roll.", rarity: "common" },
+        { roll: 7, name: "Minor Health Potion", description: "Clear 1d4 HP.", rarity: "common" },
+        { roll: 8, name: "Minor Stamina Potion", description: "Clear 1d4 Stress.", rarity: "common" },
+        { roll: 9, name: "Grindletooth Venom", description: "You can apply this venom to a weapon that deals physical damage to add a d6 to your next damage roll with that weapon.", rarity: "common" },
+        { roll: 10, name: "Varik Leaves", description: "You can eat these paired leaves to immediately gain 2 Hope.", rarity: "common" },
+        { roll: 11, name: "Vial of Moondrip", description: "When you drink the contents of this vial, you can see in total darkness until your next rest.", rarity: "common" },
+        { roll: 12, name: "Unstable Arcane Shard", description: "You can make a Finesse Roll to throw this shard at a group of adversaries within Far range. Targets you succeed against take 1d20 magic damage.", rarity: "common" },
+        { roll: 13, name: "Potion of Stability", description: "You can drink this potion to choose one additional downtime move.", rarity: "common" },
+        { roll: 14, name: "Improved Grindletooth Venom", description: "You can apply this venom to a weapon that deals physical damage to add a d8 to your next damage roll with that weapon.", rarity: "common" },
+        { roll: 15, name: "Morphing Clay", description: "You can spend a Hope to use this clay, altering your face enough to make you unrecognizable until your next rest.", rarity: "common" },
+        { roll: 16, name: "Vial of Darksmoke", description: "When an adversary attacks you, use this vial and roll a number of d6s equal to your Agility. Add the highest result to your Evasion against the attack.", rarity: "common" },
+        { roll: 17, name: "Jumping Root", description: "Eat this root to leap up to Far range once without needing to roll.", rarity: "common" },
+        { roll: 18, name: "Snap Powder", description: "Mark a Stress and clear a HP.", rarity: "common" },
+        { roll: 19, name: "Health Potion", description: "Clear 1d4+1 HP.", rarity: "common" },
+        { roll: 20, name: "Stamina Potion", description: "Clear 1d4+1 Stress.", rarity: "common" },
+        { roll: 21, name: "Armor Stitcher", description: "You can use this stitcher to spend any number of Hope and clear that many Armor Slots.", rarity: "common" },
+        { roll: 22, name: "Gill Salve", description: "You can apply this salve to your neck to breathe underwater for a number of minutes equal to your level.", rarity: "common" },
+        { roll: 23, name: "Replication Parchment", description: "By touching this piece of parchment to another, you can perfectly copy the second parchment's contents. Once used, this parchment becomes mundane paper.", rarity: "common" },
+        { roll: 24, name: "Improved Arcane Shard", description: "You can make a Finesse Roll to throw this shard at a group of adversaries within Far range. Targets you succeed against take 2d20 magic damage.", rarity: "common" },
+        { roll: 25, name: "Major Stride Potion", description: "You gain a +1 bonus to your Agility until your next rest.", rarity: "uncommon" },
+        { roll: 26, name: "Major Bolster Potion", description: "You gain a +1 bonus to your Strength until your next rest.", rarity: "uncommon" },
+        { roll: 27, name: "Major Control Potion", description: "You gain a +1 bonus to your Finesse until your next rest.", rarity: "uncommon" },
+        { roll: 28, name: "Major Attune Potion", description: "You gain a +1 bonus to your Instinct until your next rest.", rarity: "uncommon" },
+        { roll: 29, name: "Major Charm Potion", description: "You gain a +1 bonus to your Presence until your next rest.", rarity: "uncommon" },
+        { roll: 30, name: "Major Enlighten Potion", description: "You gain a +1 bonus to your Knowledge until your next rest.", rarity: "uncommon" },
+        { roll: 31, name: "Blood of the Yorgi", description: "You can drink this blood to disappear from where you are and immediately reappear at a point you can see within Very Far range.", rarity: "uncommon" },
+        { roll: 32, name: "Homet's Secret Potion", description: "After drinking this potion, the next successful attack you make critically succeeds.", rarity: "uncommon" },
+        { roll: 33, name: "Redthorn Saliva", description: "You can apply this saliva to a weapon that deals physical damage to add a d12 to your next damage roll with that weapon.", rarity: "uncommon" },
+        { roll: 34, name: "Channelstone", description: "You can use this stone to take a spell or grimoire from your vault, use it once, and return it to your vault.", rarity: "uncommon" },
+        { roll: 35, name: "Mythic Dust", description: "You can apply this dust to a weapon that deals magic damage to add a d12 to your next damage roll with that weapon.", rarity: "uncommon" },
+        { roll: 36, name: "Acidpaste", description: "This paste eats away walls and other surfaces in bright flashes.", rarity: "uncommon" },
+        { roll: 37, name: "Hopehold Flare", description: "When you use this flare, allies within Close range roll a d6 when they spend a Hope. On a result of 6, they gain the effect of that Hope without spending it. The flare lasts until the end of the scene.", rarity: "rare" },
+        { roll: 38, name: "Major Arcane Shard", description: "You can make a Finesse Roll to throw this shard at a group of adversaries within Far range. Targets you succeed against take 4d20 magic damage.", rarity: "rare" },
+        { roll: 39, name: "Featherbone", description: "You can use this bone to control your falling speed for a number of minutes equal to your level.", rarity: "rare" },
+        { roll: 40, name: "Circle of the Void", description: "Mark a Stress to create a void that extends up to Far range. No magic can be cast inside the void, and creatures within the void are immune to magic damage.", rarity: "rare" },
+        { roll: 41, name: "Sun Tree Sap", description: "Consume this sap to roll a d6. On a result of 5-6, clear 2 HP. On a result of 2-4, clear 3 Stress. On a result of 1, see through the veil of death and return changed, gaining one scar.", rarity: "rare" },
+        { roll: 42, name: "Dripfang Poison", description: "A creature who consumes this poison takes 8d10 direct magic damage.", rarity: "rare" },
+        { roll: 43, name: "Major Health Potion", description: "Clear 1d4+2 HP.", rarity: "rare" },
+        { roll: 44, name: "Major Stamina Potion", description: "Clear 1d4+2 Stress.", rarity: "rare" },
+        { roll: 45, name: "Ogre Musk", description: "You can use this musk to prevent anyone from tracking you by mundane or magical means until your next rest.", rarity: "rare" },
+        { roll: 46, name: "Wingsprout", description: "You gain magic wings that allow you to fly for a number of minutes equal to your level.", rarity: "rare" },
+        { roll: 47, name: "Jar of Lost Voices", description: "You can open this jar to release a deafening echo of voices for a number of minutes equal to your Instinct. Creatures within Far range unprepared for the sound take 6d8 magic damage.", rarity: "rare" },
+        { roll: 48, name: "Dragonbloom Tea", description: "You can drink this tea to unleash a fiery breath attack. Make an Instinct Roll against all adversaries in front of you within Close range. Targets you succeed against take d20 physical damage using your Proficiency.", rarity: "rare" },
+        { roll: 49, name: "Bridge Seed", description: "Thick vines grow from your location to a point of your choice within Far range, allowing you to climb up or across them. The vines dissipate on your next short rest.", rarity: "legendary" },
+        { roll: 50, name: "Sleeping Sap", description: "You can drink this potion to fall asleep for a full night's rest. You clear all Stress upon waking.", rarity: "legendary" },
+        { roll: 51, name: "Feast of Xuria", description: "You can eat this meal to clear all HP and Stress and gain 1d4 Hope.", rarity: "legendary" },
+        { roll: 52, name: "Bonding Honey", description: "This honey can be used to glue two objects together permanently.", rarity: "legendary" },
+        { roll: 53, name: "Shrinking Potion", description: "You can drink this potion to halve your size until you choose to drop this form or your next rest. While in this form, you have a +2 bonus to Agility and a -1 penalty to your Proficiency.", rarity: "legendary" },
+        { roll: 54, name: "Growing Potion", description: "You can drink this potion to double your size until you choose to drop this form or your next rest. While in this form, you have a +2 bonus to Strength and a +1 bonus to your Proficiency.", rarity: "legendary" },
+        { roll: 55, name: "Knowledge Stone", description: "If you die while holding this stone, an ally can take a card from your loadout to place in their loadout or vault. After they take this knowledge, the stone crumbles.", rarity: "legendary" },
+        { roll: 56, name: "Sweet Moss", description: "You can consume this moss during a rest to clear 1d4 HP or 1d4 Stress.", rarity: "legendary" },
+        { roll: 57, name: "Blinding Orb", description: "You can activate this orb to create a flash of bright light. All targets within Close range become Vulnerable until they mark HP.", rarity: "legendary" },
+        { roll: 58, name: "Death Tea", description: "After you drink this tea, you instantly kill your target when you critically succeed on an attack. If you don't critically succeed on an attack before your next long rest, you die.", rarity: "legendary" },
+        { roll: 59, name: "Mirror of Marigold", description: "When you take damage, you can spend a Hope to negate that damage, after which the mirror shatters.", rarity: "legendary" },
+        { roll: 60, name: "Stardrop", description: "You can use this stardrop to summon a hailstorm of comets that deals 8d20 physical damage to all targets within Very Far range.", rarity: "legendary" }
+      ]
+    };
+
+    const rarityRanges = {
+      common: { min: 1, max: 24 },
+      uncommon: { min: 25, max: 36 },
+      rare: { min: 37, max: 48 },
+      legendary: { min: 49, max: 60 }
+    };
+
+    function generateLoot() {
+      const lootType = document.getElementById('lootType').value;
+      const rarity = document.getElementById('lootRarity').value;
+      const count = parseInt(document.getElementById('lootCount').value);
+
+      const results = [];
+
+      for (let i = 0; i < count; i++) {
+        const item = generateSingleItem(lootType, rarity);
+        if (item) results.push(item);
+      }
+
+      renderLootResults(results);
+    }
+
+    function generateSingleItem(lootType, rarity) {
+      // Determine which table to use
+      let table;
+      if (lootType === 'treasure') {
+        table = lootData.loot;
+      } else if (lootType === 'consumable') {
+        table = lootData.consumables;
+      } else {
+        // Both - randomly choose
+        table = Math.random() < 0.5 ? lootData.loot : lootData.consumables;
+      }
+
+      // Get roll range based on rarity
+      let rollMin, rollMax;
+      if (rarity === 'any') {
+        rollMin = 1;
+        rollMax = 60;
+      } else {
+        const range = rarityRanges[rarity];
+        rollMin = range.min;
+        rollMax = range.max;
+      }
+
+      // Generate random roll within range
+      const roll = Math.floor(Math.random() * (rollMax - rollMin + 1)) + rollMin;
+
+      // Find the item
+      const item = table.find(i => i.roll === roll);
+
+      if (item) {
+        return {
+          ...item,
+          type: table === lootData.loot ? 'treasure' : 'consumable',
+          rolledValue: roll
+        };
+      }
+
+      return null;
+    }
+
+    function renderLootResults(results) {
+      const container = document.getElementById('lootResults');
+
+      if (results.length === 0) {
+        container.innerHTML = `
+          <div class="loot-empty">
+            <div class="loot-empty-icon">&#128176;</div>
+            <div>No loot generated</div>
+            <div class="loot-empty-hint">Try different rarity settings</div>
+          </div>
+        `;
+        return;
+      }
+
+      const html = `
+        <div class="loot-items-grid">
+          ${results.map(item => `
+            <div class="loot-card ${item.rarity}">
+              <div class="loot-card-header">
+                <div class="loot-card-name">${item.name}</div>
+                <span class="loot-card-rarity ${item.rarity}">${item.rarity}</span>
+              </div>
+              <div class="loot-card-meta">
+                <span class="loot-card-type">${item.type}</span>
+                <span class="loot-card-roll">Roll: ${item.rolledValue}</span>
+              </div>
+              <div class="loot-card-description">${item.description}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    function clearLootResults() {
+      const container = document.getElementById('lootResults');
+      container.innerHTML = `
+        <div class="loot-empty">
+          <div class="loot-empty-icon">&#128176;</div>
+          <div>No loot generated yet</div>
+          <div class="loot-empty-hint">Select your options above and click "Generate Loot" to roll for treasure!</div>
+        </div>
+      `;
+    }
+
+    function toggleLootReference() {
+      const content = document.getElementById('lootReferenceContent');
+      const toggle = document.getElementById('lootReferenceToggle');
+      content.classList.toggle('open');
+      toggle.classList.toggle('open');
+    }
+
+    function updateLootOptions() {
+      // Placeholder for future enhancements
+      // Could be used to adjust options based on loot type selection
+    }
+
     function switchReferenceSubtab(subtab) {
       document.querySelectorAll('.reference-subtab').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.reference-subpanel').forEach(panel => panel.classList.remove('active'));
