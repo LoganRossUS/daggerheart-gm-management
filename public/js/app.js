@@ -140,6 +140,8 @@ function handleCampaignSelect(e) {
     }
     document.getElementById('new-scene-btn')?.setAttribute('disabled', '');
     document.getElementById('save-scene-btn')?.setAttribute('disabled', '');
+    document.getElementById('delete-campaign-btn')?.setAttribute('disabled', '');
+    document.getElementById('delete-scene-btn')?.setAttribute('disabled', '');
   }
 }
 
@@ -172,8 +174,9 @@ async function loadCampaign(campaignId) {
     // Load scenes for this campaign
     await loadScenes(campaignId);
 
-    // Enable scene creation button
+    // Enable scene creation button and delete campaign button
     document.getElementById('new-scene-btn')?.removeAttribute('disabled');
+    document.getElementById('delete-campaign-btn')?.removeAttribute('disabled');
 
     updateSaveStatus('Campaign loaded');
   } catch (err) {
@@ -209,6 +212,7 @@ function handleSceneSelect(e) {
   } else {
     currentSceneId = null;
     document.getElementById('save-scene-btn')?.setAttribute('disabled', '');
+    document.getElementById('delete-scene-btn')?.setAttribute('disabled', '');
   }
 }
 
@@ -224,8 +228,9 @@ async function loadScene(sceneId) {
       window.loadEncounterState(scene.encounter);
     }
 
-    // Enable save button
+    // Enable save and delete buttons
     document.getElementById('save-scene-btn')?.removeAttribute('disabled');
+    document.getElementById('delete-scene-btn')?.removeAttribute('disabled');
 
     updateSaveStatus('Scene loaded');
   } catch (err) {
@@ -283,6 +288,9 @@ export async function saveCampaign() {
   } catch (err) {
     console.error('Failed to save campaign:', err);
     updateSaveStatus('Save failed');
+    if (err.status === 403) {
+      alert(err.message || 'Limit reached. Upgrade to premium for more capacity.');
+    }
   }
 }
 
@@ -309,6 +317,9 @@ export async function createNewCampaign() {
     updateSaveStatus('Created');
   } catch (err) {
     console.error('Failed to create campaign:', err);
+    if (err.status === 403) {
+      alert(err.message || 'Campaign limit reached. Upgrade to premium for more campaigns.');
+    }
   }
 }
 
@@ -337,6 +348,9 @@ export async function createNewScene() {
     updateSaveStatus('Scene created');
   } catch (err) {
     console.error('Failed to create scene:', err);
+    if (err.status === 403) {
+      alert(err.message || 'Scene limit reached. Upgrade to premium for more scenes.');
+    }
   }
 }
 
@@ -361,6 +375,102 @@ export async function uploadFile(file) {
   return api.upload.uploadFile(file);
 }
 
+export async function deleteScene() {
+  if (!currentCampaignId || !currentSceneId || !canUse('campaigns')) return;
+
+  const sceneSelect = document.getElementById('scene-select');
+  const sceneName = sceneSelect?.options[sceneSelect.selectedIndex]?.text || 'this scene';
+
+  if (!confirm(`Are you sure you want to delete "${sceneName}"? This cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    updateSaveStatus('Deleting...');
+    await api.scenes.delete(currentCampaignId, currentSceneId);
+
+    // Clear current scene
+    currentSceneId = null;
+
+    // Disable scene buttons
+    document.getElementById('save-scene-btn')?.setAttribute('disabled', '');
+    document.getElementById('delete-scene-btn')?.setAttribute('disabled', '');
+
+    // Refresh scenes list
+    await loadScenes(currentCampaignId);
+
+    updateSaveStatus('Scene deleted');
+  } catch (err) {
+    console.error('Failed to delete scene:', err);
+    updateSaveStatus('Delete failed');
+  }
+}
+
+export async function deleteCampaign() {
+  if (!currentCampaignId || !canUse('campaigns')) return;
+
+  const campaignSelect = document.getElementById('campaign-select');
+  const campaignName = campaignSelect?.options[campaignSelect.selectedIndex]?.text || 'this campaign';
+
+  if (!confirm(`Are you sure you want to delete "${campaignName}"? This will delete all scenes, notes, and characters in this campaign. This cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    updateSaveStatus('Deleting...');
+    await api.campaigns.delete(currentCampaignId);
+
+    // Clear state
+    currentCampaignId = null;
+    currentSceneId = null;
+
+    // Clear and disable scene controls
+    const sceneSelect = document.getElementById('scene-select');
+    if (sceneSelect) {
+      sceneSelect.innerHTML = '<option value="">Select Scene...</option>';
+      sceneSelect.disabled = true;
+    }
+    document.getElementById('new-scene-btn')?.setAttribute('disabled', '');
+    document.getElementById('save-scene-btn')?.setAttribute('disabled', '');
+    document.getElementById('delete-scene-btn')?.setAttribute('disabled', '');
+    document.getElementById('delete-campaign-btn')?.setAttribute('disabled', '');
+
+    // Clear notes and characters
+    if (typeof window.setNotesState === 'function') {
+      window.setNotesState([]);
+    }
+    if (typeof window.setCharactersState === 'function') {
+      window.setCharactersState([]);
+    }
+
+    // Refresh campaigns list
+    await loadCampaigns();
+
+    updateSaveStatus('Campaign deleted');
+  } catch (err) {
+    console.error('Failed to delete campaign:', err);
+    updateSaveStatus('Delete failed');
+  }
+}
+
+export async function deleteAccount() {
+  try {
+    await api.account.delete();
+
+    // Clear local state
+    currentCampaignId = null;
+    currentSceneId = null;
+
+    // Sign out
+    await signOut();
+
+    return true;
+  } catch (err) {
+    console.error('Failed to delete account:', err);
+    throw err;
+  }
+}
+
 // Export for use by existing app
 window.cloudFeatures = {
   initCloudFeatures,
@@ -368,6 +478,9 @@ window.cloudFeatures = {
   createNewCampaign,
   saveScene,
   createNewScene,
+  deleteScene,
+  deleteCampaign,
+  deleteAccount,
   scheduleAutoSave,
   canUse,
   getEntitlement,

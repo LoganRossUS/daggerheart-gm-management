@@ -1,6 +1,7 @@
 import { handleAuth } from './routes/auth.js';
 import { handleCampaigns } from './routes/campaigns.js';
 import { handleUpload } from './routes/upload.js';
+import { handleAccount } from './routes/account.js';
 
 function corsHeaders() {
   return {
@@ -44,6 +45,9 @@ export default {
       }
       if (path.startsWith('/api/upload')) {
         return handleUpload(request, env, { jsonResponse, errorResponse });
+      }
+      if (path.startsWith('/api/account')) {
+        return handleAccount(request, env, { jsonResponse, errorResponse });
       }
 
       return errorResponse('Not Found', 404);

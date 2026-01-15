@@ -45,7 +45,7 @@ export async function handleCampaigns(request, env, { jsonResponse, errorRespons
   // POST /api/campaigns - Create campaign
   if (path === '/api/campaigns' && method === 'POST') {
     const body = await request.json();
-    return createCampaign(userId, body, env, { jsonResponse, errorResponse });
+    return createCampaign(userId, body, env, { jsonResponse, errorResponse }, entitlement);
   }
 
   // GET /api/campaigns/:id - Get campaign
@@ -58,7 +58,7 @@ export async function handleCampaigns(request, env, { jsonResponse, errorRespons
   const putMatch = path.match(/^\/api\/campaigns\/([^/]+)$/);
   if (putMatch && method === 'PUT') {
     const body = await request.json();
-    return updateCampaign(userId, putMatch[1], body, env, { jsonResponse, errorResponse });
+    return updateCampaign(userId, putMatch[1], body, env, { jsonResponse, errorResponse }, entitlement);
   }
 
   // DELETE /api/campaigns/:id - Delete campaign
@@ -79,7 +79,7 @@ export async function handleCampaigns(request, env, { jsonResponse, errorRespons
   const createSceneMatch = path.match(/^\/api\/campaigns\/([^/]+)\/scenes$/);
   if (createSceneMatch && method === 'POST') {
     const body = await request.json();
-    return createScene(userId, createSceneMatch[1], body, env, { jsonResponse, errorResponse });
+    return createScene(userId, createSceneMatch[1], body, env, { jsonResponse, errorResponse }, entitlement);
   }
 
   // GET /api/campaigns/:campaignId/scenes/:sceneId - Get scene
@@ -113,7 +113,7 @@ export async function handleCampaigns(request, env, { jsonResponse, errorRespons
   const createCharMatch = path.match(/^\/api\/campaigns\/([^/]+)\/characters$/);
   if (createCharMatch && method === 'POST') {
     const body = await request.json();
-    return createCharacter(userId, createCharMatch[1], body, env, { jsonResponse, errorResponse });
+    return createCharacter(userId, createCharMatch[1], body, env, { jsonResponse, errorResponse }, entitlement);
   }
 
   // GET /api/campaigns/:campaignId/characters/:characterId - Get character
@@ -148,8 +148,16 @@ async function listCampaigns(userId, env, { jsonResponse, errorResponse }) {
   }
 }
 
-async function createCampaign(userId, data, env, { jsonResponse, errorResponse }) {
+async function createCampaign(userId, data, env, { jsonResponse, errorResponse }, entitlement) {
   try {
+    // Check campaign limit for basic tier
+    if (entitlement?.tier === 'basic') {
+      const existingCampaigns = await listFirestoreDocs(`users/${userId}/campaigns`, env);
+      if (existingCampaigns.length >= 1) {
+        return errorResponse('Basic tier is limited to 1 campaign. Upgrade to premium for unlimited campaigns.', 403);
+      }
+    }
+
     const campaignId = crypto.randomUUID();
     const now = new Date().toISOString();
 
@@ -190,13 +198,80 @@ async function getCampaign(userId, campaignId, env, { jsonResponse, errorRespons
   }
 }
 
-async function updateCampaign(userId, campaignId, data, env, { jsonResponse, errorResponse }) {
+async function updateCampaign(userId, campaignId, data, env, { jsonResponse, errorResponse }, entitlement) {
   try {
     // Verify campaign exists and belongs to user
     const existing = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}`, env);
 
     if (!existing) {
       return errorResponse('Campaign not found', 404);
+    }
+
+    // Handle characters array - sync to subcollection
+    if (data.characters && Array.isArray(data.characters)) {
+      // Check character limit for basic tier
+      if (entitlement?.tier === 'basic' && data.characters.length > 10) {
+        return errorResponse('Basic tier is limited to 10 characters per campaign. Upgrade to premium for unlimited characters.', 403);
+      }
+
+      // Get existing characters from subcollection
+      const existingCharacters = await listFirestoreDocs(`users/${userId}/campaigns/${campaignId}/characters`, env);
+      const existingCharIds = new Set(existingCharacters.map(c => c.id));
+      const newCharIds = new Set(data.characters.map(c => c.id));
+
+      // Delete characters that are no longer in the list
+      for (const existingChar of existingCharacters) {
+        if (!newCharIds.has(existingChar.id)) {
+          await deleteFirestoreDoc(`users/${userId}/campaigns/${campaignId}/characters/${existingChar.id}`, env);
+        }
+      }
+
+      // Create or update characters
+      const now = new Date().toISOString();
+      for (const char of data.characters) {
+        const charId = char.id || crypto.randomUUID();
+        const character = {
+          ...char,
+          id: charId,
+          updatedAt: now,
+          createdAt: char.createdAt || now,
+        };
+        await setFirestoreDoc(`users/${userId}/campaigns/${campaignId}/characters/${charId}`, character, env);
+      }
+
+      // Remove characters from campaign document data (it's stored in subcollection)
+      delete data.characters;
+    }
+
+    // Handle notes array - sync to subcollection
+    if (data.notes && Array.isArray(data.notes)) {
+      // Get existing notes from subcollection
+      const existingNotes = await listFirestoreDocs(`users/${userId}/campaigns/${campaignId}/notes`, env);
+      const existingNoteIds = new Set(existingNotes.map(n => n.id));
+      const newNoteIds = new Set(data.notes.filter(n => n.id).map(n => n.id));
+
+      // Delete notes that are no longer in the list
+      for (const existingNote of existingNotes) {
+        if (!newNoteIds.has(existingNote.id)) {
+          await deleteFirestoreDoc(`users/${userId}/campaigns/${campaignId}/notes/${existingNote.id}`, env);
+        }
+      }
+
+      // Create or update notes
+      const now = new Date().toISOString();
+      for (const note of data.notes) {
+        const noteId = note.id || crypto.randomUUID();
+        const noteData = {
+          ...note,
+          id: noteId,
+          updatedAt: now,
+          createdAt: note.createdAt || now,
+        };
+        await setFirestoreDoc(`users/${userId}/campaigns/${campaignId}/notes/${noteId}`, noteData, env);
+      }
+
+      // Remove notes from campaign document data (it's stored in subcollection)
+      delete data.notes;
     }
 
     const updated = {
@@ -245,12 +320,20 @@ async function listScenes(userId, campaignId, env, { jsonResponse, errorResponse
   }
 }
 
-async function createScene(userId, campaignId, data, env, { jsonResponse, errorResponse }) {
+async function createScene(userId, campaignId, data, env, { jsonResponse, errorResponse }, entitlement) {
   try {
     // Verify campaign exists
     const campaign = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}`, env);
     if (!campaign) {
       return errorResponse('Campaign not found', 404);
+    }
+
+    // Check scene limit for basic tier
+    if (entitlement?.tier === 'basic') {
+      const existingScenes = await listFirestoreDocs(`users/${userId}/campaigns/${campaignId}/scenes`, env);
+      if (existingScenes.length >= 10) {
+        return errorResponse('Basic tier is limited to 10 scenes per campaign. Upgrade to premium for unlimited scenes.', 403);
+      }
     }
 
     const sceneId = crypto.randomUUID();
@@ -352,12 +435,20 @@ async function listCharacters(userId, campaignId, env, { jsonResponse, errorResp
   }
 }
 
-async function createCharacter(userId, campaignId, data, env, { jsonResponse, errorResponse }) {
+async function createCharacter(userId, campaignId, data, env, { jsonResponse, errorResponse }, entitlement) {
   try {
     // Verify campaign exists
     const campaign = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}`, env);
     if (!campaign) {
       return errorResponse('Campaign not found', 404);
+    }
+
+    // Check character limit for basic tier
+    if (entitlement?.tier === 'basic') {
+      const existingCharacters = await listFirestoreDocs(`users/${userId}/campaigns/${campaignId}/characters`, env);
+      if (existingCharacters.length >= 10) {
+        return errorResponse('Basic tier is limited to 10 characters per campaign. Upgrade to premium for unlimited characters.', 403);
+      }
     }
 
     const characterId = data.id || crypto.randomUUID();
