@@ -2931,6 +2931,100 @@
       transform: scale(1.02);
     }
 
+    /* PC Selection Dialog */
+    .pc-selection-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .pc-selection-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pc-selection-item:hover {
+      background: rgba(76, 175, 80, 0.15);
+      border-color: rgba(76, 175, 80, 0.3);
+    }
+
+    .pc-selection-item .pc-portrait {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.4);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .pc-selection-item .pc-portrait img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .pc-selection-item .pc-info {
+      flex: 1;
+    }
+
+    .pc-selection-item .pc-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .pc-selection-item .pc-meta {
+      font-size: 0.75rem;
+      color: #888;
+    }
+
+    .pc-selection-item .pc-add-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #4CAF50, #388E3C);
+      color: white;
+      font-size: 0.75rem;
+      font-family: 'Cinzel', serif;
+      cursor: pointer;
+    }
+
+    .pc-selection-item .pc-add-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .pc-selection-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 15px 0;
+      color: #666;
+      font-size: 0.8rem;
+    }
+
+    .pc-selection-divider::before,
+    .pc-selection-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .pc-selection-empty {
+      text-align: center;
+      color: #666;
+      padding: 20px;
+      font-size: 0.85rem;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .battle-grid {
@@ -3686,6 +3780,31 @@
       </div>
     </div>
 
+    <!-- PC Selection Dialog for Token Addition -->
+    <div id="pcSelectionDialog" class="stage-modal" onclick="closePcSelectionDialog(event)">
+      <div class="stage-modal-content" onclick="event.stopPropagation()" style="max-width: 400px;">
+        <div class="stage-modal-header">
+          <div class="stage-modal-title">Add Player Token</div>
+          <button class="stage-modal-close" onclick="closePcSelectionDialog()">×</button>
+        </div>
+        <div class="stage-modal-body">
+          <div id="pcSelectionList" class="pc-selection-list">
+            <!-- PCs will be rendered here -->
+          </div>
+          <div class="pc-selection-divider">
+            <span>or enter custom name</span>
+          </div>
+          <div class="stage-form-group">
+            <input type="text" class="stage-form-input" id="customPlayerName" placeholder="Enter player name...">
+          </div>
+        </div>
+        <div class="stage-modal-footer">
+          <button class="stage-cancel-btn" onclick="closePcSelectionDialog()">Cancel</button>
+          <button class="stage-save-btn" onclick="addCustomPlayerToken()">Add Custom</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Character Image Source Dialog -->
     <div id="characterImageSourceDialog" class="image-dialog-overlay" onclick="closeCharacterImageDialog(event)">
       <div class="image-dialog" onclick="event.stopPropagation()">
@@ -4395,6 +4514,10 @@
 
     function syncBattleMap() {
       ensureTokensArray();
+
+      // Filter out hidden tokens for player display
+      const visibleTokensForPlayers = battleMapTokens.filter(t => !t.conditions?.hidden);
+
       const mapData = {
         type: 'mapSync',
         map: currentMap ? {
@@ -4403,7 +4526,7 @@
           mapImage: mapVisible ? currentMap.mapImage : null,
           gridSize: currentMap.gridSize
         } : null,
-        tokens: { type: 'tokens', tokens: battleMapTokens },
+        tokens: { type: 'tokens', tokens: visibleTokensForPlayers },
         grid: { type: 'grid', visible: gridVisible },
         timestamp: Date.now()
       };
@@ -4418,7 +4541,8 @@
 
       // Strip base64 images from tokens before storing (keep URL images)
       // Format must match what battle-map.html expects: { type: 'tokens', tokens: [...] }
-      const tokensForStorage = battleMapTokens.map(token => ({
+      // Also filter hidden tokens for localStorage (player display uses this)
+      const tokensForStorage = visibleTokensForPlayers.map(token => ({
         ...token,
         image: token.image && (token.image.startsWith('http://') || token.image.startsWith('https://'))
           ? token.image
@@ -4436,8 +4560,85 @@
 
     // ========== Tokens ==========
     function addPlayerToken() {
-      const name = prompt('Enter player name:');
-      if (!name) return;
+      // Show the PC selection dialog
+      const dialog = document.getElementById('pcSelectionDialog');
+      const listEl = document.getElementById('pcSelectionList');
+      const customInput = document.getElementById('customPlayerName');
+
+      // Clear previous state
+      customInput.value = '';
+
+      // Render the list of saved PCs
+      if (playerCharacters && playerCharacters.length > 0) {
+        listEl.innerHTML = playerCharacters.map(pc => `
+          <div class="pc-selection-item" onclick="addPcAsToken('${pc.id}')">
+            <div class="pc-portrait">
+              ${pc.portrait ? `<img src="${pc.portrait}" alt="${pc.name}">` : ''}
+            </div>
+            <div class="pc-info">
+              <div class="pc-name">${pc.name || 'Unnamed'}</div>
+              <div class="pc-meta">
+                Level ${pc.level || 1} ${pc.ancestry ? capitalizeFirst(pc.ancestry) : ''} ${pc.characterClass ? capitalizeFirst(pc.characterClass) : ''}
+              </div>
+            </div>
+            <button class="pc-add-btn" onclick="event.stopPropagation(); addPcAsToken('${pc.id}')">Add</button>
+          </div>
+        `).join('');
+      } else {
+        listEl.innerHTML = `
+          <div class="pc-selection-empty">
+            No saved characters yet.<br>
+            Add characters in the Characters tab first,<br>
+            or enter a custom name below.
+          </div>
+        `;
+      }
+
+      dialog.classList.add('visible');
+    }
+
+    function closePcSelectionDialog(e) {
+      if (e && e.target !== e.currentTarget) return;
+      document.getElementById('pcSelectionDialog').classList.remove('visible');
+    }
+
+    function addPcAsToken(pcId) {
+      const pc = playerCharacters.find(c => c.id === pcId);
+      if (!pc) return;
+
+      // Check if this PC is already on the map
+      const existingToken = battleMapTokens.find(t => t.id === 'pc-' + pcId);
+      if (existingToken) {
+        alert(`${pc.name} is already on the battle map.`);
+        closePcSelectionDialog();
+        return;
+      }
+
+      const token = {
+        id: 'pc-' + pcId,
+        name: pc.name,
+        type: 'player',
+        x: 0,
+        y: 0,
+        image: pc.portrait || null,
+        conditions: { hidden: false, restrained: false, vulnerable: false },
+        visible: true,
+        characterId: pcId  // Link back to the character
+      };
+
+      battleMapTokens.push(token);
+      renderTokenList();
+      syncBattleMap();
+      updateTabBadges();
+      closePcSelectionDialog();
+    }
+
+    function addCustomPlayerToken() {
+      const name = document.getElementById('customPlayerName').value.trim();
+      if (!name) {
+        alert('Please enter a name for the player token.');
+        return;
+      }
 
       const token = {
         id: 'player-' + nextPlayerTokenId++,
@@ -4454,6 +4655,7 @@
       renderTokenList();
       syncBattleMap();
       updateTabBadges();
+      closePcSelectionDialog();
     }
 
     function addAdversaryToken(adversary) {
@@ -4461,6 +4663,8 @@
       if (existingToken) return;
 
       const hasPortrait = adversary.portraits && adversary.portraits.length > 0;
+      // Adversaries start hidden by default so GM can reveal when ready
+      const defaultConditions = { hidden: true, restrained: false, vulnerable: false };
       const token = {
         id: adversary.id,
         name: adversary.name,
@@ -4468,7 +4672,7 @@
         x: 0,
         y: 0,
         image: hasPortrait ? adversary.portraits[adversary.activePortraitIndex || 0] : getDefaultImageForAdversary(adversary),
-        conditions: adversary.conditions || { hidden: false, restrained: false, vulnerable: false },
+        conditions: adversary.conditions ? { ...defaultConditions, ...adversary.conditions, hidden: true } : defaultConditions,
         visible: true
       };
 
@@ -5438,7 +5642,7 @@
         id: 'adv-' + Math.random().toString(36).substr(2, 9),
         currentHp: adv.hp,
         currentStress: adv.stress,
-        conditions: { hidden: false, restrained: false, vulnerable: false },
+        conditions: { hidden: true, restrained: false, vulnerable: false },
         portraits: initialPortraits,
         activePortraitIndex: 0
       };
