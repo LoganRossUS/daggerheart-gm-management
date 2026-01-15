@@ -153,8 +153,8 @@ async function createCampaign(userId, data, env, { jsonResponse, errorResponse }
     // Check campaign limit for basic tier
     if (entitlement?.tier === 'basic') {
       const existingCampaigns = await listFirestoreDocs(`users/${userId}/campaigns`, env);
-      if (existingCampaigns.length >= 1) {
-        return errorResponse('Basic tier is limited to 1 campaign. Upgrade to premium for unlimited campaigns.', 403);
+      if (existingCampaigns.length >= 2) {
+        return errorResponse('Basic tier is limited to 2 campaigns. Upgrade to premium for unlimited campaigns.', 403);
       }
     }
 

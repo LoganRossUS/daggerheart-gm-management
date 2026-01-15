@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daggerheart GM Tools</title>
+  <title>Daggerheart GM Tools - Sign Up & Login</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -16,7 +16,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
       padding: 40px 20px;
     }
 
@@ -26,6 +25,7 @@
       background: linear-gradient(180deg, #ffd700, #b8860b);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      background-clip: text;
       text-align: center;
       margin-bottom: 10px;
     }
@@ -33,68 +33,480 @@
     .subtitle {
       color: #888;
       font-size: 1rem;
-      margin-bottom: 50px;
+      margin-bottom: 40px;
       text-align: center;
     }
 
-    .links-container {
+    /* Tier Cards Container */
+    .tier-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      max-width: 900px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      max-width: 1100px;
       width: 100%;
+      margin-bottom: 50px;
     }
 
-    .link-card {
+    @media (max-width: 900px) {
+      .tier-container {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+      }
+    }
+
+    .tier-card {
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(179, 136, 255, 0.3);
-      border-radius: 12px;
-      padding: 30px;
-      text-decoration: none;
-      transition: all 0.3s ease;
+      border: 2px solid rgba(100, 100, 120, 0.3);
+      border-radius: 16px;
+      padding: 30px 24px;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .tier-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .tier-card.demo {
+      border-color: rgba(150, 150, 150, 0.4);
+    }
+
+    .tier-card.basic {
+      border-color: rgba(100, 149, 237, 0.5);
+      background: rgba(100, 149, 237, 0.08);
+    }
+
+    .tier-card.premium {
+      border-color: rgba(255, 215, 0, 0.5);
+      background: rgba(255, 215, 0, 0.08);
+      position: relative;
+    }
+
+    .tier-card.premium::before {
+      content: 'BEST VALUE';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #1a1a2e;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+
+    .tier-header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tier-name {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .tier-card.demo .tier-name { color: #aaa; }
+    .tier-card.basic .tier-name { color: #6495ED; }
+    .tier-card.premium .tier-name { color: #ffd700; }
+
+    .tier-price {
+      font-size: 2rem;
+      font-weight: 900;
+    }
+
+    .tier-price .period {
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: #888;
+    }
+
+    .tier-card.demo .tier-price { color: #888; }
+    .tier-card.basic .tier-price { color: #6495ED; }
+    .tier-card.premium .tier-price { color: #ffd700; }
+
+    .tier-description {
+      font-size: 0.85rem;
+      color: #999;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    .tier-features {
+      flex: 1;
+      list-style: none;
+      margin-bottom: 20px;
+    }
+
+    .tier-features li {
+      padding: 10px 0;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .tier-features li:last-child {
+      border-bottom: none;
+    }
+
+    .tier-features .icon {
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .tier-features .icon.check { color: #4ade80; }
+    .tier-features .icon.cross { color: #666; }
+    .tier-features .icon.limit { color: #f59e0b; }
+
+    .feature-text {
+      flex: 1;
+    }
+
+    .feature-limit {
+      color: #888;
+      font-size: 0.8rem;
+    }
+
+    .tier-cta {
+      padding: 14px 20px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
       text-align: center;
     }
 
-    .link-card:hover {
-      background: rgba(179, 136, 255, 0.15);
-      border-color: #b388ff;
-      transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    .tier-card.demo .tier-cta {
+      background: rgba(150, 150, 150, 0.2);
+      color: #ccc;
+      border: 1px solid rgba(150, 150, 150, 0.3);
     }
 
-    .link-icon {
-      font-size: 3rem;
-      margin-bottom: 15px;
+    .tier-card.demo .tier-cta:hover {
+      background: rgba(150, 150, 150, 0.3);
     }
 
-    .link-title {
-      font-size: 1.3rem;
-      font-weight: 700;
+    .tier-card.basic .tier-cta {
+      background: linear-gradient(135deg, #4169E1, #6495ED);
+      color: white;
+    }
+
+    .tier-card.basic .tier-cta:hover {
+      background: linear-gradient(135deg, #3357c9, #5282d9);
+      transform: scale(1.02);
+    }
+
+    .tier-card.premium .tier-cta {
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #1a1a2e;
+    }
+
+    .tier-card.premium .tier-cta:hover {
+      background: linear-gradient(135deg, #ffdf33, #ff9f33);
+      transform: scale(1.02);
+    }
+
+    .tier-cta:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Login Section */
+    .login-section {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 450px;
+      width: 100%;
+      margin-bottom: 40px;
+    }
+
+    .login-section h2 {
+      text-align: center;
+      font-size: 1.5rem;
       color: #ffd700;
       margin-bottom: 10px;
     }
 
-    .link-description {
+    .login-subtitle {
+      text-align: center;
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 30px;
+    }
+
+    .login-divider {
+      display: flex;
+      align-items: center;
+      margin: 25px 0;
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    .login-divider::before,
+    .login-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .login-divider span {
+      padding: 0 15px;
+    }
+
+    /* Form Styles */
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
       font-size: 0.85rem;
       color: #aaa;
-      line-height: 1.5;
     }
 
-    .link-card.primary {
-      border-color: rgba(255, 215, 0, 0.5);
-      background: rgba(255, 215, 0, 0.1);
+    .form-group input {
+      padding: 12px 16px;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 1rem;
+      transition: all 0.2s ease;
     }
 
-    .link-card.primary:hover {
-      background: rgba(255, 215, 0, 0.2);
-      border-color: #ffd700;
+    .form-group input:focus {
+      outline: none;
+      border-color: #b388ff;
+      box-shadow: 0 0 0 3px rgba(179, 136, 255, 0.1);
     }
 
+    .form-group input::placeholder {
+      color: #666;
+    }
+
+    .auth-btn {
+      padding: 14px 20px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .auth-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .auth-btn.primary {
+      background: linear-gradient(135deg, #b388ff, #7c4dff);
+      color: white;
+    }
+
+    .auth-btn.primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #c9a0ff, #9166ff);
+      transform: translateY(-2px);
+    }
+
+    .auth-btn.google {
+      background: white;
+      color: #333;
+      border: 1px solid #ddd;
+    }
+
+    .auth-btn.google:hover:not(:disabled) {
+      background: #f5f5f5;
+      transform: translateY(-2px);
+    }
+
+    .auth-btn .icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    .form-toggle {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .form-toggle a {
+      color: #b388ff;
+      text-decoration: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .form-toggle a:hover {
+      text-decoration: underline;
+    }
+
+    .auth-error {
+      background: rgba(220, 38, 38, 0.2);
+      border: 1px solid rgba(220, 38, 38, 0.4);
+      color: #fca5a5;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      text-align: center;
+      display: none;
+    }
+
+    .auth-error.visible {
+      display: block;
+    }
+
+    .auth-success {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #86efac;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      text-align: center;
+      display: none;
+    }
+
+    .auth-success.visible {
+      display: block;
+    }
+
+    /* User Status (shown when logged in) */
+    .user-status {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      display: none;
+    }
+
+    .user-status.visible {
+      display: block;
+    }
+
+    .user-status .welcome {
+      font-size: 1.1rem;
+      color: #86efac;
+      margin-bottom: 10px;
+    }
+
+    .user-status .tier-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+
+    .user-status .tier-badge.demo { background: #666; color: #fff; }
+    .user-status .tier-badge.basic { background: #4169E1; color: #fff; }
+    .user-status .tier-badge.premium { background: #ffd700; color: #1a1a2e; }
+
+    .user-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .user-actions a,
+    .user-actions button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .user-actions .launch-btn {
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #1a1a2e;
+      border: none;
+    }
+
+    .user-actions .launch-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .user-actions .logout-btn {
+      background: transparent;
+      color: #f87171;
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+
+    .user-actions .logout-btn:hover {
+      background: rgba(248, 113, 113, 0.1);
+    }
+
+    /* Quick Links */
+    .quick-links {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    .quick-link {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(179, 136, 255, 0.2);
+      border-radius: 10px;
+      padding: 15px 25px;
+      text-decoration: none;
+      color: #ccc;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .quick-link:hover {
+      background: rgba(179, 136, 255, 0.1);
+      border-color: #b388ff;
+      color: #fff;
+      transform: translateY(-2px);
+    }
+
+    .quick-link .icon {
+      font-size: 1.2rem;
+    }
+
+    /* Footer */
     .footer {
-      margin-top: 50px;
       color: #666;
       font-size: 0.8rem;
       text-align: center;
@@ -108,48 +520,503 @@
     .footer a:hover {
       text-decoration: underline;
     }
+
+    /* Loading State */
+    .loading-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
   <h1>Daggerheart GM Tools</h1>
-  <p class="subtitle">Tools for running Daggerheart sessions</p>
+  <p class="subtitle">Professional tools for running Daggerheart sessions</p>
 
-  <div class="links-container">
-    <a href="gm-control-panel-simplified.html" class="link-card primary">
-      <div class="link-icon">&#9876;</div>
-      <div class="link-title">GM Control Panel</div>
-      <div class="link-description">
-        Main control center for GMs. Manage encounters, battle maps, tokens, fear tracker, dice roller, and more.
+  <!-- Tier Comparison -->
+  <div class="tier-container">
+    <!-- Demo Tier -->
+    <div class="tier-card demo">
+      <div class="tier-header">
+        <div class="tier-name">Free Demo</div>
+        <div class="tier-price">Free</div>
+        <div class="tier-description">Try all features with no account required</div>
       </div>
+      <ul class="tier-features">
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">Full GM Control Panel access</span>
+        </li>
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">Dice roller & fear tracker</span>
+        </li>
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">Battle map display</span>
+        </li>
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">Encounter management</span>
+        </li>
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">Session notes (local only)</span>
+        </li>
+        <li>
+          <span class="icon cross">&#10007;</span>
+          <span class="feature-text" style="color: #666;">No cloud save - data lost on refresh</span>
+        </li>
+        <li>
+          <span class="icon cross">&#10007;</span>
+          <span class="feature-text" style="color: #666;">No campaigns or scenes</span>
+        </li>
+        <li>
+          <span class="icon cross">&#10007;</span>
+          <span class="feature-text" style="color: #666;">No image uploads</span>
+        </li>
+      </ul>
+      <a href="gm-control-panel-simplified.html" class="tier-cta">Try Demo Now</a>
+    </div>
+
+    <!-- Basic Tier -->
+    <div class="tier-card basic">
+      <div class="tier-header">
+        <div class="tier-name">Basic</div>
+        <div class="tier-price">Coming Soon</div>
+        <div class="tier-description">Perfect for casual GMs running single campaigns</div>
+      </div>
+      <ul class="tier-features">
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">Everything in Demo</span>
+        </li>
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">Cloud save & sync</span>
+        </li>
+        <li>
+          <span class="icon limit">&#9679;</span>
+          <span class="feature-text">
+            Campaigns
+            <div class="feature-limit">Up to 2 campaigns</div>
+          </span>
+        </li>
+        <li>
+          <span class="icon limit">&#9679;</span>
+          <span class="feature-text">
+            Scenes per campaign
+            <div class="feature-limit">Up to 10 scenes each</div>
+          </span>
+        </li>
+        <li>
+          <span class="icon limit">&#9679;</span>
+          <span class="feature-text">
+            Characters per campaign
+            <div class="feature-limit">Up to 10 characters each</div>
+          </span>
+        </li>
+        <li>
+          <span class="icon limit">&#9679;</span>
+          <span class="feature-text">
+            Image storage
+            <div class="feature-limit">250MB total, 10MB per file</div>
+          </span>
+        </li>
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">Battle map uploads</span>
+        </li>
+        <li>
+          <span class="icon cross">&#10007;</span>
+          <span class="feature-text" style="color: #666;">No community repository</span>
+        </li>
+      </ul>
+      <button class="tier-cta" disabled>Coming Soon</button>
+    </div>
+
+    <!-- Premium Tier -->
+    <div class="tier-card premium">
+      <div class="tier-header">
+        <div class="tier-name">Premium</div>
+        <div class="tier-price">Coming Soon</div>
+        <div class="tier-description">Unlimited power for serious GMs</div>
+      </div>
+      <ul class="tier-features">
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">Everything in Basic</span>
+        </li>
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">
+            Unlimited campaigns
+          </span>
+        </li>
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">
+            Unlimited scenes per campaign
+          </span>
+        </li>
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">
+            Unlimited characters
+          </span>
+        </li>
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">
+            Image storage
+            <div class="feature-limit">Up to 10GB total</div>
+          </span>
+        </li>
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">Persistent notes & battle queues</span>
+        </li>
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">Community repository access</span>
+        </li>
+        <li>
+          <span class="icon check">&#10003;</span>
+          <span class="feature-text">Priority support</span>
+        </li>
+      </ul>
+      <button class="tier-cta" disabled>Coming Soon</button>
+    </div>
+  </div>
+
+  <!-- Login Section -->
+  <div class="login-section">
+    <!-- User Status (shown when logged in) -->
+    <div class="user-status" id="user-status">
+      <div class="welcome">Welcome back, <span id="user-display-name"></span>!</div>
+      <div class="tier-badge demo" id="user-tier-badge">DEMO</div>
+      <div class="user-actions">
+        <a href="gm-control-panel-simplified.html" class="launch-btn">Launch GM Panel</a>
+        <button class="logout-btn" id="logout-btn">Sign Out</button>
+      </div>
+    </div>
+
+    <!-- Login Form (shown when logged out) -->
+    <div id="login-forms">
+      <h2>Sign In or Create Account</h2>
+      <p class="login-subtitle">Access your campaigns and cloud saves</p>
+
+      <div class="auth-error" id="auth-error"></div>
+      <div class="auth-success" id="auth-success"></div>
+
+      <!-- Google Sign In -->
+      <button class="auth-btn google" id="google-signin-btn">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Sign in with Google
+      </button>
+
+      <div class="login-divider">
+        <span>or</span>
+      </div>
+
+      <!-- Email/Password Form -->
+      <form class="login-form" id="email-form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="your@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Your password" required minlength="6">
+        </div>
+        <div class="form-group hidden" id="confirm-password-group">
+          <label for="confirm-password">Confirm Password</label>
+          <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password">
+        </div>
+        <button type="submit" class="auth-btn primary" id="email-submit-btn">
+          <span id="email-btn-text">Sign In</span>
+          <div class="loading-spinner hidden" id="email-loading"></div>
+        </button>
+      </form>
+
+      <div class="form-toggle">
+        <a id="toggle-auth-mode">Don't have an account? Sign up</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="quick-links">
+    <a href="gm-control-panel-simplified.html" class="quick-link">
+      <span class="icon">&#9876;</span>
+      GM Control Panel
     </a>
-
-    <a href="player-display.html" class="link-card">
-      <div class="link-icon">&#128250;</div>
-      <div class="link-title">Player Display</div>
-      <div class="link-description">
-        Full-screen display for players. Shows spotlighted adversaries, NPC portraits, and syncs with the GM panel.
-      </div>
+    <a href="player-display.html" class="quick-link">
+      <span class="icon">&#128250;</span>
+      Player Display
     </a>
-
-    <a href="battle-map.html" class="link-card">
-      <div class="link-icon">&#128506;</div>
-      <div class="link-title">Battle Map</div>
-      <div class="link-description">
-        Tactical battle map display with tokens, grid overlay, and real-time sync from the GM panel.
-      </div>
+    <a href="battle-map.html" class="quick-link">
+      <span class="icon">&#128506;</span>
+      Battle Map
     </a>
-
-    <a href="encounter-generator.html" class="link-card">
-      <div class="link-icon">&#128126;</div>
-      <div class="link-title">Encounter Generator</div>
-      <div class="link-description">
-        Build and export encounters with adversaries. Search the bestiary and create encounter JSON files.
-      </div>
+    <a href="encounter-generator.html" class="quick-link">
+      <span class="icon">&#128126;</span>
+      Encounter Generator
     </a>
   </div>
 
   <div class="footer">
     <p>Daggerheart is a tabletop RPG by Darrington Press</p>
   </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Firebase Auth
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithPopup,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      updateProfile,
+      GoogleAuthProvider,
+      signOut
+    } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA6GYyYWlW1ybQ07-K13u4YUaNFcV66Zj0",
+      authDomain: "daggerheart-8bdc1.firebaseapp.com",
+      databaseURL: "https://daggerheart-8bdc1-default-rtdb.firebaseio.com",
+      projectId: "daggerheart-8bdc1",
+      storageBucket: "daggerheart-8bdc1.firebasestorage.app",
+      messagingSenderId: "885297626381",
+      appId: "1:885297626381:web:9caf2af85fb793f819c444"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    // API base URL
+    const API_BASE = 'https://daggerheart-api.tristatehelpdesk812.workers.dev/api';
+
+    // State
+    let isSignUpMode = false;
+
+    // DOM Elements
+    const loginForms = document.getElementById('login-forms');
+    const userStatus = document.getElementById('user-status');
+    const userDisplayName = document.getElementById('user-display-name');
+    const userTierBadge = document.getElementById('user-tier-badge');
+    const googleSigninBtn = document.getElementById('google-signin-btn');
+    const emailForm = document.getElementById('email-form');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordGroup = document.getElementById('confirm-password-group');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    const emailSubmitBtn = document.getElementById('email-submit-btn');
+    const emailBtnText = document.getElementById('email-btn-text');
+    const emailLoading = document.getElementById('email-loading');
+    const toggleAuthMode = document.getElementById('toggle-auth-mode');
+    const logoutBtn = document.getElementById('logout-btn');
+    const authError = document.getElementById('auth-error');
+    const authSuccess = document.getElementById('auth-success');
+
+    // Show/hide error messages
+    function showError(message) {
+      authError.textContent = message;
+      authError.classList.add('visible');
+      authSuccess.classList.remove('visible');
+    }
+
+    function showSuccess(message) {
+      authSuccess.textContent = message;
+      authSuccess.classList.add('visible');
+      authError.classList.remove('visible');
+    }
+
+    function clearMessages() {
+      authError.classList.remove('visible');
+      authSuccess.classList.remove('visible');
+    }
+
+    function setLoading(loading) {
+      emailSubmitBtn.disabled = loading;
+      googleSigninBtn.disabled = loading;
+      if (loading) {
+        emailBtnText.classList.add('hidden');
+        emailLoading.classList.remove('hidden');
+      } else {
+        emailBtnText.classList.remove('hidden');
+        emailLoading.classList.add('hidden');
+      }
+    }
+
+    // Toggle between sign in and sign up
+    toggleAuthMode.addEventListener('click', (e) => {
+      e.preventDefault();
+      isSignUpMode = !isSignUpMode;
+      clearMessages();
+
+      if (isSignUpMode) {
+        confirmPasswordGroup.classList.remove('hidden');
+        emailBtnText.textContent = 'Create Account';
+        toggleAuthMode.textContent = 'Already have an account? Sign in';
+      } else {
+        confirmPasswordGroup.classList.add('hidden');
+        emailBtnText.textContent = 'Sign In';
+        toggleAuthMode.textContent = "Don't have an account? Sign up";
+      }
+    });
+
+    // Google Sign In
+    googleSigninBtn.addEventListener('click', async () => {
+      clearMessages();
+      setLoading(true);
+
+      try {
+        await signInWithPopup(auth, googleProvider);
+        showSuccess('Signed in successfully!');
+      } catch (error) {
+        console.error('Google sign in error:', error);
+        if (error.code === 'auth/popup-closed-by-user') {
+          // User closed popup, no error needed
+        } else if (error.code === 'auth/popup-blocked') {
+          showError('Popup was blocked. Please allow popups for this site.');
+        } else {
+          showError(error.message || 'Failed to sign in with Google');
+        }
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // Email/Password form submission
+    emailForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        showError('Please enter email and password');
+        return;
+      }
+
+      if (isSignUpMode) {
+        const confirmPassword = confirmPasswordInput.value;
+        if (password !== confirmPassword) {
+          showError('Passwords do not match');
+          return;
+        }
+        if (password.length < 6) {
+          showError('Password must be at least 6 characters');
+          return;
+        }
+      }
+
+      setLoading(true);
+
+      try {
+        if (isSignUpMode) {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          // Set display name to email prefix
+          const displayName = email.split('@')[0];
+          await updateProfile(userCredential.user, { displayName });
+          showSuccess('Account created successfully!');
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+          showSuccess('Signed in successfully!');
+        }
+      } catch (error) {
+        console.error('Email auth error:', error);
+        if (error.code === 'auth/email-already-in-use') {
+          showError('An account with this email already exists');
+        } else if (error.code === 'auth/invalid-email') {
+          showError('Invalid email address');
+        } else if (error.code === 'auth/weak-password') {
+          showError('Password is too weak. Use at least 6 characters.');
+        } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+          showError('Invalid email or password');
+        } else {
+          showError(error.message || 'Authentication failed');
+        }
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // Sign out
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error('Sign out error:', error);
+      }
+    });
+
+    // Verify token and get entitlement
+    async function verifyAndGetEntitlement(user) {
+      try {
+        const token = await user.getIdToken();
+        const response = await fetch(`${API_BASE}/auth/verify`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return data.entitlement?.tier || 'demo';
+        }
+      } catch (error) {
+        console.error('Failed to verify entitlement:', error);
+      }
+      return 'demo';
+    }
+
+    // Auth state listener
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is signed in
+        loginForms.classList.add('hidden');
+        userStatus.classList.add('visible');
+        userDisplayName.textContent = user.displayName || user.email;
+
+        // Get entitlement
+        const tier = await verifyAndGetEntitlement(user);
+        userTierBadge.textContent = tier.toUpperCase();
+        userTierBadge.className = 'tier-badge ' + tier;
+
+        // Clear form
+        emailForm.reset();
+        clearMessages();
+      } else {
+        // User is signed out
+        loginForms.classList.remove('hidden');
+        userStatus.classList.remove('visible');
+      }
+    });
+  </script>
 </body>
 </html>

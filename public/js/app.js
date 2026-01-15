@@ -157,13 +157,16 @@ async function loadCampaign(campaignId) {
 
     // Initialize notes if we have the notes feature
     if (canUse('notes')) {
-      // Use embedded notes panel (new system)
+      // Use embedded notes panel (new system) - preferred
       if (typeof window.setNotesState === 'function') {
         window.setNotesState(campaign.notes || []);
+        // Do NOT initialize legacy module when embedded panel exists
+        // The legacy module's initNotes() overwrites the embedded panel's innerHTML
+      } else {
+        // Fallback to legacy notes module only if embedded panel doesn't exist
+        initNotes(campaignId);
+        setNotes(campaign.notes);
       }
-      // Also support legacy notes module
-      initNotes(campaignId);
-      setNotes(campaign.notes);
     }
 
     // Load characters into the embedded Characters tab
