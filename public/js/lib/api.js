@@ -30,6 +30,10 @@ export const api = {
     verify: () => apiCall('/auth/verify', { method: 'POST' }),
   },
 
+  account: {
+    delete: () => apiCall('/account', { method: 'DELETE' }),
+  },
+
   campaigns: {
     list: () => apiCall('/campaigns'),
     get: (id) => apiCall(`/campaigns/${id}`),
