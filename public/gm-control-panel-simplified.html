@@ -121,6 +121,203 @@
 
     .fear-btn:hover { transform: scale(1.1); }
 
+    /* Countdown Section */
+    .countdown-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-left: 15px;
+      border-left: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .countdown-label {
+      font-size: 0.7rem;
+      color: #888;
+    }
+
+    .countdown-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .countdown-select {
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      min-width: 100px;
+    }
+
+    .countdown-select:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
+    .countdown-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #b388ff;
+      min-width: 30px;
+      text-align: center;
+    }
+
+    .countdown-btn {
+      width: 24px;
+      height: 24px;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .countdown-btn.add {
+      background: linear-gradient(135deg, #4CAF50, #2e7d32);
+      color: white;
+    }
+
+    .countdown-btn.remove {
+      background: linear-gradient(135deg, #f44336, #c62828);
+      color: white;
+    }
+
+    .countdown-btn:hover { transform: scale(1.1); }
+
+    .countdown-btn.new-cd {
+      width: auto;
+      padding: 4px 8px;
+      background: linear-gradient(135deg, #b388ff, #7c4dff);
+      color: white;
+      font-size: 0.7rem;
+    }
+
+    .countdown-visibility-btn {
+      width: 24px;
+      height: 24px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      background: transparent;
+      color: #888;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .countdown-visibility-btn.visible {
+      background: rgba(76, 175, 80, 0.3);
+      border-color: #4CAF50;
+      color: #4CAF50;
+    }
+
+    .countdown-visibility-btn:hover { transform: scale(1.1); }
+
+    .countdown-delete-btn {
+      width: 20px;
+      height: 20px;
+      border: none;
+      border-radius: 3px;
+      background: rgba(244, 67, 54, 0.2);
+      color: #f44336;
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .countdown-delete-btn:hover {
+      background: rgba(244, 67, 54, 0.4);
+    }
+
+    /* New Countdown Modal */
+    .countdown-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .countdown-modal.active {
+      display: flex;
+    }
+
+    .countdown-modal-content {
+      background: #1a1a2e;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      padding: 20px;
+      width: 300px;
+    }
+
+    .countdown-modal-content h3 {
+      margin: 0 0 15px 0;
+      color: #b388ff;
+      font-size: 1rem;
+    }
+
+    .countdown-modal-content label {
+      display: block;
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 5px;
+    }
+
+    .countdown-modal-content input,
+    .countdown-modal-content select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 12px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      box-sizing: border-box;
+    }
+
+    .countdown-modal-content input:focus,
+    .countdown-modal-content select:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
+    .countdown-modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .countdown-modal-buttons button {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .countdown-modal-buttons .cancel-btn {
+      background: rgba(255,255,255,0.1);
+      color: #888;
+    }
+
+    .countdown-modal-buttons .create-btn {
+      background: linear-gradient(135deg, #b388ff, #7c4dff);
+      color: white;
+    }
+
     .dice-compact {
       display: flex;
       align-items: center;
@@ -3732,6 +3929,21 @@
       </div>
     </div>
 
+    <div class="countdown-section">
+      <span class="countdown-label">COUNTDOWN</span>
+      <div class="countdown-controls">
+        <select class="countdown-select" id="countdownSelect" onchange="selectCountdown()">
+          <option value="">-- None --</option>
+        </select>
+        <button class="countdown-btn remove" onclick="adjustCountdown(-1)">-</button>
+        <div class="countdown-value" id="countdownValue">-</div>
+        <button class="countdown-btn add" onclick="adjustCountdown(1)">+</button>
+        <button class="countdown-visibility-btn" id="countdownVisBtn" onclick="toggleCountdownVisibility()" title="Toggle player visibility">V</button>
+        <button class="countdown-delete-btn" onclick="deleteSelectedCountdown()" title="Delete countdown">X</button>
+        <button class="countdown-btn new-cd" onclick="openNewCountdownModal()">+ New</button>
+      </div>
+    </div>
+
     <div class="dice-compact">
       <input type="text" class="dice-input" id="diceNotation" placeholder="1d20+5" value="1d20">
       <button class="roll-btn" onclick="rollNotation()">Roll</button>
@@ -4496,6 +4708,29 @@
     </div>
   </div>
 
+  <!-- New Countdown Modal -->
+  <div id="newCountdownModal" class="countdown-modal" onclick="closeNewCountdownModal(event)">
+    <div class="countdown-modal-content" onclick="event.stopPropagation()">
+      <h3>Create New Countdown</h3>
+      <label>Countdown Name</label>
+      <input type="text" id="newCountdownName" placeholder="e.g., Ritual Complete">
+      <label>Starting Value</label>
+      <input type="number" id="newCountdownValue" value="6" min="1" max="20">
+      <label>Countdown Type (Optional)</label>
+      <select id="newCountdownType">
+        <option value="custom">Custom</option>
+        <option value="tension">Tension</option>
+        <option value="campaign">Campaign</option>
+        <option value="environment">Environment</option>
+        <option value="adversary">Adversary</option>
+      </select>
+      <div class="countdown-modal-buttons">
+        <button class="cancel-btn" onclick="closeNewCountdownModal()">Cancel</button>
+        <button class="create-btn" onclick="createNewCountdown()">Create</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ========== State ==========
     let currentFear = 0;
@@ -4526,6 +4761,11 @@
     let heartbeatInterval = null;
     let stagedBattles = [];
     let editingStagedBattleId = null;
+
+    // ========== Countdown State ==========
+    let countdowns = []; // Array of {id, name, value, type, visible}
+    let selectedCountdownId = null;
+    let nextCountdownId = 1;
 
     // ========== Characters State ==========
     let playerCharacters = [];
@@ -4659,6 +4899,172 @@
     function syncFear() {
       sendToPlayer({ type: 'fear', value: currentFear });
       localStorage.setItem('daggerheart-update', Date.now().toString());
+    }
+
+    // ========== Countdown Tracker ==========
+    function openNewCountdownModal() {
+      document.getElementById('newCountdownModal').classList.add('active');
+      document.getElementById('newCountdownName').value = '';
+      document.getElementById('newCountdownValue').value = '6';
+      document.getElementById('newCountdownType').value = 'custom';
+      document.getElementById('newCountdownName').focus();
+    }
+
+    function closeNewCountdownModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('newCountdownModal').classList.remove('active');
+    }
+
+    function createNewCountdown() {
+      const name = document.getElementById('newCountdownName').value.trim();
+      const value = parseInt(document.getElementById('newCountdownValue').value) || 6;
+      const type = document.getElementById('newCountdownType').value;
+
+      if (!name) {
+        alert('Please enter a countdown name');
+        return;
+      }
+
+      const newCountdown = {
+        id: nextCountdownId++,
+        name: name,
+        value: value,
+        type: type,
+        visible: false
+      };
+
+      countdowns.push(newCountdown);
+      updateCountdownSelect();
+
+      // Auto-select the new countdown
+      selectedCountdownId = newCountdown.id;
+      document.getElementById('countdownSelect').value = newCountdown.id;
+      updateCountdownDisplay();
+
+      closeNewCountdownModal();
+      saveCountdowns();
+      syncCountdowns();
+    }
+
+    function updateCountdownSelect() {
+      const select = document.getElementById('countdownSelect');
+      const currentValue = select.value;
+
+      // Clear existing options except the first one
+      select.innerHTML = '<option value="">-- None --</option>';
+
+      countdowns.forEach(cd => {
+        const option = document.createElement('option');
+        option.value = cd.id;
+        option.textContent = `${cd.name} (${cd.value})`;
+        if (cd.visible) {
+          option.textContent += ' [V]';
+        }
+        select.appendChild(option);
+      });
+
+      // Restore selection if still valid
+      if (currentValue && countdowns.find(cd => cd.id == currentValue)) {
+        select.value = currentValue;
+      }
+    }
+
+    function selectCountdown() {
+      const select = document.getElementById('countdownSelect');
+      selectedCountdownId = select.value ? parseInt(select.value) : null;
+      updateCountdownDisplay();
+    }
+
+    function updateCountdownDisplay() {
+      const valueEl = document.getElementById('countdownValue');
+      const visBtn = document.getElementById('countdownVisBtn');
+
+      if (selectedCountdownId) {
+        const countdown = countdowns.find(cd => cd.id === selectedCountdownId);
+        if (countdown) {
+          valueEl.textContent = countdown.value;
+          visBtn.classList.toggle('visible', countdown.visible);
+          return;
+        }
+      }
+
+      valueEl.textContent = '-';
+      visBtn.classList.remove('visible');
+    }
+
+    function adjustCountdown(amount) {
+      if (!selectedCountdownId) return;
+
+      const countdown = countdowns.find(cd => cd.id === selectedCountdownId);
+      if (!countdown) return;
+
+      countdown.value = Math.max(0, countdown.value + amount);
+      updateCountdownDisplay();
+      updateCountdownSelect();
+      saveCountdowns();
+      syncCountdowns();
+    }
+
+    function toggleCountdownVisibility() {
+      if (!selectedCountdownId) return;
+
+      const countdown = countdowns.find(cd => cd.id === selectedCountdownId);
+      if (!countdown) return;
+
+      countdown.visible = !countdown.visible;
+      updateCountdownDisplay();
+      updateCountdownSelect();
+      saveCountdowns();
+      syncCountdowns();
+    }
+
+    function deleteSelectedCountdown() {
+      if (!selectedCountdownId) return;
+
+      const countdown = countdowns.find(cd => cd.id === selectedCountdownId);
+      if (!countdown) return;
+
+      if (!confirm(`Delete countdown "${countdown.name}"?`)) return;
+
+      countdowns = countdowns.filter(cd => cd.id !== selectedCountdownId);
+      selectedCountdownId = null;
+      document.getElementById('countdownSelect').value = '';
+      updateCountdownSelect();
+      updateCountdownDisplay();
+      saveCountdowns();
+      syncCountdowns();
+    }
+
+    function saveCountdowns() {
+      localStorage.setItem('daggerheart-countdowns', JSON.stringify(countdowns));
+      localStorage.setItem('daggerheart-nextCountdownId', nextCountdownId.toString());
+    }
+
+    function loadCountdowns() {
+      const saved = localStorage.getItem('daggerheart-countdowns');
+      if (saved) {
+        try {
+          countdowns = JSON.parse(saved);
+        } catch (e) {
+          countdowns = [];
+        }
+      }
+      const savedNextId = localStorage.getItem('daggerheart-nextCountdownId');
+      if (savedNextId) {
+        nextCountdownId = parseInt(savedNextId) || 1;
+      }
+      updateCountdownSelect();
+    }
+
+    function syncCountdowns() {
+      // Send all visible countdowns to players
+      const visibleCountdowns = countdowns.filter(cd => cd.visible).map(cd => ({
+        id: cd.id,
+        name: cd.name,
+        value: cd.value,
+        type: cd.type
+      }));
+      sendToPlayer({ type: 'countdowns', countdowns: visibleCountdowns });
     }
 
     // ========== Dice Roller ==========
@@ -6708,6 +7114,12 @@
               timestamp: data.timestamp
             });
             break;
+          case 'countdowns':
+            roomRef.child('countdowns').set({
+              countdowns: data.countdowns || [],
+              timestamp: data.timestamp
+            });
+            break;
           case 'sync':
             roomRef.child('sync').set({
               fear: data.fear,
@@ -7595,6 +8007,9 @@
         currentFear = parseInt(storedFear) || 0;
         updateFearDisplay();
       }
+
+      // Load countdowns
+      loadCountdowns();
 
       // Load NPC
       const npcData = localStorage.getItem('daggerheart-npc');
