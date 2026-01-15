@@ -562,7 +562,7 @@
       border-left-color: #f44336;
     }
 
-    .token-item.hidden {
+    .token-item.hidden-from-players {
       opacity: 0.5;
     }
 
@@ -5394,7 +5394,7 @@
         }
 
         return `
-          <div class="token-item ${token.type} ${token.visible ? '' : 'hidden'} ${isSpotlighted ? 'spotlighted' : ''}">
+          <div class="token-item ${token.type} ${token.visible ? '' : 'hidden-from-players'} ${isSpotlighted ? 'spotlighted' : ''}">
             <div class="token-thumb" onclick="${token.type === 'player' && !token.image ? `uploadPlayerTokenImage('${token.id}')` : `openPositioningModal('${token.id}')`}" title="${token.type === 'player' && !token.image ? 'Click to add image' : 'Click to position on map'}">
               ${token.image ? `<img src="${token.image}" alt="${token.name}">` : `<span style="font-size: 1.2rem;">${token.type === 'player' ? '👤' : '👹'}</span>`}
             </div>
