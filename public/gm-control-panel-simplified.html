@@ -389,6 +389,26 @@
       border-color: #f44336;
     }
 
+    .map-preview-token.hidden-token {
+      opacity: 0.5;
+      border-style: dashed;
+    }
+
+    .map-preview-token.hidden-token::after {
+      content: '👁‍🗨';
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      font-size: 12px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .map-preview-token:hover {
       transform: translate(-50%, -50%) scale(1.15);
       z-index: 20;
@@ -4837,8 +4857,9 @@
     function syncBattleMap() {
       ensureTokensArray();
 
-      // Filter out hidden tokens for player display
-      const visibleTokensForPlayers = battleMapTokens.filter(t => !t.conditions?.hidden);
+      // Filter tokens - only show tokens marked visible to players (eyeball toggle)
+      // This is separate from the Daggerheart "hidden" condition which is a game mechanic
+      const visibleTokensForPlayers = battleMapTokens.filter(t => t.visible === true);
 
       const mapData = {
         type: 'mapSync',
@@ -4944,7 +4965,7 @@
         y: 0,
         image: pc.portrait || null,
         conditions: { hidden: false, restrained: false, vulnerable: false },
-        visible: true,
+        visible: false,  // Hidden from players by default - GM clicks eyeball to reveal
         characterId: pcId  // Link back to the character
       };
 
@@ -4971,7 +4992,7 @@
         y: 0,
         image: null,
         conditions: { hidden: false, restrained: false, vulnerable: false },
-        visible: true
+        visible: false  // Hidden from players by default - GM clicks eyeball to reveal
       };
 
       battleMapTokens.push(token);
@@ -4987,7 +5008,7 @@
       if (existingToken) return;
 
       const hasPortrait = adversary.portraits && adversary.portraits.length > 0;
-      // Adversaries start hidden by default so GM can reveal when ready
+      // Adversaries start with hidden condition by default (game mechanic)
       const defaultConditions = { hidden: true, restrained: false, vulnerable: false };
       const token = {
         id: adversary.id,
@@ -4997,7 +5018,7 @@
         y: 0,
         image: hasPortrait ? adversary.portraits[adversary.activePortraitIndex || 0] : getDefaultImageForAdversary(adversary),
         conditions: adversary.conditions ? { ...defaultConditions, ...adversary.conditions, hidden: true } : defaultConditions,
-        visible: true
+        visible: false  // Hidden from players by default - GM clicks eyeball to reveal
       };
 
       battleMapTokens.push(token);
@@ -5374,7 +5395,7 @@
             <div class="token-actions">
               <button class="token-action-btn" onclick="openPositioningModal('${token.id}')" title="Position on map">📍</button>
               ${token.type === 'player' ? `<button class="token-action-btn" onclick="uploadPlayerTokenImage('${token.id}')" title="Set image">🖼</button>` : ''}
-              <button class="token-action-btn ${token.visible ? 'visible-on' : ''}" onclick="toggleTokenVisibility('${token.id}')" title="${token.visible ? 'Hide' : 'Show'}">
+              <button class="token-action-btn ${token.visible ? 'visible-on' : ''}" onclick="toggleTokenVisibility('${token.id}')" title="${token.visible ? 'Hide from players' : 'Show to players'}">
                 ${token.visible ? '👁' : '👁‍🗨'}
               </button>
               <button class="token-action-btn" onclick="removeToken('${token.id}')" title="Remove">✕</button>
