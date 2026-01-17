@@ -796,6 +796,123 @@
       pointer-events: auto;
     }
 
+    /* Viewport Controls */
+    .viewport-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 6px;
+      flex-wrap: wrap;
+    }
+
+    .viewport-control-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .viewport-control-group label {
+      font-size: 0.75rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .viewport-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.4);
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .viewport-btn:hover {
+      background: rgba(179, 136, 255, 0.3);
+      border-color: #b388ff;
+    }
+
+    .viewport-btn:active {
+      transform: scale(0.95);
+    }
+
+    .zoom-display {
+      font-size: 0.75rem;
+      color: #b388ff;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .token-scale-slider {
+      width: 80px;
+      height: 4px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    .token-scale-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #b388ff;
+      cursor: pointer;
+      border: 2px solid #fff;
+    }
+
+    .token-scale-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #b388ff;
+      cursor: pointer;
+      border: 2px solid #fff;
+    }
+
+    .token-scale-display {
+      font-size: 0.7rem;
+      color: #888;
+      min-width: 30px;
+    }
+
+    /* Map viewport container with transforms */
+    .map-viewport-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .map-transform-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      will-change: transform;
+      transition: transform 0.1s ease-out;
+    }
+
+    .map-transform-layer.dragging {
+      transition: none;
+    }
+
+    .map-preview-area.panning {
+      cursor: grabbing !important;
+    }
+
     .token-area {
       background: rgba(0,0,0,0.3);
       border-radius: 8px;
@@ -5005,15 +5122,38 @@
             </div>
           </div>
           <div class="map-preview-area" id="mapPreviewArea">
-            <div class="map-preview-wrapper" id="mapPreviewWrapper">
-              <img id="mapPreview" style="display: none;" alt="Map Preview">
-              <canvas id="mapPreviewGrid" class="map-preview-grid"></canvas>
-              <div id="mapPreviewTokenLayer" class="map-preview-token-layer"></div>
+            <div class="map-viewport-container" id="mapViewportContainer">
+              <div class="map-transform-layer" id="mapTransformLayer">
+                <div class="map-preview-wrapper" id="mapPreviewWrapper">
+                  <img id="mapPreview" style="display: none;" alt="Map Preview">
+                  <canvas id="mapPreviewGrid" class="map-preview-grid"></canvas>
+                  <div id="mapPreviewTokenLayer" class="map-preview-token-layer"></div>
+                </div>
+              </div>
             </div>
             <div class="map-placeholder" id="mapPlaceholder">Click Upload to add a battle map</div>
             <div class="position-mode-indicator" id="positionModeIndicator" style="display: none;">
               <span>Positioning: <strong id="positioningTokenName"></strong></span>
               <button class="cancel-position-btn" onclick="cancelPositionMode()">Cancel</button>
+            </div>
+          </div>
+          <div class="viewport-controls" id="viewportControls">
+            <div class="viewport-control-group">
+              <label>Zoom</label>
+              <button class="viewport-btn" onclick="zoomOut()" title="Zoom Out">-</button>
+              <span class="zoom-display" id="zoomDisplay">100%</span>
+              <button class="viewport-btn" onclick="zoomIn()" title="Zoom In">+</button>
+            </div>
+            <div class="viewport-control-group">
+              <label>Token Size</label>
+              <input type="range" class="token-scale-slider" id="tokenScaleSlider"
+                     min="0.25" max="3" step="0.05" value="1"
+                     oninput="updateTokenScale(this.value)">
+              <span class="token-scale-display" id="tokenScaleDisplay">1x</span>
+            </div>
+            <div class="viewport-control-group">
+              <button class="viewport-btn" onclick="fitMapToView()" title="Fit to View" style="width: auto; padding: 0 10px; font-size: 0.7rem;">Fit</button>
+              <button class="viewport-btn" onclick="resetViewport()" title="Reset View" style="width: auto; padding: 0 10px; font-size: 0.7rem;">Reset</button>
             </div>
           </div>
         </div>
@@ -5884,6 +6024,21 @@
     }
     let gridVisible = false;
     let gridSize = 50;
+
+    // ========== Viewport State ==========
+    let viewportZoom = 1;
+    let viewportPanX = 0;
+    let viewportPanY = 0;
+    let tokenScale = 1;
+    let isPanning = false;
+    let panStartX = 0;
+    let panStartY = 0;
+    let panStartPanX = 0;
+    let panStartPanY = 0;
+    const MIN_ZOOM = 0.25;
+    const MAX_ZOOM = 4;
+    const ZOOM_STEP = 0.1;
+
     let nextPlayerTokenId = 1;
     let positioningTokenId = null;
     let pendingPlayerTokenImageId = null;
@@ -6414,6 +6569,12 @@
         } : null,
         tokens: { type: 'tokens', tokens: visibleTokensForPlayers },
         grid: { type: 'grid', visible: gridVisible },
+        viewport: {
+          zoom: viewportZoom,
+          panX: viewportPanX,
+          panY: viewportPanY,
+          tokenScale: tokenScale
+        },
         timestamp: Date.now()
       };
 
@@ -6712,6 +6873,12 @@
         tokenEl.style.left = `${pixelX}px`;
         tokenEl.style.top = `${pixelY}px`;
 
+        // Apply token scale
+        const baseSize = 28; // Base token size in pixels
+        const scaledSize = baseSize * tokenScale;
+        tokenEl.style.width = `${scaledSize}px`;
+        tokenEl.style.height = `${scaledSize}px`;
+
         // Set token image or default color
         if (token.image) {
           tokenEl.style.backgroundImage = `url(${token.image})`;
@@ -6845,6 +7012,203 @@
       }
     }
 
+    // ========== Viewport Controls ==========
+    function updateViewportTransform() {
+      const transformLayer = document.getElementById('mapTransformLayer');
+      if (!transformLayer) return;
+
+      transformLayer.style.transform = `translate(${viewportPanX}px, ${viewportPanY}px) scale(${viewportZoom})`;
+
+      // Update zoom display
+      const zoomDisplay = document.getElementById('zoomDisplay');
+      if (zoomDisplay) {
+        zoomDisplay.textContent = Math.round(viewportZoom * 100) + '%';
+      }
+    }
+
+    function zoomIn() {
+      zoomToCenter(viewportZoom + ZOOM_STEP);
+    }
+
+    function zoomOut() {
+      zoomToCenter(viewportZoom - ZOOM_STEP);
+    }
+
+    function zoomToCenter(newZoom) {
+      const container = document.getElementById('mapViewportContainer');
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      zoomToPoint(newZoom, centerX, centerY);
+    }
+
+    function zoomToPoint(newZoom, pointX, pointY) {
+      // Clamp zoom level
+      newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newZoom));
+
+      if (newZoom === viewportZoom) return;
+
+      // Calculate the point in the content coordinate system
+      const contentX = (pointX - viewportPanX) / viewportZoom;
+      const contentY = (pointY - viewportPanY) / viewportZoom;
+
+      // Update zoom
+      const oldZoom = viewportZoom;
+      viewportZoom = newZoom;
+
+      // Adjust pan to keep the point under the cursor
+      viewportPanX = pointX - contentX * viewportZoom;
+      viewportPanY = pointY - contentY * viewportZoom;
+
+      updateViewportTransform();
+      syncBattleMap();
+    }
+
+    function fitMapToView() {
+      const container = document.getElementById('mapViewportContainer');
+      const mapPreview = document.getElementById('mapPreview');
+      if (!container || !mapPreview || mapPreview.style.display === 'none') return;
+
+      const containerRect = container.getBoundingClientRect();
+      const mapWidth = mapPreview.naturalWidth;
+      const mapHeight = mapPreview.naturalHeight;
+
+      if (!mapWidth || !mapHeight) return;
+
+      // Calculate zoom to fit with some padding
+      const padding = 20;
+      const availableWidth = containerRect.width - padding * 2;
+      const availableHeight = containerRect.height - padding * 2;
+
+      const zoomX = availableWidth / mapWidth;
+      const zoomY = availableHeight / mapHeight;
+      const newZoom = Math.min(zoomX, zoomY, MAX_ZOOM);
+
+      // Center the map
+      const scaledWidth = mapWidth * newZoom;
+      const scaledHeight = mapHeight * newZoom;
+
+      viewportZoom = newZoom;
+      viewportPanX = (containerRect.width - scaledWidth) / 2;
+      viewportPanY = (containerRect.height - scaledHeight) / 2;
+
+      updateViewportTransform();
+      syncBattleMap();
+    }
+
+    function resetViewport() {
+      viewportZoom = 1;
+      viewportPanX = 0;
+      viewportPanY = 0;
+      tokenScale = 1;
+
+      // Update UI
+      const slider = document.getElementById('tokenScaleSlider');
+      const display = document.getElementById('tokenScaleDisplay');
+      if (slider) slider.value = 1;
+      if (display) display.textContent = '1x';
+
+      updateViewportTransform();
+      renderMapPreviewTokens();
+      syncBattleMap();
+    }
+
+    function updateTokenScale(value) {
+      tokenScale = parseFloat(value);
+      const display = document.getElementById('tokenScaleDisplay');
+      if (display) {
+        display.textContent = tokenScale.toFixed(1) + 'x';
+      }
+      renderMapPreviewTokens();
+      syncBattleMap();
+    }
+
+    // Scroll wheel zoom
+    function handleMapWheel(e) {
+      // Only zoom if the map is visible
+      const mapPreview = document.getElementById('mapPreview');
+      if (!mapPreview || mapPreview.style.display === 'none') return;
+
+      e.preventDefault();
+
+      const container = document.getElementById('mapViewportContainer');
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      // Calculate zoom change based on scroll direction
+      const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+      const newZoom = viewportZoom + delta;
+
+      zoomToPoint(newZoom, mouseX, mouseY);
+    }
+
+    // Right-click pan
+    function handleMapMouseDown(e) {
+      // Right-click to pan
+      if (e.button === 2) {
+        e.preventDefault();
+        isPanning = true;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        panStartPanX = viewportPanX;
+        panStartPanY = viewportPanY;
+
+        const mapArea = document.getElementById('mapPreviewArea');
+        const transformLayer = document.getElementById('mapTransformLayer');
+        if (mapArea) mapArea.classList.add('panning');
+        if (transformLayer) transformLayer.classList.add('dragging');
+      }
+    }
+
+    function handleMapMouseMove(e) {
+      if (!isPanning) return;
+
+      const deltaX = e.clientX - panStartX;
+      const deltaY = e.clientY - panStartY;
+
+      viewportPanX = panStartPanX + deltaX;
+      viewportPanY = panStartPanY + deltaY;
+
+      updateViewportTransform();
+    }
+
+    function handleMapMouseUp(e) {
+      if (isPanning) {
+        isPanning = false;
+        const mapArea = document.getElementById('mapPreviewArea');
+        const transformLayer = document.getElementById('mapTransformLayer');
+        if (mapArea) mapArea.classList.remove('panning');
+        if (transformLayer) transformLayer.classList.remove('dragging');
+
+        syncBattleMap();
+      }
+    }
+
+    // Initialize viewport event listeners
+    function initViewportControls() {
+      const container = document.getElementById('mapViewportContainer');
+      if (!container) return;
+
+      // Scroll wheel zoom
+      container.addEventListener('wheel', handleMapWheel, { passive: false });
+
+      // Right-click pan
+      container.addEventListener('mousedown', handleMapMouseDown);
+      document.addEventListener('mousemove', handleMapMouseMove);
+      document.addEventListener('mouseup', handleMapMouseUp);
+
+      // Prevent context menu on right-click in map area
+      container.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+      });
+    }
+
     // Click handler for positioning on the map preview
     document.getElementById('mapPreviewWrapper').addEventListener('click', (e) => {
       if (!selectedTokenForPositioning || !currentMap) return;
@@ -6885,6 +7249,14 @@
         }, 100);
       }
     });
+
+    // Initialize viewport controls when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initViewportControls);
+    } else {
+      // DOM is already ready
+      initViewportControls();
+    }
 
     function renderTokenList() {
       const container = document.getElementById('tokenList');
@@ -8308,6 +8680,7 @@
               map: data.map || null,
               tokens: data.tokens || null,
               grid: data.grid || null,
+              viewport: data.viewport || null,
               timestamp: data.timestamp
             });
             break;
