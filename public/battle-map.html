@@ -369,9 +369,6 @@
     let viewportPanX = 0;
     let viewportPanY = 0;
     let tokenScale = 1;
-    let pendingViewport = null; // Stores viewport data if received before map image loads
-    let lastFocalX = 0.5; // Store last focal point for resize handling
-    let lastFocalY = 0.5;
 
     // Heartbeat and reconnection configuration
     const HEARTBEAT_TIMEOUT = 45000; // Consider connection dead after 45 seconds without heartbeat
@@ -611,16 +608,6 @@
         if (data.gridSize) {
           gridSize = data.gridSize;
         }
-
-        // When map image loads, apply any pending viewport data
-        mapImage.onload = function() {
-          console.log('Map image loaded:', mapImage.naturalWidth, 'x', mapImage.naturalHeight);
-          if (pendingViewport) {
-            console.log('Applying pending viewport data');
-            updateViewport(pendingViewport);
-            pendingViewport = null;
-          }
-        };
       } else {
         mapContainer.classList.remove('visible');
         currentMap = null;
@@ -731,44 +718,11 @@
 
       // Update viewport state
       viewportZoom = data.zoom || 1;
+      viewportPanX = data.panX || 0;
+      viewportPanY = data.panY || 0;
       tokenScale = data.tokenScale || 1;
 
-      // Handle normalized focal point coordinates (new format)
-      // focalX/focalY represent what point on the map (0-1 range) should be at screen center
-      if (data.focalX !== undefined && data.focalY !== undefined) {
-        const mapImage = document.getElementById('mapImage');
-
-        // If map image hasn't loaded yet, store viewport data to apply later
-        if (!mapImage || mapImage.naturalWidth === 0) {
-          console.log('Map image not loaded yet, storing viewport data for later');
-          pendingViewport = data;
-          return;
-        }
-
-        // Store focal point for resize handling
-        lastFocalX = data.focalX;
-        lastFocalY = data.focalY;
-
-        // Convert normalized focal point to pixel pan values for this screen
-        // The focal point (focalX, focalY) is what percentage of the map should be at screen center
-        const screenCenterX = window.innerWidth / 2;
-        const screenCenterY = window.innerHeight / 2;
-
-        // Map position (in original image coordinates) that should be at center
-        const mapCenterX = data.focalX * mapImage.naturalWidth;
-        const mapCenterY = data.focalY * mapImage.naturalHeight;
-
-        // Calculate pan offset: screenPos = panOffset + mapPos * zoom
-        // So: panOffset = screenPos - mapPos * zoom
-        viewportPanX = screenCenterX - mapCenterX * viewportZoom;
-        viewportPanY = screenCenterY - mapCenterY * viewportZoom;
-      } else {
-        // Legacy format with raw pixel values (fallback)
-        viewportPanX = data.panX || 0;
-        viewportPanY = data.panY || 0;
-      }
-
-      console.log('Updating viewport:', { viewportZoom, viewportPanX, viewportPanY, tokenScale, focalX: data.focalX, focalY: data.focalY });
+      console.log('Updating viewport:', { viewportZoom, viewportPanX, viewportPanY, tokenScale });
 
       // Apply transform to the map
       const transformLayer = document.getElementById('mapTransformLayer');
@@ -818,27 +772,9 @@
       }
     }
 
-    // Recalculate viewport and redraw on window resize
+    // Redraw grid and tokens on window resize
     window.addEventListener('resize', () => {
       if (currentMap) {
-        const mapImage = document.getElementById('mapImage');
-        if (mapImage && mapImage.naturalWidth > 0) {
-          // Recalculate pan values to keep the same focal point centered
-          const screenCenterX = window.innerWidth / 2;
-          const screenCenterY = window.innerHeight / 2;
-          const mapCenterX = lastFocalX * mapImage.naturalWidth;
-          const mapCenterY = lastFocalY * mapImage.naturalHeight;
-
-          viewportPanX = screenCenterX - mapCenterX * viewportZoom;
-          viewportPanY = screenCenterY - mapCenterY * viewportZoom;
-
-          // Update transform
-          const transformLayer = document.getElementById('mapTransformLayer');
-          if (transformLayer) {
-            transformLayer.style.transform = `translate(${viewportPanX}px, ${viewportPanY}px) scale(${viewportZoom})`;
-          }
-        }
-
         renderTokens();
         if (document.getElementById('gridOverlay').classList.contains('visible')) {
           drawGrid();
