@@ -151,6 +151,13 @@ async function loadCampaign(campaignId) {
 
     // Load full campaign data including notes and characters
     const campaign = await api.campaigns.get(campaignId);
+    console.log('[loadCampaign] Campaign data received:', {
+      campaignId,
+      notesCount: campaign.notes?.length || 0,
+      charactersCount: campaign.characters?.length || 0,
+      notes: campaign.notes,
+      characters: campaign.characters
+    });
 
     // Initialize notes if we have the notes feature
     if (canUse('notes')) {
@@ -174,8 +181,9 @@ async function loadCampaign(campaignId) {
     // Load scenes for this campaign
     await loadScenes(campaignId);
 
-    // Enable scene creation button and delete campaign button
+    // Enable scene creation button, save button, and delete campaign button
     document.getElementById('new-scene-btn')?.removeAttribute('disabled');
+    document.getElementById('save-scene-btn')?.removeAttribute('disabled');
     document.getElementById('delete-campaign-btn')?.removeAttribute('disabled');
 
     updateSaveStatus('Campaign loaded');
@@ -211,7 +219,8 @@ function handleSceneSelect(e) {
     loadScene(sceneId);
   } else {
     currentSceneId = null;
-    document.getElementById('save-scene-btn')?.setAttribute('disabled', '');
+    // Note: save-scene-btn stays enabled for campaign-level saves (characters/notes)
+    // Only disable delete-scene-btn since no scene is selected
     document.getElementById('delete-scene-btn')?.setAttribute('disabled', '');
   }
 }
@@ -261,7 +270,10 @@ export async function saveScene() {
 
 // Save campaign-level data (notes and characters)
 export async function saveCampaign() {
-  if (!currentCampaignId || !canUse('cloudSave')) return;
+  if (!currentCampaignId || !canUse('cloudSave')) {
+    console.log('[saveCampaign] Skipping - no campaign or no cloudSave access', { currentCampaignId, canUseCloudSave: canUse('cloudSave') });
+    return;
+  }
 
   try {
     updateSaveStatus('Saving...');
@@ -276,8 +288,17 @@ export async function saveCampaign() {
       ? window.getCharactersState()
       : [];
 
+    console.log('[saveCampaign] Saving campaign data:', {
+      campaignId: currentCampaignId,
+      notesCount: notes?.length || 0,
+      charactersCount: characters?.length || 0,
+      notes,
+      characters
+    });
+
     // Save campaign-level data
     await api.campaigns.update(currentCampaignId, { notes, characters });
+    console.log('[saveCampaign] Campaign data saved successfully');
 
     // Also save scene data if we have a scene selected
     if (currentSceneId) {
@@ -286,7 +307,8 @@ export async function saveCampaign() {
 
     updateSaveStatus('Saved');
   } catch (err) {
-    console.error('Failed to save campaign:', err);
+    console.error('[saveCampaign] Failed to save campaign:', err);
+    console.error('[saveCampaign] Error details:', { status: err.status, message: err.message, stack: err.stack });
     updateSaveStatus('Save failed');
     if (err.status === 403) {
       alert(err.message || 'Limit reached. Upgrade to premium for more capacity.');
@@ -400,8 +422,8 @@ export async function deleteScene() {
     // Clear current scene
     currentSceneId = null;
 
-    // Disable scene buttons
-    document.getElementById('save-scene-btn')?.setAttribute('disabled', '');
+    // Disable delete-scene button (no scene selected)
+    // Note: save-scene-btn stays enabled for campaign-level saves (characters/notes)
     document.getElementById('delete-scene-btn')?.setAttribute('disabled', '');
 
     // Refresh scenes list
