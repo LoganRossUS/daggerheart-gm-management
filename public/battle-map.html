@@ -228,6 +228,16 @@
       box-shadow: 0 0 15px rgba(244, 67, 54, 0.6), 0 4px 12px rgba(0, 0, 0, 0.6);
     }
 
+    .token.item {
+      border-color: #ff9800;
+      box-shadow: 0 0 15px rgba(255, 152, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    .token.trap {
+      border-color: #9c27b0;
+      box-shadow: 0 0 15px rgba(156, 39, 176, 0.6), 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
     .token-name {
       position: absolute;
       bottom: -22px;
@@ -626,7 +636,13 @@
           tokenEl.style.backgroundImage = `url(${token.image})`;
         } else {
           // Default colored circle if no image
-          tokenEl.style.backgroundColor = token.type === 'player' ? '#4CAF50' : '#f44336';
+          const tokenColors = {
+            'player': '#4CAF50',
+            'adversary': '#f44336',
+            'item': '#ff9800',
+            'trap': '#9c27b0'
+          };
+          tokenEl.style.backgroundColor = tokenColors[token.type] || '#888888';
         }
 
         // Add token name

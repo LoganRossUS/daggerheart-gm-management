@@ -852,6 +852,14 @@
       border-left-color: #f44336;
     }
 
+    .token-item.item {
+      border-left-color: #ff9800;
+    }
+
+    .token-item.trap {
+      border-left-color: #9c27b0;
+    }
+
     .token-item.hidden-from-players {
       opacity: 0.5;
     }
@@ -5022,6 +5030,8 @@
           <div class="token-header">
             <h3>Tokens</h3>
             <button class="add-token-btn" onclick="addPlayerToken()">+ Player</button>
+            <button class="add-token-btn" onclick="addItemToken()">+ Item</button>
+            <button class="add-token-btn" onclick="addTrapToken()">+ Trap</button>
           </div>
           <div class="token-list" id="tokenList">
             <!-- Tokens rendered here -->
@@ -5038,7 +5048,7 @@
           <input type="file" id="encounterFolderInput" webkitdirectory directory style="display: none;" onchange="handleEncounterFolderUpload(event)">
           <input type="file" id="encounterFileInput" accept=".json" style="display: none;" onchange="handleEncounterUpload(event)">
           <input type="file" id="adversaryImageInput" accept="image/*" style="display: none;" multiple onchange="handleAdversaryImageUpload(event)">
-          <button class="encounter-btn" onclick="document.getElementById('encounterFolderInput').click()">Load Folder</button>
+          <button class="encounter-btn" onclick="document.getElementById('encounterFileInput').click()">Load JSON File</button>
           <button class="encounter-btn" onclick="loadSampleEncounter()">Sample</button>
           <button class="encounter-btn" onclick="clearEncounter()">Clear</button>
         </div>
@@ -5055,7 +5065,7 @@
 
       <div id="encounterContainer">
         <div class="encounter-empty">
-          No encounter loaded. Load a folder or use the search to add adversaries.
+          No encounter loaded. Load a JSON file or use the search to add adversaries.
         </div>
       </div>
 
@@ -5885,6 +5895,8 @@
     let gridVisible = false;
     let gridSize = 50;
     let nextPlayerTokenId = 1;
+    let nextItemTokenId = 1;
+    let nextTrapTokenId = 1;
     let positioningTokenId = null;
     let pendingPlayerTokenImageId = null;
     let adversaryDatabase = [];
@@ -6559,6 +6571,50 @@
       scheduleAutoSaveIfAvailable();
     }
 
+    function addItemToken() {
+      const name = prompt('Enter item name:', 'Item');
+      if (!name) return;
+
+      const token = {
+        id: 'item-' + nextItemTokenId++,
+        name: name,
+        type: 'item',
+        x: 0,
+        y: 0,
+        image: null,
+        conditions: { hidden: false, restrained: false, vulnerable: false },
+        visible: false  // Hidden from players by default
+      };
+
+      battleMapTokens.push(token);
+      renderTokenList();
+      syncBattleMap();
+      updateTabBadges();
+      scheduleAutoSaveIfAvailable();
+    }
+
+    function addTrapToken() {
+      const name = prompt('Enter trap name:', 'Trap');
+      if (!name) return;
+
+      const token = {
+        id: 'trap-' + nextTrapTokenId++,
+        name: name,
+        type: 'trap',
+        x: 0,
+        y: 0,
+        image: null,
+        conditions: { hidden: false, restrained: false, vulnerable: false },
+        visible: false  // Hidden from players by default
+      };
+
+      battleMapTokens.push(token);
+      renderTokenList();
+      syncBattleMap();
+      updateTabBadges();
+      scheduleAutoSaveIfAvailable();
+    }
+
     function addAdversaryToken(adversary) {
       const existingToken = battleMapTokens.find(t => t.id === adversary.id);
       if (existingToken) return;
@@ -6936,10 +6992,19 @@
           `;
         }
 
+        // Determine the default icon based on token type
+        const tokenIcons = {
+          'player': '👤',
+          'adversary': '👹',
+          'item': '📦',
+          'trap': '⚠️'
+        };
+        const defaultIcon = tokenIcons[token.type] || '❓';
+
         return `
           <div class="token-item ${token.type} ${token.visible ? '' : 'hidden-from-players'} ${isSpotlighted ? 'spotlighted' : ''}">
             <div class="token-thumb" onclick="${token.type === 'player' && !token.image ? `uploadPlayerTokenImage('${token.id}')` : `openPositioningModal('${token.id}')`}" title="${token.type === 'player' && !token.image ? 'Click to add image' : 'Click to position on map'}">
-              ${token.image ? `<img src="${token.image}" alt="${token.name}">` : `<span style="font-size: 1.2rem;">${token.type === 'player' ? '👤' : '👹'}</span>`}
+              ${token.image ? `<img src="${token.image}" alt="${token.name}">` : `<span style="font-size: 1.2rem;">${defaultIcon}</span>`}
             </div>
             <div style="flex: 1; min-width: 0;">
               <div style="display: flex; align-items: center; gap: 6px;">
@@ -7176,7 +7241,7 @@
 
       if (!currentEncounter || currentEncounter.adversaries.length === 0) {
         titleEl.textContent = 'No Encounter Loaded';
-        container.innerHTML = '<div class="encounter-empty">No encounter loaded. Load a folder or use the search to add adversaries.</div>';
+        container.innerHTML = '<div class="encounter-empty">No encounter loaded. Load a JSON file or use the search to add adversaries.</div>';
         return;
       }
 

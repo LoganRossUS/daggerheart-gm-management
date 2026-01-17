@@ -2063,15 +2063,23 @@
           // Determine if portrait is a URL or filename
           const isUrl = adv.portrait && (adv.portrait.startsWith('http://') || adv.portrait.startsWith('https://'));
 
+          // Build portraits array for GM control panel compatibility
+          const portraits = adv.portrait ? [adv.portrait] : [];
+
           const exportAdv = {
             id: adv.id,
             name: adv.name,
             tier: adv.tier,
             hp: adv.hp,
+            currentHp: adv.hp,
             stress: adv.stress,
+            currentStress: adv.stress,
             attack: adv.attack,
             defense: adv.defense,
+            role: adv._type,
             portrait: adv.portrait,
+            portraits: portraits,
+            activePortraitIndex: 0,
             traits: adv.traits,
             abilities: adv.abilities,
             conditions: adv.conditions,
