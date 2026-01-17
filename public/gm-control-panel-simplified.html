@@ -4920,7 +4920,7 @@
         <option value="">Select Scene...</option>
       </select>
       <button id="new-scene-btn" onclick="window.cloudFeatures?.createNewScene()" title="New Scene" disabled>+</button>
-      <button id="save-scene-btn" onclick="window.cloudFeatures?.saveScene()" title="Save Scene" disabled>Save</button>
+      <button id="save-scene-btn" onclick="window.cloudFeatures?.saveCampaign()" title="Save Campaign" disabled>Save</button>
       <button id="delete-scene-btn" onclick="window.cloudFeatures?.deleteScene()" title="Delete Scene" disabled class="delete-btn">×</button>
     </div>
     <span id="save-status" class="save-status"></span>
@@ -10728,6 +10728,7 @@
       portraitEl.innerHTML = `<img src="${imageUrl}" alt="Character portrait">`;
 
       renderCharactersList();
+      scheduleAutoSaveIfAvailable();
     }
 
     // Helper to trigger auto-save if cloud features are available
