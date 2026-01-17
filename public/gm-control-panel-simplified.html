@@ -6559,35 +6559,6 @@
       // This is separate from the Daggerheart "hidden" condition which is a game mechanic
       const visibleTokensForPlayers = battleMapTokens.filter(t => t.visible === true);
 
-      // Calculate normalized viewport coordinates for cross-screen compatibility
-      // Instead of raw pixel values, we send the focal point as a percentage of the map
-      const container = document.getElementById('mapViewportContainer');
-      const mapPreview = document.getElementById('mapPreview');
-
-      let normalizedViewport = {
-        zoom: viewportZoom,
-        tokenScale: tokenScale,
-        // Normalized focal point (0-1 range) - what point on the map is at the center
-        focalX: 0.5,
-        focalY: 0.5
-      };
-
-      if (container && mapPreview && mapPreview.naturalWidth > 0) {
-        const containerRect = container.getBoundingClientRect();
-        const centerX = containerRect.width / 2;
-        const centerY = containerRect.height / 2;
-
-        // Calculate what point on the map (in original image coordinates) is at the container center
-        // The transform is: screenPos = panOffset + mapPos * zoom
-        // So: mapPos = (screenPos - panOffset) / zoom
-        const mapCenterX = (centerX - viewportPanX) / viewportZoom;
-        const mapCenterY = (centerY - viewportPanY) / viewportZoom;
-
-        // Normalize to 0-1 range based on natural map dimensions
-        normalizedViewport.focalX = mapCenterX / mapPreview.naturalWidth;
-        normalizedViewport.focalY = mapCenterY / mapPreview.naturalHeight;
-      }
-
       const mapData = {
         type: 'mapSync',
         map: currentMap ? {
@@ -6598,7 +6569,12 @@
         } : null,
         tokens: { type: 'tokens', tokens: visibleTokensForPlayers },
         grid: { type: 'grid', visible: gridVisible },
-        viewport: normalizedViewport,
+        viewport: {
+          zoom: viewportZoom,
+          panX: viewportPanX,
+          panY: viewportPanY,
+          tokenScale: tokenScale
+        },
         timestamp: Date.now()
       };
 
