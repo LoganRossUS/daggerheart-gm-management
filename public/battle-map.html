@@ -178,28 +178,20 @@
       position: fixed;
       inset: 0;
       display: none;
-      overflow: hidden;
+      align-items: center;
+      justify-content: center;
       background: #1a0d24;
     }
 
     #mapContainer.visible {
-      display: block;
-    }
-
-    /* Viewport transform layer for synced zoom/pan */
-    #mapTransformLayer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      transform-origin: 0 0;
-      will-change: transform;
-      transition: transform 0.15s ease-out;
+      display: flex;
     }
 
     #mapImage {
-      display: block;
-      max-width: none;
-      max-height: none;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      position: relative;
     }
 
     /* Token Layer */
@@ -318,9 +310,7 @@
 
   <!-- Map Container -->
   <div id="mapContainer">
-    <div id="mapTransformLayer">
-      <img id="mapImage" src="" alt="Battle Map">
-    </div>
+    <img id="mapImage" src="" alt="Battle Map">
   </div>
 
   <!-- Grid Overlay -->
@@ -363,12 +353,6 @@
     let tokens = [];
     let gridSize = 50;
     let firebaseConnected = false;
-
-    // Viewport state (synced from GM)
-    let viewportZoom = 1;
-    let viewportPanX = 0;
-    let viewportPanY = 0;
-    let tokenScale = 1;
 
     // Heartbeat and reconnection configuration
     const HEARTBEAT_TIMEOUT = 45000; // Consider connection dead after 45 seconds without heartbeat
@@ -565,9 +549,6 @@
           if (data.grid) {
             updateGrid(data.grid);
           }
-          if (data.viewport) {
-            updateViewport(data.viewport);
-          }
         }
       });
     }
@@ -628,29 +609,17 @@
       const mapImage = document.getElementById('mapImage');
       const mapRect = mapImage.getBoundingClientRect();
 
-      // Calculate base token size (matching GM panel) and apply scale
-      const baseTokenSize = 60; // Base size in pixels
-      const scaledTokenSize = baseTokenSize * tokenScale;
-
       tokens.forEach(token => {
         const tokenEl = document.createElement('div');
         tokenEl.className = `token ${token.type}`;
         tokenEl.id = `token-${token.id}`;
 
         // Calculate position based on grid coordinates
-        // The mapRect already reflects the viewport transform (pan and zoom)
-        // gridSize needs to be scaled by viewportZoom
-        const scaledGridSize = gridSize * viewportZoom;
-        const pixelX = mapRect.left + (token.x * scaledGridSize) + (scaledGridSize / 2);
-        const pixelY = mapRect.top + (token.y * scaledGridSize) + (scaledGridSize / 2);
+        const pixelX = mapRect.left + (token.x * gridSize);
+        const pixelY = mapRect.top + (token.y * gridSize);
 
         tokenEl.style.left = `${pixelX}px`;
         tokenEl.style.top = `${pixelY}px`;
-        tokenEl.style.transform = 'translate(-50%, -50%)';
-
-        // Apply token scale
-        tokenEl.style.width = `${scaledTokenSize}px`;
-        tokenEl.style.height = `${scaledTokenSize}px`;
 
         // Set token image
         if (token.image) {
@@ -713,30 +682,6 @@
       }
     }
 
-    function updateViewport(data) {
-      if (!data) return;
-
-      // Update viewport state
-      viewportZoom = data.zoom || 1;
-      viewportPanX = data.panX || 0;
-      viewportPanY = data.panY || 0;
-      tokenScale = data.tokenScale || 1;
-
-      console.log('Updating viewport:', { viewportZoom, viewportPanX, viewportPanY, tokenScale });
-
-      // Apply transform to the map
-      const transformLayer = document.getElementById('mapTransformLayer');
-      if (transformLayer) {
-        transformLayer.style.transform = `translate(${viewportPanX}px, ${viewportPanY}px) scale(${viewportZoom})`;
-      }
-
-      // Re-render tokens with new scale and redraw grid
-      renderTokens();
-      if (document.getElementById('gridOverlay').classList.contains('visible')) {
-        drawGrid();
-      }
-    }
-
     function drawGrid() {
       const canvas = document.getElementById('gridOverlay');
       const ctx = canvas.getContext('2d');
@@ -749,14 +694,11 @@
       const mapImage = document.getElementById('mapImage');
       const mapRect = mapImage.getBoundingClientRect();
 
-      // Scale grid size based on viewport zoom
-      const scaledGridSize = gridSize * viewportZoom;
-
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
       ctx.lineWidth = 1;
 
       // Draw vertical lines
-      for (let x = mapRect.left; x < mapRect.right; x += scaledGridSize) {
+      for (let x = mapRect.left; x < mapRect.right; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, mapRect.top);
         ctx.lineTo(x, mapRect.bottom);
@@ -764,7 +706,7 @@
       }
 
       // Draw horizontal lines
-      for (let y = mapRect.top; y < mapRect.bottom; y += scaledGridSize) {
+      for (let y = mapRect.top; y < mapRect.bottom; y += gridSize) {
         ctx.beginPath();
         ctx.moveTo(mapRect.left, y);
         ctx.lineTo(mapRect.right, y);
