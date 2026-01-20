@@ -1861,12 +1861,37 @@
       </svg>
     `)}`;
 
+    // Default Daggerheart domains/classes image to show when nothing is spotlighted
+    const DEFAULT_DOMAINS_IMAGE = 'https://preview.redd.it/domains-classes-play-aid-v0-rsju4zmr0hbf1.png?width=803&format=png&auto=webp&s=1c5dfbf45b66329f024f1d16b98ace643dff44f8';
+
     // Track current images to avoid unnecessary updates
     let currentNpcImage = '';
     let currentSpotlightImage = '';
 
     // Track last received NPC data from Firebase (to avoid reading stale localStorage)
     let lastReceivedNpcData = null;
+
+    // Track if default image is currently showing
+    let showingDefaultImage = false;
+
+    // Show the default Daggerheart domains image when nothing is spotlighted
+    function showDefaultImage() {
+      const portrait = document.getElementById('npcPortrait');
+      const npcImage = document.getElementById('npcImage');
+
+      // Only update if not already showing default image
+      if (!showingDefaultImage) {
+        npcImage.onerror = function() {
+          console.error('Failed to load default domains image, using silhouette fallback');
+          npcImage.src = DEFAULT_SILHOUETTE;
+        };
+        npcImage.src = DEFAULT_DOMAINS_IMAGE;
+        portrait.classList.add('visible');
+        portrait.classList.add('default-image');
+        showingDefaultImage = true;
+        console.log('Showing default Daggerheart domains image');
+      }
+    }
 
     // Update NPC portrait display
     function updateNpcPortrait(npcData) {
@@ -1886,17 +1911,21 @@
           };
           npcImage.src = npcData.image;
         }
+        // Remove default-image class when showing actual NPC
+        portrait.classList.remove('default-image');
+        showingDefaultImage = false;
         if (!currentNpcVisible) {
           portrait.classList.add('visible');
           currentNpcVisible = true;
         }
       } else {
-        // Hide the portrait
+        // No NPC to show - show default image instead
         if (currentNpcVisible) {
-          portrait.classList.remove('visible');
           currentNpcVisible = false;
           currentNpcImage = ''; // Reset so image can be shown again
         }
+        // Show default Daggerheart domains image
+        showDefaultImage();
       }
     }
 
@@ -1921,6 +1950,9 @@
           };
           npcImage.src = spotlightData.image;
         }
+        // Remove default-image class when showing spotlight
+        portrait.classList.remove('default-image');
+        showingDefaultImage = false;
         if (!currentSpotlightVisible) {
           portrait.classList.add('visible');
           currentSpotlightVisible = true;
@@ -1969,7 +2001,7 @@
       } else {
         // Hide the spotlight
         if (currentSpotlightVisible) {
-          portrait.classList.remove('visible', 'defeated', 'has-hidden', 'has-restrained', 'has-vulnerable');
+          portrait.classList.remove('defeated', 'has-hidden', 'has-restrained', 'has-vulnerable');
           defeatedStamp.classList.remove('visible');
           hiddenStamp.classList.remove('visible');
           restrainedStamp.classList.remove('visible');
@@ -1990,8 +2022,13 @@
               npcImage.src = DEFAULT_SILHOUETTE;
             };
             npcImage.src = npcData.image;
+            portrait.classList.remove('default-image');
+            showingDefaultImage = false;
             portrait.classList.add('visible');
             currentNpcVisible = true;
+          } else {
+            // No NPC to show - show default Daggerheart domains image
+            showDefaultImage();
           }
         }
       }
@@ -2037,8 +2074,8 @@
             updateNpcPortrait(parsed);
           }
         } else {
-          // No NPC data, ensure portrait is hidden
-          if (currentNpcVisible) {
+          // No NPC data - show default image if nothing else is showing
+          if (currentNpcVisible || !showingDefaultImage) {
             updateNpcPortrait(null);
           }
         }
@@ -2418,6 +2455,10 @@
 
     // Initialize
     initSkulls();
+
+    // Show default Daggerheart domains image on startup
+    showDefaultImage();
+
     checkForUpdates();
 
     // Poll for updates (localStorage events don't always fire in same window)
