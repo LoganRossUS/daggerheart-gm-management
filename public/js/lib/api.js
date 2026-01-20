@@ -120,4 +120,18 @@ export const api = {
     list: () => apiCall('/files'),
     delete: (fileId) => apiCall(`/files/${fileId}`, { method: 'DELETE' }),
   },
+
+  creatures: {
+    list: (campaignId) => apiCall(`/campaigns/${campaignId}/creatures`),
+    get: (campaignId, creatureId) => apiCall(`/campaigns/${campaignId}/creatures/${creatureId}`),
+    create: (campaignId, data) => apiCall(`/campaigns/${campaignId}/creatures`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    update: (campaignId, creatureId, data) => apiCall(`/campaigns/${campaignId}/creatures/${creatureId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+    delete: (campaignId, creatureId) => apiCall(`/campaigns/${campaignId}/creatures/${creatureId}`, { method: 'DELETE' }),
+  },
 };
