@@ -484,6 +484,59 @@
       color: #e0e0e0;
     }
 
+    /* NPC Name Generator */
+    .npc-name-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-left: 15px;
+      border-left: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .npc-name-label {
+      font-size: 0.7rem;
+      color: #888;
+    }
+
+    .npc-gender-btns {
+      display: flex;
+      gap: 4px;
+    }
+
+    .npc-gender-btn {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #9c27b0, #6a1b9a);
+      color: white;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 36px;
+    }
+
+    .npc-gender-btn:hover {
+      transform: scale(1.1);
+      background: linear-gradient(135deg, #ab47bc, #7b1fa2);
+    }
+
+    .npc-name-display {
+      padding: 4px 12px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 4px;
+      min-width: 140px;
+      text-align: center;
+    }
+
+    .npc-name-result {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #ce93d8;
+      white-space: nowrap;
+    }
+
     /* Tab Navigation */
     .tab-nav {
       display: flex;
@@ -5318,6 +5371,17 @@
       </div>
     </div>
 
+    <div class="npc-name-section">
+      <span class="npc-name-label">NPC</span>
+      <div class="npc-gender-btns">
+        <button class="npc-gender-btn" onclick="generateNpcName('female')" title="Generate female name">♀</button>
+        <button class="npc-gender-btn" onclick="generateNpcName('male')" title="Generate male name">♂</button>
+      </div>
+      <div class="npc-name-display">
+        <div class="npc-name-result" id="npcNameResult">-</div>
+      </div>
+    </div>
+
     <div class="quicknote-section">
       <span class="quicknote-label">NOTE</span>
       <button class="quicknote-btn" id="quickNoteAddBtn" onclick="showQuickNoteInput()">+ Add</button>
@@ -6849,6 +6913,52 @@
       sendToPlayer(diceData);
 
       console.log('Hope/Fear roll:', hope, '+', fear, '=', sum, winner, isDoubles ? '(Critical!)' : '');
+    }
+
+    // ========== NPC Name Generator ==========
+    const npcNames = {
+      male: [
+        'Aldric', 'Bran', 'Cedric', 'Dorian', 'Edmund', 'Finn', 'Gareth', 'Henrik',
+        'Ivan', 'Jasper', 'Kael', 'Leoric', 'Magnus', 'Nolan', 'Orion', 'Percival',
+        'Quinn', 'Roland', 'Silas', 'Theron', 'Ulric', 'Varian', 'Wyatt', 'Xander',
+        'Yorick', 'Zephyr', 'Alaric', 'Bastion', 'Cormac', 'Darius', 'Elric', 'Fenris',
+        'Gideon', 'Holden', 'Idris', 'Jareth', 'Kieran', 'Lysander', 'Merric', 'Nikolai',
+        'Osric', 'Phelan', 'Quillan', 'Ronan', 'Stellan', 'Tobias', 'Vaughn', 'Warrick'
+      ],
+      female: [
+        'Aria', 'Brynn', 'Celeste', 'Dahlia', 'Elara', 'Freya', 'Gwendolyn', 'Helena',
+        'Isolde', 'Juniper', 'Kira', 'Luna', 'Mirella', 'Nadia', 'Ophelia', 'Petra',
+        'Rowena', 'Seraphina', 'Thalia', 'Una', 'Vesper', 'Willow', 'Xena', 'Yara',
+        'Zara', 'Astrid', 'Brianna', 'Coraline', 'Delia', 'Evelyn', 'Fiona', 'Giselle',
+        'Hazel', 'Iris', 'Jasmine', 'Kaelin', 'Lyra', 'Maeve', 'Niamh', 'Orla',
+        'Primrose', 'Rosalind', 'Sybil', 'Tamsin', 'Ursula', 'Vivienne', 'Wren', 'Yvaine'
+      ],
+      surnames: [
+        'Ashford', 'Blackwood', 'Castleton', 'Duskhollow', 'Elderwood', 'Fairweather',
+        'Greystone', 'Hawthorne', 'Ironforge', 'Jadewind', 'Kestrel', 'Lightfoot',
+        'Moonshadow', 'Nightingale', 'Oakenshield', 'Pinecrest', 'Quicksilver', 'Ravencroft',
+        'Stormwind', 'Thornwood', 'Underhill', 'Valebrook', 'Whitmore', 'Yarrow',
+        'Ashborne', 'Brightwater', 'Coldwell', 'Dawnstrider', 'Emberheart', 'Frostborne',
+        'Goldwyn', 'Holloway', 'Ivywood', 'Jadefern', 'Kingsley', 'Larkspur',
+        'Meadowbrook', 'Northwind', 'Oakhart', 'Proudfoot', 'Quinlan', 'Redmane',
+        'Silverbrook', 'Trueblood', 'Umbra', 'Vex', 'Wolfsbane', 'Zephyros'
+      ]
+    };
+
+    function generateNpcName(gender) {
+      const firstNames = npcNames[gender];
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const lastName = npcNames.surnames[Math.floor(Math.random() * npcNames.surnames.length)];
+      const fullName = `${firstName} ${lastName}`;
+
+      const nameDisplay = document.getElementById('npcNameResult');
+      nameDisplay.textContent = fullName;
+      nameDisplay.style.transform = 'scale(1.1)';
+      nameDisplay.style.color = gender === 'female' ? '#f48fb1' : '#90caf9';
+      setTimeout(() => {
+        nameDisplay.style.transform = 'scale(1)';
+        nameDisplay.style.color = '#ce93d8';
+      }, 200);
     }
 
     // ========== Image Upload Helper ==========
