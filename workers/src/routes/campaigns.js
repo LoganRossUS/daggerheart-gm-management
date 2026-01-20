@@ -135,6 +135,40 @@ export async function handleCampaigns(request, env, { jsonResponse, errorRespons
     return deleteCharacter(userId, deleteCharMatch[1], deleteCharMatch[2], env, { jsonResponse, errorResponse });
   }
 
+  // === CUSTOM CREATURES ROUTES ===
+
+  // GET /api/campaigns/:id/creatures - List custom creatures
+  const listCreaturesMatch = path.match(/^\/api\/campaigns\/([^/]+)\/creatures$/);
+  if (listCreaturesMatch && method === 'GET') {
+    return listCustomCreatures(userId, listCreaturesMatch[1], env, { jsonResponse, errorResponse });
+  }
+
+  // POST /api/campaigns/:id/creatures - Create custom creature
+  const createCreatureMatch = path.match(/^\/api\/campaigns\/([^/]+)\/creatures$/);
+  if (createCreatureMatch && method === 'POST') {
+    const body = await request.json();
+    return createCustomCreature(userId, createCreatureMatch[1], body, env, { jsonResponse, errorResponse }, entitlement);
+  }
+
+  // GET /api/campaigns/:campaignId/creatures/:creatureId - Get custom creature
+  const getCreatureMatch = path.match(/^\/api\/campaigns\/([^/]+)\/creatures\/([^/]+)$/);
+  if (getCreatureMatch && method === 'GET') {
+    return getCustomCreature(userId, getCreatureMatch[1], getCreatureMatch[2], env, { jsonResponse, errorResponse });
+  }
+
+  // PUT /api/campaigns/:campaignId/creatures/:creatureId - Update custom creature
+  const updateCreatureMatch = path.match(/^\/api\/campaigns\/([^/]+)\/creatures\/([^/]+)$/);
+  if (updateCreatureMatch && method === 'PUT') {
+    const body = await request.json();
+    return updateCustomCreature(userId, updateCreatureMatch[1], updateCreatureMatch[2], body, env, { jsonResponse, errorResponse });
+  }
+
+  // DELETE /api/campaigns/:campaignId/creatures/:creatureId - Delete custom creature
+  const deleteCreatureMatch = path.match(/^\/api\/campaigns\/([^/]+)\/creatures\/([^/]+)$/);
+  if (deleteCreatureMatch && method === 'DELETE') {
+    return deleteCustomCreature(userId, deleteCreatureMatch[1], deleteCreatureMatch[2], env, { jsonResponse, errorResponse });
+  }
+
   return errorResponse('Not Found', 404);
 }
 
@@ -536,5 +570,133 @@ async function deleteCharacter(userId, campaignId, characterId, env, { jsonRespo
   } catch (err) {
     console.error('Delete character error:', err);
     return errorResponse('Failed to delete character', 500);
+  }
+}
+
+// === CUSTOM CREATURE FUNCTIONS ===
+
+async function listCustomCreatures(userId, campaignId, env, { jsonResponse, errorResponse }) {
+  try {
+    // Verify campaign exists
+    const campaign = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}`, env);
+    if (!campaign) {
+      return errorResponse('Campaign not found', 404);
+    }
+
+    const creatures = await listFirestoreDocs(`users/${userId}/campaigns/${campaignId}/creatures`, env);
+    return jsonResponse({ creatures });
+  } catch (err) {
+    console.error('List custom creatures error:', err);
+    return errorResponse('Failed to list custom creatures', 500);
+  }
+}
+
+async function createCustomCreature(userId, campaignId, data, env, { jsonResponse, errorResponse }, entitlement) {
+  try {
+    // Verify campaign exists
+    const campaign = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}`, env);
+    if (!campaign) {
+      return errorResponse('Campaign not found', 404);
+    }
+
+    // Check creature limit for basic tier (same as characters: 10)
+    if (entitlement?.tier === 'basic') {
+      const existingCreatures = await listFirestoreDocs(`users/${userId}/campaigns/${campaignId}/creatures`, env);
+      if (existingCreatures.length >= 10) {
+        return errorResponse('Basic tier is limited to 10 custom creatures per campaign. Upgrade to premium for unlimited creatures.', 403);
+      }
+    }
+
+    const creatureId = data.id || crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    const creature = {
+      id: creatureId,
+      name: data.name || 'Custom Creature',
+      tier: data.tier || 1,
+      role: data.role || 'Standard',
+      hp: data.hp || 10,
+      stress: data.stress || 3,
+      difficulty: data.difficulty || 12,
+      thresholds: data.thresholds || null,
+      attack: data.attack || '+0 (1d6 phy)',
+      attackData: data.attackData || {
+        modifier: 0,
+        name: 'Attack',
+        range: 'Melee',
+        damage: '1d6 phy'
+      },
+      defense: data.defense || data.difficulty || 12,
+      experience: data.experience || '',
+      features: data.features || [],
+      abilities: data.abilities || [],
+      traits: data.traits || [],
+      description: data.description || '',
+      motives: data.motives || '',
+      portrait: data.portrait || null,
+      themes: data.themes || ['custom'],
+      isCustom: true,
+      createdAt: data.createdAt || now,
+      updatedAt: now,
+    };
+
+    await setFirestoreDoc(`users/${userId}/campaigns/${campaignId}/creatures/${creatureId}`, creature, env);
+
+    return jsonResponse({ creatureId, ...creature });
+  } catch (err) {
+    console.error('Create custom creature error:', err);
+    return errorResponse('Failed to create custom creature', 500);
+  }
+}
+
+async function getCustomCreature(userId, campaignId, creatureId, env, { jsonResponse, errorResponse }) {
+  try {
+    const creature = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}/creatures/${creatureId}`, env);
+
+    if (!creature) {
+      return errorResponse('Custom creature not found', 404);
+    }
+
+    return jsonResponse(creature);
+  } catch (err) {
+    console.error('Get custom creature error:', err);
+    return errorResponse('Failed to get custom creature', 500);
+  }
+}
+
+async function updateCustomCreature(userId, campaignId, creatureId, data, env, { jsonResponse, errorResponse }) {
+  try {
+    const existing = await getFirestoreDoc(`users/${userId}/campaigns/${campaignId}/creatures/${creatureId}`, env);
+
+    if (!existing) {
+      return errorResponse('Custom creature not found', 404);
+    }
+
+    const updated = {
+      ...existing,
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Don't allow overwriting metadata
+    updated.createdAt = existing.createdAt;
+    updated.isCustom = true;
+
+    await setFirestoreDoc(`users/${userId}/campaigns/${campaignId}/creatures/${creatureId}`, updated, env);
+
+    return jsonResponse(updated);
+  } catch (err) {
+    console.error('Update custom creature error:', err);
+    return errorResponse('Failed to update custom creature', 500);
+  }
+}
+
+async function deleteCustomCreature(userId, campaignId, creatureId, env, { jsonResponse, errorResponse }) {
+  try {
+    await deleteFirestoreDoc(`users/${userId}/campaigns/${campaignId}/creatures/${creatureId}`, env);
+    return jsonResponse({ success: true });
+  } catch (err) {
+    console.error('Delete custom creature error:', err);
+    return errorResponse('Failed to delete custom creature', 500);
   }
 }

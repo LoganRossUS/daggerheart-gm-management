@@ -14,6 +14,7 @@ let autoSaveTimeout = null;
 function clearCampaignState() {
   // Clear campaign and scene IDs
   currentCampaignId = null;
+  window.currentCampaignId = null; // Clear exposed campaign ID
   currentSceneId = null;
 
   // Clear auto-save timeout
@@ -51,6 +52,11 @@ function clearCampaignState() {
   }
   if (typeof window.setCharactersState === 'function') {
     window.setCharactersState([]);
+  }
+
+  // Clear custom creatures
+  if (typeof window.loadCustomCreatures === 'function') {
+    window.loadCustomCreatures(null);
   }
 }
 
@@ -147,6 +153,7 @@ async function loadCampaign(campaignId) {
 
   try {
     currentCampaignId = campaignId;
+    window.currentCampaignId = campaignId; // Expose for custom creature functions
     currentSceneId = null;
 
     // Load full campaign data including notes and characters
@@ -176,6 +183,11 @@ async function loadCampaign(campaignId) {
     // Load characters into the embedded Characters tab
     if (typeof window.setCharactersState === 'function') {
       window.setCharactersState(campaign.characters || []);
+    }
+
+    // Load custom creatures for the encounter system
+    if (typeof window.loadCustomCreatures === 'function') {
+      window.loadCustomCreatures(campaignId);
     }
 
     // Load scenes for this campaign
