@@ -11819,10 +11819,15 @@
     };
 
     window.setCharactersState = function(chars) {
+      console.log('[setCharactersState] Called with', chars?.length || 0, 'characters');
       playerCharacters = chars || [];
       // Enable character creation when a campaign is loaded
       const addBtn = document.getElementById('addCharacterBtn');
-      if (addBtn) addBtn.disabled = false;
+      console.log('[setCharactersState] addBtn found:', !!addBtn);
+      if (addBtn) {
+        addBtn.removeAttribute('disabled');
+        console.log('[setCharactersState] Button enabled');
+      }
       renderCharactersList();
       updateTabBadges();
     };
@@ -11832,7 +11837,7 @@
       playerCharacters = [];
       selectedCharacterId = null;
       const addBtn = document.getElementById('addCharacterBtn');
-      if (addBtn) addBtn.disabled = true;
+      if (addBtn) addBtn.setAttribute('disabled', '');
       const list = document.getElementById('charactersList');
       if (list) {
         list.innerHTML = '<div class="characters-empty">Select a campaign to manage characters.</div>';
