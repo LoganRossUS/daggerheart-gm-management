@@ -10687,11 +10687,14 @@
     }
 
     // Close modal on overlay click
-    document.getElementById('printCardOverlay').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closePrintCardModal();
-      }
-    });
+    const printCardOverlay = document.getElementById('printCardOverlay');
+    if (printCardOverlay) {
+      printCardOverlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+          closePrintCardModal();
+        }
+      });
+    }
 
     // Close modal on Escape key
     document.addEventListener('keydown', function(e) {
