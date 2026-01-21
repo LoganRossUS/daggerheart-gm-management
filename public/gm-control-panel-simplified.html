@@ -1741,6 +1741,148 @@
       background: #ffd700;
     }
 
+    /* Scenery Section */
+    .scenery-list {
+      max-height: 200px;
+      overflow-y: auto;
+      background: rgba(0,0,0,0.4);
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .scenery-list:empty::before {
+      content: 'No scenery added';
+      display: block;
+      padding: 20px;
+      text-align: center;
+      color: #666;
+      font-size: 0.8rem;
+    }
+
+    .scenery-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .scenery-item:hover {
+      background: rgba(179, 136, 255, 0.1);
+    }
+
+    .scenery-item.active {
+      background: rgba(179, 136, 255, 0.2);
+      border-left: 3px solid #b388ff;
+    }
+
+    .scenery-item-thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      object-fit: cover;
+      background: rgba(0,0,0,0.3);
+    }
+
+    .scenery-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .scenery-item-name {
+      font-size: 0.85rem;
+      color: #e0e0e0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .scenery-item-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .scenery-item-btn {
+      width: 24px;
+      height: 24px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: #888;
+      cursor: pointer;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .scenery-item-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: #e0e0e0;
+    }
+
+    .scenery-item-btn.delete:hover {
+      background: rgba(244, 67, 54, 0.2);
+      color: #f44336;
+    }
+
+    .scenery-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .scenery-btn {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid rgba(179, 136, 255, 0.4);
+      border-radius: 4px;
+      background: transparent;
+      color: #b388ff;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .scenery-btn:hover {
+      background: rgba(179, 136, 255, 0.1);
+    }
+
+    .scenery-preview-small {
+      width: 100%;
+      height: 120px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .scenery-preview-small img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .scenery-name-input {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+    }
+
+    .scenery-name-input:focus {
+      outline: none;
+      border-color: #b388ff;
+    }
+
     /* Reference Tab */
     .reference-container {
       display: flex;
@@ -5840,6 +5982,29 @@
             </label>
           </div>
         </div>
+
+        <div class="settings-section">
+          <h3>Scenery</h3>
+          <p style="color: #888; font-size: 0.75rem; margin-bottom: 10px;">
+            Add scenery images to display to players. Saved per scene.
+          </p>
+          <div class="scenery-list" id="sceneryList"></div>
+          <input type="file" id="sceneryImageInput" accept="image/*" style="display: none;" onchange="handleSceneryImageUpload(event)">
+          <div class="scenery-controls">
+            <button class="scenery-btn" onclick="showSceneryImageDialog()">+ Add Scenery</button>
+          </div>
+          <div class="scenery-preview-small" id="sceneryPreviewContainer">
+            <img id="sceneryPreview" style="display: none;" alt="Scenery Preview">
+            <span id="sceneryPlaceholder" style="color: #666; font-size: 0.8rem;">Select scenery to preview</span>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">Show to Players</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="sceneryVisibilityToggle" onchange="toggleSceneryVisibility()" disabled>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
       </div>
 
       <div class="settings-section" style="margin-top: 20px;">
@@ -6171,6 +6336,44 @@
         <div id="npcUrlPreview" class="url-preview"></div>
       </div>
       <button class="image-dialog-cancel" onclick="closeNpcImageDialog()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Scenery Add Dialog -->
+  <div id="sceneryAddDialog" class="image-dialog-overlay" onclick="closeSceneryAddDialog(event)">
+    <div class="image-dialog" onclick="event.stopPropagation()" style="max-width: 450px;">
+      <h3 id="sceneryDialogTitle">Add Scenery</h3>
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; font-size: 0.8rem; color: #888; margin-bottom: 5px;">Name:</label>
+        <input type="text" id="sceneryNameInput" class="scenery-name-input" placeholder="Enter scenery name..." style="margin-bottom: 0;">
+      </div>
+      <div class="scenery-preview-small" id="sceneryDialogPreview" style="height: 150px;">
+        <img id="sceneryDialogPreviewImg" style="display: none;" alt="Scenery Preview">
+        <span id="sceneryDialogPlaceholder" style="color: #666; font-size: 0.8rem;">No image selected</span>
+      </div>
+      <div class="image-dialog-options">
+        <button class="image-dialog-btn" onclick="chooseSceneryFileUpload()">
+          Upload from Computer
+        </button>
+        <button class="image-dialog-btn" onclick="browseSceneryImages()">
+          Browse My Uploads
+        </button>
+        <button class="image-dialog-btn" onclick="showSceneryUrlInput()">
+          Use Image URL (CDN)
+        </button>
+      </div>
+      <div id="sceneryUrlInputSection" class="url-input-section">
+        <label>Image URL:</label>
+        <div class="url-input-row">
+          <input type="url" id="sceneryImageUrlInput" placeholder="https://..." onkeyup="handleSceneryUrlKeyup(event)" oninput="previewSceneryUrlImage()">
+          <button class="url-add-btn" id="sceneryUrlAddBtn" onclick="setSceneryFromUrl()" disabled>Set</button>
+        </div>
+        <div id="sceneryUrlPreview" class="url-preview"></div>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="image-dialog-cancel" onclick="closeSceneryAddDialog()" style="flex: 1;">Cancel</button>
+        <button class="url-add-btn" id="sceneryAddBtn" onclick="saveSceneryItem()" style="flex: 1;" disabled>Add Scenery</button>
+      </div>
     </div>
   </div>
 
@@ -8772,6 +8975,254 @@
       localStorage.setItem('daggerheart-update', Date.now().toString());
     }
 
+    // ========== Scenery Management ==========
+    let sceneryItems = []; // Array of { id, name, image }
+    let selectedSceneryId = null;
+    let sceneryVisible = false;
+    let pendingSceneryImage = null;
+    let editingSceneryId = null;
+
+    function showSceneryImageDialog() {
+      editingSceneryId = null;
+      pendingSceneryImage = null;
+      document.getElementById('sceneryDialogTitle').textContent = 'Add Scenery';
+      document.getElementById('sceneryNameInput').value = '';
+      document.getElementById('sceneryDialogPreviewImg').style.display = 'none';
+      document.getElementById('sceneryDialogPlaceholder').style.display = 'block';
+      document.getElementById('sceneryUrlInputSection').classList.remove('visible');
+      document.getElementById('sceneryImageUrlInput').value = '';
+      document.getElementById('sceneryUrlPreview').innerHTML = '';
+      document.getElementById('sceneryUrlAddBtn').disabled = true;
+      document.getElementById('sceneryAddBtn').disabled = true;
+      document.getElementById('sceneryAddBtn').textContent = 'Add Scenery';
+      document.getElementById('sceneryAddDialog').classList.add('visible');
+    }
+
+    function editSceneryItem(id, event) {
+      if (event) event.stopPropagation();
+      const item = sceneryItems.find(s => s.id === id);
+      if (!item) return;
+
+      editingSceneryId = id;
+      pendingSceneryImage = item.image;
+      document.getElementById('sceneryDialogTitle').textContent = 'Edit Scenery';
+      document.getElementById('sceneryNameInput').value = item.name;
+      document.getElementById('sceneryDialogPreviewImg').src = item.image;
+      document.getElementById('sceneryDialogPreviewImg').style.display = 'block';
+      document.getElementById('sceneryDialogPlaceholder').style.display = 'none';
+      document.getElementById('sceneryUrlInputSection').classList.remove('visible');
+      document.getElementById('sceneryImageUrlInput').value = '';
+      document.getElementById('sceneryUrlPreview').innerHTML = '';
+      document.getElementById('sceneryUrlAddBtn').disabled = true;
+      document.getElementById('sceneryAddBtn').disabled = false;
+      document.getElementById('sceneryAddBtn').textContent = 'Save Changes';
+      document.getElementById('sceneryAddDialog').classList.add('visible');
+    }
+
+    function closeSceneryAddDialog(event) {
+      if (event && event.target !== document.getElementById('sceneryAddDialog')) return;
+      document.getElementById('sceneryAddDialog').classList.remove('visible');
+      editingSceneryId = null;
+      pendingSceneryImage = null;
+    }
+
+    function chooseSceneryFileUpload() {
+      document.getElementById('sceneryImageInput').click();
+    }
+
+    async function handleSceneryImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Image too large. Please select an image under 10MB.');
+        return;
+      }
+
+      const imageUrl = await uploadImageToCloud(file);
+      pendingSceneryImage = imageUrl;
+      document.getElementById('sceneryDialogPreviewImg').src = imageUrl;
+      document.getElementById('sceneryDialogPreviewImg').style.display = 'block';
+      document.getElementById('sceneryDialogPlaceholder').style.display = 'none';
+      updateSceneryAddButton();
+      event.target.value = '';
+    }
+
+    function browseSceneryImages() {
+      openImageGallery((url) => {
+        pendingSceneryImage = url;
+        document.getElementById('sceneryDialogPreviewImg').src = url;
+        document.getElementById('sceneryDialogPreviewImg').style.display = 'block';
+        document.getElementById('sceneryDialogPlaceholder').style.display = 'none';
+        updateSceneryAddButton();
+      });
+    }
+
+    function showSceneryUrlInput() {
+      document.getElementById('sceneryUrlInputSection').classList.add('visible');
+      document.getElementById('sceneryImageUrlInput').focus();
+    }
+
+    function handleSceneryUrlKeyup(event) {
+      if (event.key === 'Enter' && !document.getElementById('sceneryUrlAddBtn').disabled) {
+        setSceneryFromUrl();
+      }
+    }
+
+    function previewSceneryUrlImage() {
+      const url = document.getElementById('sceneryImageUrlInput').value.trim();
+      const preview = document.getElementById('sceneryUrlPreview');
+      const addBtn = document.getElementById('sceneryUrlAddBtn');
+
+      if (!url) {
+        preview.innerHTML = '';
+        addBtn.disabled = true;
+        return;
+      }
+
+      preview.innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='Invalid URL'" onload="document.getElementById('sceneryUrlAddBtn').disabled=false">`;
+    }
+
+    function setSceneryFromUrl() {
+      const url = document.getElementById('sceneryImageUrlInput').value.trim();
+      if (!url) return;
+
+      pendingSceneryImage = url;
+      document.getElementById('sceneryDialogPreviewImg').src = url;
+      document.getElementById('sceneryDialogPreviewImg').style.display = 'block';
+      document.getElementById('sceneryDialogPlaceholder').style.display = 'none';
+      document.getElementById('sceneryUrlInputSection').classList.remove('visible');
+      updateSceneryAddButton();
+    }
+
+    function updateSceneryAddButton() {
+      const name = document.getElementById('sceneryNameInput').value.trim();
+      document.getElementById('sceneryAddBtn').disabled = !pendingSceneryImage || !name;
+    }
+
+    function saveSceneryItem() {
+      const name = document.getElementById('sceneryNameInput').value.trim();
+      if (!name || !pendingSceneryImage) return;
+
+      if (editingSceneryId) {
+        // Update existing item
+        const item = sceneryItems.find(s => s.id === editingSceneryId);
+        if (item) {
+          item.name = name;
+          item.image = pendingSceneryImage;
+        }
+      } else {
+        // Create new item
+        const newItem = {
+          id: 'scenery-' + Math.random().toString(36).substr(2, 9),
+          name: name,
+          image: pendingSceneryImage
+        };
+        sceneryItems.push(newItem);
+        selectedSceneryId = newItem.id;
+      }
+
+      renderSceneryList();
+      updateSceneryPreview();
+      closeSceneryAddDialog();
+      scheduleAutoSaveIfAvailable();
+    }
+
+    function deleteSceneryItem(id, event) {
+      if (event) event.stopPropagation();
+      sceneryItems = sceneryItems.filter(s => s.id !== id);
+      if (selectedSceneryId === id) {
+        selectedSceneryId = sceneryItems.length > 0 ? sceneryItems[0].id : null;
+        if (!selectedSceneryId) {
+          sceneryVisible = false;
+          document.getElementById('sceneryVisibilityToggle').checked = false;
+        }
+      }
+      renderSceneryList();
+      updateSceneryPreview();
+      syncSceneryToStorage();
+      scheduleAutoSaveIfAvailable();
+    }
+
+    function selectSceneryItem(id) {
+      selectedSceneryId = id;
+      renderSceneryList();
+      updateSceneryPreview();
+      syncSceneryToStorage();
+    }
+
+    function renderSceneryList() {
+      const list = document.getElementById('sceneryList');
+      if (!list) return;
+
+      if (sceneryItems.length === 0) {
+        list.innerHTML = '';
+        return;
+      }
+
+      list.innerHTML = sceneryItems.map(item => `
+        <div class="scenery-item ${item.id === selectedSceneryId ? 'active' : ''}" onclick="selectSceneryItem('${item.id}')">
+          <img class="scenery-item-thumb" src="${item.image}" alt="${item.name}">
+          <div class="scenery-item-info">
+            <div class="scenery-item-name">${item.name}</div>
+          </div>
+          <div class="scenery-item-actions">
+            <button class="scenery-item-btn" onclick="editSceneryItem('${item.id}', event)" title="Edit">&#9998;</button>
+            <button class="scenery-item-btn delete" onclick="deleteSceneryItem('${item.id}', event)" title="Delete">&#10005;</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateSceneryPreview() {
+      const preview = document.getElementById('sceneryPreview');
+      const placeholder = document.getElementById('sceneryPlaceholder');
+      const toggle = document.getElementById('sceneryVisibilityToggle');
+
+      const selected = sceneryItems.find(s => s.id === selectedSceneryId);
+      if (selected) {
+        preview.src = selected.image;
+        preview.style.display = 'block';
+        placeholder.style.display = 'none';
+        toggle.disabled = false;
+      } else {
+        preview.style.display = 'none';
+        placeholder.style.display = 'block';
+        toggle.disabled = true;
+        toggle.checked = false;
+        sceneryVisible = false;
+      }
+    }
+
+    function toggleSceneryVisibility() {
+      sceneryVisible = document.getElementById('sceneryVisibilityToggle').checked;
+      syncSceneryToStorage();
+    }
+
+    function syncSceneryToStorage() {
+      const selected = sceneryItems.find(s => s.id === selectedSceneryId);
+      const sceneryData = {
+        type: 'scenery',
+        visible: sceneryVisible,
+        image: selected ? selected.image : null,
+        name: selected ? selected.name : null,
+        timestamp: Date.now()
+      };
+
+      // If Firebase connected, send via Firebase
+      if (roomRef) {
+        sendToPlayer(sceneryData);
+      }
+      localStorage.setItem('daggerheart-update', Date.now().toString());
+    }
+
+    // Helper to schedule auto-save
+    function scheduleAutoSaveIfAvailable() {
+      if (window.cloudFeatures?.saveCampaign) {
+        window.cloudFeatures.saveCampaign();
+      }
+    }
+
     // ========== Player Token Image ==========
     async function handlePlayerTokenImageUpload(event) {
       const file = event.target.files[0];
@@ -8944,6 +9395,14 @@
             roomRef.child('npc').set({
               visible: data.visible,
               image: data.image || null,
+              timestamp: data.timestamp
+            });
+            break;
+          case 'scenery':
+            roomRef.child('scenery').set({
+              visible: data.visible,
+              image: data.image || null,
+              name: data.name || null,
               timestamp: data.timestamp
             });
             break;
@@ -10246,14 +10705,20 @@
       spotlightedAdversary = null;
       battleMapTokens = [];
       stagedBattles = [];
+      sceneryItems = [];
+      selectedSceneryId = null;
+      sceneryVisible = false;
 
       // Update UI
       updateFearDisplay();
       updateNpcPreview();
       document.getElementById('npcVisibilityToggle').checked = false;
+      document.getElementById('sceneryVisibilityToggle').checked = false;
       renderEncounter();
       renderTokenList();
       renderQueueList();
+      renderSceneryList();
+      updateSceneryPreview();
       updateTabBadges();
 
       // Notify Firebase clients to clear their state
@@ -10262,6 +10727,7 @@
         roomRef.child('fear').set({ value: 0, timestamp });
         roomRef.child('npc').set({ visible: false, image: null, timestamp });
         roomRef.child('spotlight').set({ visible: false, timestamp });
+        roomRef.child('scenery').set({ visible: false, image: null, name: null, timestamp });
         roomRef.child('tokens').set(null);
         roomRef.child('grid').set(null);
       }
@@ -10333,6 +10799,12 @@
       // Initialize Firebase
       initFirebaseHost();
 
+      // Set up scenery name input listener
+      const sceneryNameInput = document.getElementById('sceneryNameInput');
+      if (sceneryNameInput) {
+        sceneryNameInput.addEventListener('input', updateSceneryAddButton);
+      }
+
       // Render initial state
       renderTokenList();
       updateTabBadges();
@@ -10354,7 +10826,12 @@
           gridVisible: gridVisible,
           gridSize: gridSize
         },
-        battleQueue: stagedBattles
+        battleQueue: stagedBattles,
+        scenery: {
+          items: sceneryItems,
+          selectedId: selectedSceneryId,
+          visible: sceneryVisible
+        }
       };
     };
 
@@ -10413,6 +10890,15 @@
       if (state.battleQueue && Array.isArray(state.battleQueue)) {
         stagedBattles = state.battleQueue;
         renderQueueList();
+      }
+      // Restore scenery
+      if (state.scenery) {
+        sceneryItems = state.scenery.items || [];
+        selectedSceneryId = state.scenery.selectedId || (sceneryItems.length > 0 ? sceneryItems[0].id : null);
+        sceneryVisible = state.scenery.visible || false;
+        renderSceneryList();
+        updateSceneryPreview();
+        document.getElementById('sceneryVisibilityToggle').checked = sceneryVisible;
       }
     };
 
