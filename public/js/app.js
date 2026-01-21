@@ -50,7 +50,10 @@ function clearCampaignState() {
   if (typeof window.setNotesState === 'function') {
     window.setNotesState([]);
   }
-  if (typeof window.setCharactersState === 'function') {
+  // Use disableCharactersPanel to fully disable the characters UI when no campaign is selected
+  if (typeof window.disableCharactersPanel === 'function') {
+    window.disableCharactersPanel();
+  } else if (typeof window.setCharactersState === 'function') {
     window.setCharactersState([]);
   }
 
@@ -133,7 +136,7 @@ function handleCampaignSelect(e) {
   if (campaignId) {
     loadCampaign(campaignId);
   } else {
-    // Campaign deselected - clear scenes
+    // Campaign deselected - clear scenes and characters
     currentCampaignId = null;
     currentSceneId = null;
     const sceneSelect = document.getElementById('scene-select');
@@ -145,6 +148,11 @@ function handleCampaignSelect(e) {
     document.getElementById('save-scene-btn')?.setAttribute('disabled', '');
     document.getElementById('delete-campaign-btn')?.setAttribute('disabled', '');
     document.getElementById('delete-scene-btn')?.setAttribute('disabled', '');
+
+    // Disable characters panel when no campaign is selected
+    if (typeof window.disableCharactersPanel === 'function') {
+      window.disableCharactersPanel();
+    }
   }
 }
 
@@ -288,10 +296,8 @@ export async function saveScene() {
 
 // Save campaign-level data (notes and characters)
 export async function saveCampaign() {
-  console.log('[saveCampaign] Called. Stack trace:', new Error().stack);
-
   if (!currentCampaignId || !canUse('cloudSave')) {
-    console.log('[saveCampaign] Skipping - no campaign or no cloudSave access', { currentCampaignId, canUseCloudSave: canUse('cloudSave') });
+    console.log('[saveCampaign] Skipping - no campaign selected or no cloudSave access');
     return;
   }
 
@@ -397,19 +403,15 @@ export async function createNewScene() {
 }
 
 export function scheduleAutoSave() {
-  console.log('[scheduleAutoSave] Called. Stack trace:', new Error().stack);
-
   if (!currentCampaignId || !canUse('cloudSave')) {
-    console.log('[scheduleAutoSave] Skipping - no campaign or no cloudSave access');
+    console.log('[scheduleAutoSave] Skipping - no campaign selected');
     return;
   }
 
   if (autoSaveTimeout) {
-    console.log('[scheduleAutoSave] Clearing existing timeout');
     clearTimeout(autoSaveTimeout);
   }
   autoSaveTimeout = setTimeout(saveCampaign, 2000);
-  console.log('[scheduleAutoSave] Scheduled save in 2 seconds');
   updateSaveStatus('Unsaved changes');
 }
 

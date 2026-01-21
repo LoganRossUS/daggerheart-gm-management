@@ -5524,11 +5524,11 @@
         <div class="characters-sidebar">
           <div class="characters-header">
             <h3>Player Characters</h3>
-            <button class="add-character-btn" onclick="addNewCharacter()">+ Add PC</button>
+            <button class="add-character-btn" id="addCharacterBtn" onclick="addNewCharacter()" disabled>+ Add PC</button>
           </div>
           <div class="characters-list" id="charactersList">
-            <div class="characters-empty">
-              No characters yet. Click "+ Add PC" to create a player character.
+            <div class="characters-empty" id="charactersEmptyMessage">
+              Select a campaign to manage characters.
             </div>
           </div>
         </div>
@@ -11402,6 +11402,12 @@
 
     // ========== Character Management ==========
     function addNewCharacter() {
+      // Check if a campaign is selected
+      if (!window.currentCampaignId) {
+        alert('Please select a campaign first before creating characters.');
+        return;
+      }
+
       // Check character limit for basic tier
       const entitlement = window.cloudFeatures?.getEntitlement?.();
       if (entitlement === 'basic' && playerCharacters.length >= 10) {
@@ -11436,7 +11442,6 @@
       };
 
       playerCharacters.push(newChar);
-      console.log('[addNewCharacter] Added character, playerCharacters now has:', playerCharacters.length, 'characters');
       selectCharacter(newChar.id);
       updateTabBadges();
       scheduleAutoSaveIfAvailable();
@@ -11803,24 +11808,37 @@
 
     // Helper to trigger auto-save if cloud features are available
     function scheduleAutoSaveIfAvailable() {
-      console.log('[scheduleAutoSaveIfAvailable] Called, cloudFeatures exists:', !!window.cloudFeatures);
       if (window.cloudFeatures?.scheduleAutoSave) {
-        console.log('[scheduleAutoSaveIfAvailable] Triggering auto-save');
         window.cloudFeatures.scheduleAutoSave();
       }
     }
 
     // Expose character and note functions for cloud save/load integration
     window.getCharactersState = function() {
-      console.log('[getCharactersState] Returning playerCharacters:', playerCharacters.length, 'characters', playerCharacters);
       return playerCharacters;
     };
 
     window.setCharactersState = function(chars) {
-      console.log('[setCharactersState] Setting characters:', chars?.length || 0, 'characters', chars);
       playerCharacters = chars || [];
-      console.log('[setCharactersState] playerCharacters now has:', playerCharacters.length, 'characters');
+      // Enable character creation when a campaign is loaded
+      const addBtn = document.getElementById('addCharacterBtn');
+      if (addBtn) addBtn.disabled = false;
       renderCharactersList();
+      updateTabBadges();
+    };
+
+    // Disable character UI when no campaign is selected
+    window.disableCharactersPanel = function() {
+      playerCharacters = [];
+      selectedCharacterId = null;
+      const addBtn = document.getElementById('addCharacterBtn');
+      if (addBtn) addBtn.disabled = true;
+      const list = document.getElementById('charactersList');
+      if (list) {
+        list.innerHTML = '<div class="characters-empty">Select a campaign to manage characters.</div>';
+      }
+      document.querySelector('.character-editor-empty').style.display = 'flex';
+      document.getElementById('characterEditorForm').style.display = 'none';
       updateTabBadges();
     };
 
