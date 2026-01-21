@@ -11436,6 +11436,7 @@
       };
 
       playerCharacters.push(newChar);
+      console.log('[addNewCharacter] Added character, playerCharacters now has:', playerCharacters.length, 'characters');
       selectCharacter(newChar.id);
       updateTabBadges();
       scheduleAutoSaveIfAvailable();
@@ -11802,18 +11803,23 @@
 
     // Helper to trigger auto-save if cloud features are available
     function scheduleAutoSaveIfAvailable() {
+      console.log('[scheduleAutoSaveIfAvailable] Called, cloudFeatures exists:', !!window.cloudFeatures);
       if (window.cloudFeatures?.scheduleAutoSave) {
+        console.log('[scheduleAutoSaveIfAvailable] Triggering auto-save');
         window.cloudFeatures.scheduleAutoSave();
       }
     }
 
     // Expose character and note functions for cloud save/load integration
     window.getCharactersState = function() {
+      console.log('[getCharactersState] Returning playerCharacters:', playerCharacters.length, 'characters', playerCharacters);
       return playerCharacters;
     };
 
     window.setCharactersState = function(chars) {
+      console.log('[setCharactersState] Setting characters:', chars?.length || 0, 'characters', chars);
       playerCharacters = chars || [];
+      console.log('[setCharactersState] playerCharacters now has:', playerCharacters.length, 'characters');
       renderCharactersList();
       updateTabBadges();
     };
