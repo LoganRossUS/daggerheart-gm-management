@@ -195,8 +195,12 @@ async function loadCampaign(campaignId) {
     }
 
     // Load characters into the embedded Characters tab
+    console.log('[loadCampaign] Checking setCharactersState, exists:', typeof window.setCharactersState);
     if (typeof window.setCharactersState === 'function') {
+      console.log('[loadCampaign] Calling setCharactersState');
       window.setCharactersState(campaign.characters || []);
+    } else {
+      console.log('[loadCampaign] setCharactersState not found!');
     }
 
     // Load custom creatures for the encounter system
