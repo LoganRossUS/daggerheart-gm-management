@@ -1999,6 +1999,9 @@
 
     // Show the default Daggerheart domains image when nothing is spotlighted
     function showDefaultImage() {
+      // Don't show default if scenery is visible
+      if (currentSceneryVisible) return;
+
       const portrait = document.getElementById('npcPortrait');
       const npcImage = document.getElementById('npcImage');
 
@@ -2013,6 +2016,17 @@
         portrait.classList.add('default-image');
         showingDefaultImage = true;
         console.log('Showing default Daggerheart domains image');
+      }
+    }
+
+    // Hide the default image (when scenery takes over)
+    function hideDefaultImage() {
+      if (showingDefaultImage) {
+        const portrait = document.getElementById('npcPortrait');
+        portrait.classList.remove('visible');
+        portrait.classList.remove('default-image');
+        showingDefaultImage = false;
+        console.log('Hiding default image for scenery');
       }
     }
 
@@ -2182,6 +2196,8 @@
         if (!currentSceneryVisible) {
           sceneryDisplay.classList.add('visible');
           currentSceneryVisible = true;
+          // Hide default image when scenery is shown (scenery takes priority over default)
+          hideDefaultImage();
         }
       } else {
         // Hide scenery
@@ -2189,6 +2205,10 @@
           sceneryDisplay.classList.remove('visible');
           currentSceneryVisible = false;
           currentSceneryImage = '';
+          // Show default image if no NPC/spotlight is active
+          if (!currentNpcVisible && !currentSpotlightVisible) {
+            showDefaultImage();
+          }
         }
       }
     }
