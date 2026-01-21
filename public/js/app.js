@@ -151,6 +151,12 @@ function handleCampaignSelect(e) {
 async function loadCampaign(campaignId) {
   if (!campaignId || !canUse('campaigns')) return;
 
+  // Clear any pending auto-save to prevent saving stale data during campaign load
+  if (autoSaveTimeout) {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = null;
+  }
+
   try {
     currentCampaignId = campaignId;
     window.currentCampaignId = campaignId; // Expose for custom creature functions
@@ -282,6 +288,8 @@ export async function saveScene() {
 
 // Save campaign-level data (notes and characters)
 export async function saveCampaign() {
+  console.log('[saveCampaign] Called. Stack trace:', new Error().stack);
+
   if (!currentCampaignId || !canUse('cloudSave')) {
     console.log('[saveCampaign] Skipping - no campaign or no cloudSave access', { currentCampaignId, canUseCloudSave: canUse('cloudSave') });
     return;
@@ -389,10 +397,19 @@ export async function createNewScene() {
 }
 
 export function scheduleAutoSave() {
-  if (!currentCampaignId || !canUse('cloudSave')) return;
+  console.log('[scheduleAutoSave] Called. Stack trace:', new Error().stack);
 
-  if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+  if (!currentCampaignId || !canUse('cloudSave')) {
+    console.log('[scheduleAutoSave] Skipping - no campaign or no cloudSave access');
+    return;
+  }
+
+  if (autoSaveTimeout) {
+    console.log('[scheduleAutoSave] Clearing existing timeout');
+    clearTimeout(autoSaveTimeout);
+  }
   autoSaveTimeout = setTimeout(saveCampaign, 2000);
+  console.log('[scheduleAutoSave] Scheduled save in 2 seconds');
   updateSaveStatus('Unsaved changes');
 }
 
