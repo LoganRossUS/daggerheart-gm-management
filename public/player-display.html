@@ -812,6 +812,107 @@
       background: linear-gradient(135deg, rgba(112, 128, 144, 0.15), rgba(218, 165, 32, 0.15));
     }
 
+    /* Scenery Display */
+    #sceneryDisplay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+      z-index: 90;
+      pointer-events: none;
+    }
+
+    #sceneryDisplay.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .scenery-frame {
+      position: relative;
+      padding: 12px;
+      background: linear-gradient(145deg, #1a2a35, #0d1a24);
+      border-radius: 16px;
+      box-shadow:
+        0 0 40px rgba(45, 100, 142, 0.4),
+        0 0 80px rgba(0, 75, 130, 0.2),
+        inset 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .scenery-frame::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      padding: 3px;
+      background: linear-gradient(145deg, #4fc3f7, #29b6f6, #00acc1, #00838f);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+
+    .scenery-frame::after {
+      content: '';
+      position: absolute;
+      inset: 6px;
+      border-radius: 12px;
+      padding: 2px;
+      background: linear-gradient(145deg, rgba(79, 195, 247, 0.3), rgba(0, 172, 193, 0.3));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+
+    .scenery-inner-frame {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0d0610;
+    }
+
+    #sceneryImage {
+      display: block;
+      max-width: 80vw;
+      max-height: 70vh;
+      min-width: 300px;
+      min-height: 300px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+
+    .scenery-label {
+      margin-top: 15px;
+      padding: 8px 24px;
+      background: linear-gradient(145deg, rgba(0, 100, 130, 0.8), rgba(0, 50, 80, 0.9));
+      border: 2px solid rgba(79, 195, 247, 0.5);
+      border-radius: 8px;
+      color: #4fc3f7;
+      font-family: 'Cinzel', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(79, 195, 247, 0.5);
+    }
+
+    @keyframes sceneryGlow {
+      0%, 100% { box-shadow: 0 0 40px rgba(45, 100, 142, 0.4), 0 0 80px rgba(0, 75, 130, 0.2), inset 0 0 30px rgba(0, 0, 0, 0.5); }
+      50% { box-shadow: 0 0 50px rgba(45, 100, 142, 0.5), 0 0 100px rgba(0, 75, 130, 0.3), inset 0 0 30px rgba(0, 0, 0, 0.5); }
+    }
+
+    #sceneryDisplay.visible .scenery-frame {
+      animation: sceneryGlow 3s ease-in-out infinite;
+    }
+
     /* Connection Status UI */
     #connectionStatus {
       position: fixed;
@@ -1035,6 +1136,16 @@
   <div id="resultDisplay">
     <div class="result-value" id="resultValue"></div>
     <div class="result-detail" id="resultDetail"></div>
+  </div>
+
+  <!-- Scenery Display -->
+  <div id="sceneryDisplay">
+    <div class="scenery-frame">
+      <div class="scenery-inner-frame">
+        <img id="sceneryImage" src="" alt="Scenery">
+      </div>
+    </div>
+    <div id="sceneryLabel" class="scenery-label"></div>
   </div>
 
   <!-- NPC Portrait Display -->
@@ -1808,12 +1919,15 @@
         lastDiceTimestamp = 0;
         lastNpcTimestamp = 0;
         lastSpotlightTimestamp = 0;
+        lastSceneryTimestamp = 0;
 
         // Reset visibility states
         currentNpcVisible = false;
         currentSpotlightVisible = false;
+        currentSceneryVisible = false;
         currentNpcImage = '';
         currentSpotlightImage = '';
+        currentSceneryImage = '';
 
         // Store the new room code
         localStorage.setItem('daggerheart-last-room', newRoomCode);
@@ -1826,12 +1940,15 @@
       lastDiceTimestamp = 0;
       lastNpcTimestamp = 0;
       lastSpotlightTimestamp = 0;
+      lastSceneryTimestamp = 0;
 
       // Reset visibility states
       currentNpcVisible = false;
       currentSpotlightVisible = false;
+      currentSceneryVisible = false;
       currentNpcImage = '';
       currentSpotlightImage = '';
+      currentSceneryImage = '';
     }
 
     // Heartbeat and reconnection configuration
@@ -1867,12 +1984,18 @@
     // Track current images to avoid unnecessary updates
     let currentNpcImage = '';
     let currentSpotlightImage = '';
+    let currentSceneryImage = '';
 
     // Track last received NPC data from Firebase (to avoid reading stale localStorage)
     let lastReceivedNpcData = null;
+    let lastReceivedSceneryData = null;
 
     // Track if default image is currently showing
     let showingDefaultImage = false;
+
+    // Track scenery visibility
+    let currentSceneryVisible = false;
+    let lastSceneryTimestamp = 0;
 
     // Show the default Daggerheart domains image when nothing is spotlighted
     function showDefaultImage() {
@@ -2030,6 +2153,42 @@
             // No NPC to show - show default Daggerheart domains image
             showDefaultImage();
           }
+        }
+      }
+    }
+
+    // Update scenery display
+    function updateScenery(sceneryData) {
+      const sceneryDisplay = document.getElementById('sceneryDisplay');
+      const sceneryImage = document.getElementById('sceneryImage');
+      const sceneryLabel = document.getElementById('sceneryLabel');
+
+      if (sceneryData && sceneryData.visible && sceneryData.image) {
+        // Show the scenery - only update if image changed
+        if (currentSceneryImage !== sceneryData.image) {
+          currentSceneryImage = sceneryData.image;
+          sceneryImage.onerror = function() {
+            console.error('Failed to load scenery image');
+          };
+          sceneryImage.src = sceneryData.image;
+        }
+        // Update the label
+        if (sceneryData.name) {
+          sceneryLabel.textContent = sceneryData.name;
+          sceneryLabel.style.display = 'block';
+        } else {
+          sceneryLabel.style.display = 'none';
+        }
+        if (!currentSceneryVisible) {
+          sceneryDisplay.classList.add('visible');
+          currentSceneryVisible = true;
+        }
+      } else {
+        // Hide scenery
+        if (currentSceneryVisible) {
+          sceneryDisplay.classList.remove('visible');
+          currentSceneryVisible = false;
+          currentSceneryImage = '';
         }
       }
     }
@@ -2237,6 +2396,20 @@
         }
       });
 
+      // Subscribe to scenery updates
+      roomRef.child('scenery').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.timestamp) {
+          lastHeartbeatReceived = Date.now();
+          lastReceivedSceneryData = data;
+          if (data.timestamp > lastSceneryTimestamp || data.visible !== currentSceneryVisible) {
+            lastSceneryTimestamp = data.timestamp;
+            console.log('Received scenery update:', data);
+            updateScenery(data);
+          }
+        }
+      });
+
       // Subscribe to countdown updates
       roomRef.child('countdowns').on('value', (snapshot) => {
         const data = snapshot.val();
@@ -2295,6 +2468,13 @@
               lastNpcTimestamp = data.timestamp;
               updateNpcPortrait(data);
             }
+          }
+          break;
+        case 'scenery':
+          console.log('Calling updateScenery');
+          if (data.timestamp > lastSceneryTimestamp || data.visible !== currentSceneryVisible) {
+            lastSceneryTimestamp = data.timestamp;
+            updateScenery(data);
           }
           break;
         case 'sync':
