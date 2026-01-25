@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Characters | Daggerheart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/characters.css">
+</head>
+<body>
+
+  <!-- Room Join Screen -->
+  <div id="roomJoinScreen" class="room-join-screen">
+    <h1>Daggerheart Characters</h1>
+    <p style="color: rgba(255,255,255,0.7); margin-bottom: 2rem;">Enter your room code to manage characters</p>
+    <input
+      type="text"
+      id="roomCodeInput"
+      class="room-code-input"
+      placeholder="Enter Room Code"
+      maxlength="20"
+      autocomplete="off"
+      autocapitalize="characters"
+    >
+    <button id="joinRoomBtn" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%; max-width: 300px;">
+      Join Room
+    </button>
+    <p id="roomError" style="color: #f44336; margin-top: 1rem; display: none;"></p>
+  </div>
+
+  <!-- Character Selection Screen -->
+  <div id="characterListScreen" class="hidden">
+    <header class="header">
+      <button id="backToJoinBtn" class="back-btn" aria-label="Leave room">
+        ← Leave
+      </button>
+      <span class="header-title">Characters</span>
+      <span id="roomCodeDisplay" class="room-code-display"></span>
+    </header>
+
+    <div id="characterList" class="character-list">
+      <!-- Characters will be rendered here -->
+    </div>
+
+    <button id="createCharacterBtn" class="fab" aria-label="Create new character">
+      +
+    </button>
+  </div>
+
+  <!-- Character Creation Wizard -->
+  <div id="wizardScreen" class="wizard-container hidden">
+    <header class="header">
+      <button id="wizardBackBtn" class="back-btn" aria-label="Back to character list">
+        ← Cancel
+      </button>
+      <span class="header-title">Create Character</span>
+      <span></span>
+    </header>
+
+    <div class="wizard-progress">
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill" style="width: 11.11%"></div>
+      </div>
+      <div id="progressText" class="progress-text">Step 1 of 9: Choose Class</div>
+    </div>
+
+    <div class="wizard-content">
+      <!-- Step 1: Choose Class -->
+      <div id="step1" class="wizard-step active">
+        <div class="wizard-step-header">
+          <h2>Choose Your Class</h2>
+          <p>Swipe to explore, tap to select</p>
+        </div>
+        <div class="carousel-container" id="classCarousel">
+          <div class="carousel-track" id="classCarouselTrack">
+            <!-- Class cards rendered by JS -->
+          </div>
+        </div>
+        <div class="carousel-indicators" id="classIndicators"></div>
+      </div>
+
+      <!-- Step 2: Choose Subclass -->
+      <div id="step2" class="wizard-step">
+        <div class="wizard-step-header">
+          <h2>Choose Your Subclass</h2>
+          <p id="subclassHint">Defines your Spellcast trait and foundation ability</p>
+        </div>
+        <div class="subclass-grid" id="subclassGrid">
+          <!-- Subclass cards rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Step 3: Choose Ancestry -->
+      <div id="step3" class="wizard-step">
+        <div class="wizard-step-header">
+          <h2>Choose Your Ancestry</h2>
+          <p>Your heritage and natural abilities</p>
+        </div>
+        <div class="ancestry-grid" id="ancestryGrid">
+          <!-- Ancestry cards rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Step 4: Choose Community -->
+      <div id="step4" class="wizard-step">
+        <div class="wizard-step-header">
+          <h2>Choose Your Community</h2>
+          <p>Where you grew up shapes who you are</p>
+        </div>
+        <div class="carousel-container" id="communityCarousel">
+          <div class="carousel-track" id="communityCarouselTrack">
+            <!-- Community cards rendered by JS -->
+          </div>
+        </div>
+        <div class="carousel-indicators" id="communityIndicators"></div>
+      </div>
+
+      <!-- Step 5: Assign Traits -->
+      <div id="step5" class="wizard-step">
+        <div class="wizard-step-header">
+          <h2>Assign Your Traits</h2>
+          <p>Tap a value, then tap a trait to assign it</p>
+        </div>
+        <div class="trait-assignment">
+          <div class="trait-pool" id="traitPool">
+            <!-- Trait value chips rendered by JS -->
+          </div>
+          <div class="trait-slots" id="traitSlots">
+            <!-- Trait slots rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 6: Choose Equipment -->
+      <div id="step6" class="wizard-step">
+        <div class="wizard-step-header">
+          <h2>Choose Your Equipment</h2>
+          <p>Select your starting gear</p>
+        </div>
+        <div class="equipment-section" id="equipmentSection">
+          <!-- Equipment selections rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Step 7: Background & Experiences -->
+      <div id="step7" class="wizard-step">
+        <div class="wizard-step-header">
+          <h2>Background & Experiences</h2>
+          <p>What shaped your character?</p>
+        </div>
+        <div class="background-section">
+          <div class="form-group">
+            <label class="form-label">Background</label>
+            <textarea
+              id="backgroundInput"
+              placeholder="Where did you grow up? What drives you? What are your goals?"
+            ></textarea>
+            <p class="form-hint">Optional: Tell your character's story</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Experiences (2 required)</label>
+            <div class="experience-inputs">
+              <div class="experience-input-wrapper">
+                <span class="experience-modifier">+1</span>
+                <input type="text" id="experience1" placeholder="e.g., Former sailor">
+              </div>
+              <div class="experience-input-wrapper">
+                <span class="experience-modifier">+1</span>
+                <input type="text" id="experience2" placeholder="e.g., Trained by monks">
+              </div>
+            </div>
+            <p class="form-hint">Add your Experience bonus when it's relevant to a roll</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 8: Choose Domain Cards -->
+      <div id="step8" class="wizard-step">
+        <div class="wizard-step-header">
+          <h2>Choose Domain Cards</h2>
+          <p>Select 2 cards from your class domains</p>
+        </div>
+        <div class="domain-selection" id="domainSelection">
+          <div class="selected-cards-count">
+            Selected: <span id="selectedCardsCount" class="selected-count-number">0</span> / 2
+          </div>
+          <!-- Domain sections rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Step 9: Create Connections -->
+      <div id="step9" class="wizard-step">
+        <div class="wizard-step-header">
+          <h2>Create Connections</h2>
+          <p>How do you relate to others?</p>
+        </div>
+        <div class="connections-section">
+          <div class="connection-inputs" id="connectionInputs">
+            <div class="form-group">
+              <label class="form-label">Connection 1</label>
+              <input type="text" id="connection1" placeholder="e.g., Owes a debt to...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Connection 2</label>
+              <input type="text" id="connection2" placeholder="e.g., Childhood friend of...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Connection 3 (Optional)</label>
+              <input type="text" id="connection3" placeholder="e.g., Distrusts...">
+            </div>
+          </div>
+          <div id="partyMembers" class="party-members hidden">
+            <div class="party-members-title">Other characters in this room:</div>
+            <div class="party-member-chips" id="partyMemberChips">
+              <!-- Party member chips rendered by JS -->
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 1.5rem;">
+            <label class="form-label">Character Name</label>
+            <input type="text" id="characterNameInput" placeholder="Enter your character's name">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="wizard-nav">
+      <button id="wizardPrevBtn" class="btn btn-secondary" disabled>Back</button>
+      <button id="wizardNextBtn" class="btn btn-primary">Next</button>
+    </nav>
+  </div>
+
+  <!-- Character Sheet Screen -->
+  <div id="characterSheetScreen" class="hidden">
+    <header class="header">
+      <button id="sheetBackBtn" class="back-btn" aria-label="Back to character list">
+        ←
+      </button>
+      <span id="sheetCharacterName" class="header-title"></span>
+      <button id="editModeBtn" class="edit-mode-btn" aria-label="Toggle edit mode">
+        ✎
+      </button>
+    </header>
+
+    <div class="character-sheet" id="characterSheet">
+      <!-- Character sheet content rendered by JS -->
+    </div>
+
+    <div class="sync-indicator" id="syncIndicator">Saved</div>
+  </div>
+
+  <!-- Ancestry Detail Modal -->
+  <div id="ancestryDetail" class="ancestry-detail">
+    <div class="ancestry-detail-content">
+      <button id="closeAncestryDetail" class="btn btn-secondary" style="margin-bottom: 1rem;">← Back to Ancestries</button>
+      <div id="ancestryDetailContent">
+        <!-- Ancestry details rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3 class="modal-title">Delete Character?</h3>
+      <p class="modal-message">This action cannot be undone. Are you sure you want to delete <strong id="deleteCharacterName"></strong>?</p>
+      <div class="modal-buttons">
+        <button id="cancelDeleteBtn" class="btn btn-secondary">Cancel</button>
+        <button id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mixed Ancestry Modal -->
+  <div id="mixedAncestryModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+      <h3 class="modal-title">Mixed Ancestry</h3>
+      <p class="modal-message">Choose one feature from each of two different ancestries</p>
+      <div id="mixedAncestryContent" style="text-align: left; max-height: 60vh; overflow-y: auto;">
+        <!-- Mixed ancestry selections rendered by JS -->
+      </div>
+      <div class="modal-buttons" style="margin-top: 1rem;">
+        <button id="cancelMixedBtn" class="btn btn-secondary">Cancel</button>
+        <button id="confirmMixedBtn" class="btn btn-primary" disabled>Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+
+  <script type="module">
+    import {
+      CLASSES,
+      ANCESTRIES,
+      COMMUNITIES,
+      TRAITS,
+      TRAIT_VALUES,
+      PRIMARY_WEAPONS,
+      SECONDARY_WEAPONS,
+      ARMOR,
+      DOMAIN_CARDS,
+      getSpellcastTrait,
+      calculateHP,
+      getDomainsForClass,
+      calculateDamageThresholds,
+      calculateEvasion,
+      calculateArmorScore
+    } from '/js/daggerheart-data.js';
+
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyA6GYyYWlW1ybQ07-K13u4YUaNFcV66Zj0",
+      authDomain: "daggerheart-8bdc1.firebaseapp.com",
+      databaseURL: "https://daggerheart-8bdc1-default-rtdb.firebaseio.com",
+      projectId: "daggerheart-8bdc1",
+      storageBucket: "daggerheart-8bdc1.appspot.com",
+      messagingSenderId: "399927361107",
+      appId: "1:399927361107:web:9b8f8e8c8c8c8c8c8c8c8c"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // App State
+    let currentRoomCode = null;
+    let roomRef = null;
+    let charactersRef = null;
+    let characters = {};
+    let currentCharacterId = null;
+    let editMode = false;
+
+    // Wizard State
+    const wizardState = {
+      currentStep: 1,
+      totalSteps: 9,
+      selectedClass: null,
+      selectedSubclass: null,
+      selectedAncestry: null,
+      selectedCommunity: null,
+      traits: {},
+      primaryWeapon: null,
+      secondaryWeapon: null,
+      armor: null,
+      background: '',
+      experiences: ['', ''],
+      selectedDomainCards: [],
+      connections: ['', '', ''],
+      characterName: '',
+      // For mixed ancestry
+      mixedAncestryFeatures: []
+    };
+
+    // DOM Elements
+    const roomJoinScreen = document.getElementById('roomJoinScreen');
+    const characterListScreen = document.getElementById('characterListScreen');
+    const wizardScreen = document.getElementById('wizardScreen');
+    const characterSheetScreen = document.getElementById('characterSheetScreen');
+    const roomCodeInput = document.getElementById('roomCodeInput');
+    const joinRoomBtn = document.getElementById('joinRoomBtn');
+    const roomError = document.getElementById('roomError');
+    const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+    const characterList = document.getElementById('characterList');
+    const createCharacterBtn = document.getElementById('createCharacterBtn');
+    const backToJoinBtn = document.getElementById('backToJoinBtn');
+    const wizardBackBtn = document.getElementById('wizardBackBtn');
+    const wizardPrevBtn = document.getElementById('wizardPrevBtn');
+    const wizardNextBtn = document.getElementById('wizardNextBtn');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const sheetBackBtn = document.getElementById('sheetBackBtn');
+    const editModeBtn = document.getElementById('editModeBtn');
+    const syncIndicator = document.getElementById('syncIndicator');
+    const deleteModal = document.getElementById('deleteModal');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const deleteCharacterName = document.getElementById('deleteCharacterName');
+
+    // Carousel state
+    let classCarouselIndex = 0;
+    let communityCarouselIndex = 0;
+
+    // Step names for progress display
+    const stepNames = [
+      'Choose Class',
+      'Choose Subclass',
+      'Choose Ancestry',
+      'Choose Community',
+      'Assign Traits',
+      'Choose Equipment',
+      'Background & Experiences',
+      'Choose Domain Cards',
+      'Create Connections'
+    ];
+
+    // ============================================
+    // SCREEN NAVIGATION
+    // ============================================
+
+    function showScreen(screen) {
+      roomJoinScreen.classList.add('hidden');
+      characterListScreen.classList.add('hidden');
+      wizardScreen.classList.add('hidden');
+      characterSheetScreen.classList.add('hidden');
+      screen.classList.remove('hidden');
+    }
+
+    // ============================================
+    // ROOM MANAGEMENT
+    // ============================================
+
+    async function joinRoom() {
+      const code = roomCodeInput.value.trim().toUpperCase();
+      if (!code) {
+        showRoomError('Please enter a room code');
+        return;
+      }
+
+      try {
+        roomRef = database.ref('rooms/' + code);
+        const snapshot = await roomRef.once('value');
+
+        if (!snapshot.exists()) {
+          showRoomError('Room not found. Check the code and try again.');
+          return;
+        }
+
+        currentRoomCode = code;
+        roomCodeDisplay.textContent = code;
+
+        // Set up characters listener
+        charactersRef = database.ref('rooms/' + code + '/characters');
+        charactersRef.on('value', (snapshot) => {
+          characters = snapshot.val() || {};
+          renderCharacterList();
+        });
+
+        showScreen(characterListScreen);
+        hideRoomError();
+      } catch (error) {
+        console.error('Error joining room:', error);
+        showRoomError('Failed to join room. Please try again.');
+      }
+    }
+
+    function leaveRoom() {
+      if (charactersRef) {
+        charactersRef.off();
+      }
+      currentRoomCode = null;
+      roomRef = null;
+      charactersRef = null;
+      characters = {};
+      roomCodeInput.value = '';
+      showScreen(roomJoinScreen);
+    }
+
+    function showRoomError(message) {
+      roomError.textContent = message;
+      roomError.style.display = 'block';
+    }
+
+    function hideRoomError() {
+      roomError.style.display = 'none';
+    }
+
+    // ============================================
+    // CHARACTER LIST
+    // ============================================
+
+    function renderCharacterList() {
+      const characterIds = Object.keys(characters);
+
+      if (characterIds.length === 0) {
+        characterList.innerHTML = `
+          <div class="character-list-empty">
+            <h3>No Characters Yet</h3>
+            <p>Tap the + button to create your first character</p>
+          </div>
+        `;
+        return;
+      }
+
+      characterList.innerHTML = characterIds.map(id => {
+        const char = characters[id];
+        const hpPercent = (char.hp.current / char.hp.max) * 100;
+        let hpClass = '';
+        if (hpPercent <= 25) hpClass = 'critical';
+        else if (hpPercent <= 50) hpClass = 'low';
+
+        const classData = CLASSES[char.class];
+        const subclassData = classData?.subclasses[char.subclass];
+        const ancestryData = ANCESTRIES[char.ancestry];
+        const communityData = COMMUNITIES[char.community];
+
+        return `
+          <div class="character-card" data-id="${id}" onclick="openCharacterSheet('${id}')">
+            <div class="character-card-header">
+              <h3 class="character-name">${escapeHtml(char.name)}</h3>
+              <span class="level-badge">Lvl ${char.level}</span>
+            </div>
+            <div class="character-class">${classData?.name || char.class} - ${subclassData?.name || char.subclass}</div>
+            <div class="character-ancestry">${ancestryData?.name || char.ancestry} ${communityData?.name || char.community}</div>
+            <div class="character-hp-bar">
+              <span class="hp-label">HP</span>
+              <div class="hp-bar-container">
+                <div class="hp-bar-fill ${hpClass}" style="width: ${hpPercent}%"></div>
+              </div>
+              <span class="hp-value">${char.hp.current}/${char.hp.max}</span>
+            </div>
+            <div class="character-card-delete" id="delete-${id}">
+              <button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); hideDeleteOverlay('${id}')">Cancel</button>
+              <button class="btn btn-danger btn-small" onclick="event.stopPropagation(); showDeleteModal('${id}')">Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Add long-press handlers
+      characterIds.forEach(id => {
+        const card = document.querySelector(`.character-card[data-id="${id}"]`);
+        let pressTimer;
+
+        card.addEventListener('touchstart', (e) => {
+          pressTimer = setTimeout(() => {
+            showDeleteOverlay(id);
+          }, 500);
+        });
+
+        card.addEventListener('touchend', () => {
+          clearTimeout(pressTimer);
+        });
+
+        card.addEventListener('touchmove', () => {
+          clearTimeout(pressTimer);
+        });
+      });
+    }
+
+    function showDeleteOverlay(id) {
+      document.getElementById(`delete-${id}`)?.classList.add('visible');
+    }
+
+    function hideDeleteOverlay(id) {
+      document.getElementById(`delete-${id}`)?.classList.remove('visible');
+    }
+
+    window.hideDeleteOverlay = hideDeleteOverlay;
+
+    let characterToDelete = null;
+
+    function showDeleteModal(id) {
+      characterToDelete = id;
+      deleteCharacterName.textContent = characters[id]?.name || 'this character';
+      deleteModal.classList.add('visible');
+      hideDeleteOverlay(id);
+    }
+
+    window.showDeleteModal = showDeleteModal;
+
+    async function deleteCharacter() {
+      if (!characterToDelete || !charactersRef) return;
+
+      try {
+        await charactersRef.child(characterToDelete).remove();
+        characterToDelete = null;
+        deleteModal.classList.remove('visible');
+      } catch (error) {
+        console.error('Error deleting character:', error);
+      }
+    }
+
+    // ============================================
+    // CHARACTER SHEET
+    // ============================================
+
+    function openCharacterSheet(id) {
+      currentCharacterId = id;
+      const char = characters[id];
+      if (!char) return;
+
+      document.getElementById('sheetCharacterName').textContent = char.name;
+      renderCharacterSheet(char);
+      showScreen(characterSheetScreen);
+    }
+
+    window.openCharacterSheet = openCharacterSheet;
+
+    function renderCharacterSheet(char) {
+      const classData = CLASSES[char.class];
+      const subclassData = classData?.subclasses[char.subclass];
+      const ancestryData = ANCESTRIES[char.ancestry];
+      const communityData = COMMUNITIES[char.community];
+
+      const hpPercent = (char.hp.current / char.hp.max) * 100;
+      let hpClass = '';
+      if (hpPercent <= 25) hpClass = 'critical';
+      else if (hpPercent <= 50) hpClass = 'low';
+
+      const characterSheet = document.getElementById('characterSheet');
+      characterSheet.innerHTML = `
+        <!-- Identity Bar -->
+        <div class="identity-bar">
+          <div class="identity-main">
+            <div>
+              <div class="identity-name">${escapeHtml(char.name)}</div>
+              <div class="identity-class">${classData?.name || char.class} - ${subclassData?.name || char.subclass}</div>
+              <div class="identity-ancestry">${ancestryData?.name || char.ancestry} ${communityData?.name || char.community}</div>
+            </div>
+            <span class="level-badge">Level ${char.level}</span>
+          </div>
+        </div>
+
+        <!-- Combat Tracker -->
+        <div class="combat-tracker">
+          <!-- HP -->
+          <div class="tracker-section">
+            <div class="tracker-label">Hit Points</div>
+            <div class="hp-tracker">
+              <div class="hp-controls">
+                <button class="hp-btn decrease" onclick="updateHP(-1)" aria-label="Decrease HP">−</button>
+              </div>
+              <div class="hp-display">
+                <span class="hp-current ${hpClass}" id="currentHp">${char.hp.current}</span>
+                <span class="hp-separator">/</span>
+                <span class="hp-max">${char.hp.max}</span>
+              </div>
+              <div class="hp-controls">
+                <button class="hp-btn increase" onclick="updateHP(1)" aria-label="Increase HP">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stress -->
+          <div class="tracker-section">
+            <div class="tracker-label">Stress</div>
+            <div class="stress-tracker" id="stressTracker">
+              ${renderStressSlots(char.stress.current, char.stress.max)}
+            </div>
+          </div>
+
+          <!-- Hope -->
+          <div class="tracker-section">
+            <div class="tracker-label">Hope</div>
+            <div class="hope-tracker">
+              <button class="hope-btn" onclick="updateHope(-1)" aria-label="Decrease Hope">−</button>
+              <span class="hope-value" id="currentHope">${char.hope}</span>
+              <button class="hope-btn" onclick="updateHope(1)" aria-label="Increase Hope">+</button>
+            </div>
+          </div>
+
+          <!-- Armor Slots -->
+          <div class="tracker-section">
+            <div class="tracker-label">Armor Slots (${char.armorSlots.marked}/${char.armorSlots.total})</div>
+            <div class="armor-tracker" id="armorTracker">
+              ${renderArmorSlots(char.armorSlots.marked, char.armorSlots.total)}
+            </div>
+          </div>
+
+          <!-- Thresholds -->
+          <div class="thresholds-display">
+            <div class="threshold-box evasion">
+              <div class="threshold-label">Evasion</div>
+              <div class="threshold-value">${char.evasion}</div>
+            </div>
+            <div class="threshold-box major">
+              <div class="threshold-label">Major</div>
+              <div class="threshold-value">${char.damageThresholds.major}+</div>
+            </div>
+            <div class="threshold-box severe">
+              <div class="threshold-label">Severe</div>
+              <div class="threshold-value">${char.damageThresholds.severe}+</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Experiences -->
+        <div class="collapsible-section">
+          <div class="collapsible-header" onclick="toggleCollapsible(this.parentElement)">
+            <span class="collapsible-title">Experiences</span>
+            <span class="collapsible-toggle">▼</span>
+          </div>
+          <div class="collapsible-content">
+            <div class="collapsible-inner">
+              <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 0.75rem;">Add your Experience bonus when relevant to a roll</p>
+              <div class="experience-list">
+                ${char.experiences.map(exp => `
+                  <div class="experience-item">
+                    <span class="modifier">+${exp.modifier}</span>
+                    <span class="description">${escapeHtml(exp.description)}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attack Reference -->
+        <div class="collapsible-section expanded">
+          <div class="collapsible-header" onclick="toggleCollapsible(this.parentElement)">
+            <span class="collapsible-title">Attacks</span>
+            <span class="collapsible-toggle">▼</span>
+          </div>
+          <div class="collapsible-content">
+            <div class="collapsible-inner">
+              <div class="attack-reference">
+                ${renderWeaponSummary(char.equipment.primaryWeapon, 'Primary', char.traits)}
+                ${char.equipment.secondaryWeapon ? renderWeaponSummary(char.equipment.secondaryWeapon, 'Secondary', char.traits) : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Domain Cards -->
+        <div class="collapsible-section expanded">
+          <div class="collapsible-header" onclick="toggleCollapsible(this.parentElement)">
+            <span class="collapsible-title">Domain Cards</span>
+            <span class="collapsible-toggle">▼</span>
+          </div>
+          <div class="collapsible-content">
+            <div class="collapsible-inner">
+              <div class="sheet-domain-cards">
+                ${char.domainCards.map(card => `
+                  <div class="sheet-domain-card">
+                    <div class="sheet-domain-card-name">${escapeHtml(card.name)}</div>
+                    <div class="sheet-domain-card-type">${card.type}${card.cost ? ` • ${card.cost}` : ''}</div>
+                    <div class="sheet-domain-card-description">${escapeHtml(card.description)}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Features -->
+        <div class="collapsible-section">
+          <div class="collapsible-header" onclick="toggleCollapsible(this.parentElement)">
+            <span class="collapsible-title">Features</span>
+            <span class="collapsible-toggle">▼</span>
+          </div>
+          <div class="collapsible-content">
+            <div class="collapsible-inner">
+              <div class="features-list">
+                ${renderFeatures(char, classData, subclassData, ancestryData, communityData)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Equipment -->
+        <div class="collapsible-section">
+          <div class="collapsible-header" onclick="toggleCollapsible(this.parentElement)">
+            <span class="collapsible-title">Equipment</span>
+            <span class="collapsible-toggle">▼</span>
+          </div>
+          <div class="collapsible-content">
+            <div class="collapsible-inner">
+              <div class="equipment-list">
+                ${renderEquipmentItem(char.equipment.primaryWeapon, 'Primary Weapon')}
+                ${char.equipment.secondaryWeapon ? renderEquipmentItem(char.equipment.secondaryWeapon, 'Secondary Weapon') : ''}
+                ${renderEquipmentItem(char.equipment.armor, 'Armor')}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Traits -->
+        <div class="collapsible-section">
+          <div class="collapsible-header" onclick="toggleCollapsible(this.parentElement)">
+            <span class="collapsible-title">Traits</span>
+            <span class="collapsible-toggle">▼</span>
+          </div>
+          <div class="collapsible-content">
+            <div class="collapsible-inner">
+              <div class="trait-grid">
+                ${TRAITS.map(trait => {
+                  const value = char.traits[trait];
+                  const valueClass = value > 0 ? 'positive' : value < 0 ? 'negative' : '';
+                  const displayValue = value >= 0 ? `+${value}` : value;
+                  return `
+                    <div class="trait-display">
+                      <div class="trait-display-name">${trait}</div>
+                      <div class="trait-display-value ${valueClass}">${displayValue}</div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Background -->
+        ${char.background ? `
+        <div class="collapsible-section">
+          <div class="collapsible-header" onclick="toggleCollapsible(this.parentElement)">
+            <span class="collapsible-title">Background</span>
+            <span class="collapsible-toggle">▼</span>
+          </div>
+          <div class="collapsible-content">
+            <div class="collapsible-inner">
+              <p style="color: rgba(255,255,255,0.8); line-height: 1.6;">${escapeHtml(char.background)}</p>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Connections -->
+        ${char.connections && char.connections.length > 0 ? `
+        <div class="collapsible-section">
+          <div class="collapsible-header" onclick="toggleCollapsible(this.parentElement)">
+            <span class="collapsible-title">Connections</span>
+            <span class="collapsible-toggle">▼</span>
+          </div>
+          <div class="collapsible-content">
+            <div class="collapsible-inner">
+              <div class="connections-list">
+                ${char.connections.filter(c => c).map(conn => `
+                  <div class="connection-item">${escapeHtml(conn)}</div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+      `;
+    }
+
+    function renderStressSlots(current, max) {
+      let html = '';
+      for (let i = 0; i < max; i++) {
+        const marked = i < current ? 'marked' : '';
+        html += `<div class="stress-slot ${marked}" onclick="toggleStress(${i})" data-index="${i}"></div>`;
+      }
+      return html;
+    }
+
+    function renderArmorSlots(current, max) {
+      let html = '';
+      for (let i = 0; i < max; i++) {
+        const marked = i < current ? 'marked' : '';
+        html += `<div class="armor-slot ${marked}" onclick="toggleArmorSlot(${i})" data-index="${i}"></div>`;
+      }
+      return html;
+    }
+
+    function renderWeaponSummary(weapon, type, traits) {
+      if (!weapon) return '';
+      const traitValue = traits[weapon.trait] || 0;
+      const traitDisplay = traitValue >= 0 ? `+${traitValue}` : traitValue;
+
+      return `
+        <div class="weapon-summary">
+          <div class="weapon-summary-header">
+            <span class="weapon-name">${escapeHtml(weapon.name)}</span>
+            <span class="weapon-type-badge">${type}</span>
+          </div>
+          <div class="weapon-stats">
+            <span class="weapon-stat">Trait: <strong>${weapon.trait} (${traitDisplay})</strong></span>
+            <span class="weapon-stat">Range: <strong>${weapon.range}</strong></span>
+            <span class="weapon-stat">Damage: <strong>${weapon.damage} ${weapon.damageType?.substring(0, 3) || ''}</strong></span>
+            <span class="weapon-stat">Burden: <strong>${weapon.burden}</strong></span>
+          </div>
+          ${weapon.feature ? `<div class="equipment-feature">${escapeHtml(weapon.feature)}</div>` : ''}
+        </div>
+      `;
+    }
+
+    function renderFeatures(char, classData, subclassData, ancestryData, communityData) {
+      let features = [];
+
+      // Class Hope Feature
+      if (classData?.hopeFeature) {
+        features.push({
+          name: 'Hope Feature',
+          source: classData.name,
+          description: classData.hopeFeature
+        });
+      }
+
+      // Subclass Foundation
+      if (subclassData?.foundation) {
+        features.push({
+          name: subclassData.foundation.name,
+          source: `${subclassData.name} Foundation`,
+          description: subclassData.foundation.description
+        });
+      }
+
+      // Ancestry Features
+      if (char.features?.ancestry) {
+        char.features.ancestry.forEach((featureName, index) => {
+          const featureData = ancestryData?.features?.find(f => f.name === featureName);
+          if (featureData) {
+            features.push({
+              name: featureData.name,
+              source: ancestryData.name + ' Ancestry',
+              description: featureData.description
+            });
+          }
+        });
+      }
+
+      // Community Feature
+      if (communityData?.feature) {
+        features.push({
+          name: communityData.feature.name,
+          source: communityData.name + ' Community',
+          description: communityData.feature.description
+        });
+      }
+
+      return features.map(f => `
+        <div class="feature-item">
+          <div class="feature-item-name">${escapeHtml(f.name)}</div>
+          <div class="feature-item-source">${escapeHtml(f.source)}</div>
+          <div class="feature-item-description">${escapeHtml(f.description)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderEquipmentItem(item, label) {
+      if (!item) return '';
+
+      if (item.baseThresholds) {
+        // Armor
+        return `
+          <div class="equipment-item">
+            <div class="equipment-item-header">
+              <span class="equipment-item-name">${escapeHtml(item.name)}</span>
+              <span class="equipment-item-tier">Tier ${item.tier || 1}</span>
+            </div>
+            <div class="equipment-stats" style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">
+              <span>Armor Score: ${item.baseScore}</span>
+              <span>Thresholds: ${item.baseThresholds.major}/${item.baseThresholds.severe}</span>
+            </div>
+            ${item.feature ? `<div class="equipment-feature">${escapeHtml(item.feature)}</div>` : ''}
+          </div>
+        `;
+      } else {
+        // Weapon
+        return `
+          <div class="equipment-item">
+            <div class="equipment-item-header">
+              <span class="equipment-item-name">${escapeHtml(item.name)}</span>
+              <span class="equipment-item-tier">Tier ${item.tier || 1}</span>
+            </div>
+            <div class="equipment-stats" style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">
+              <span>${item.trait} • ${item.range} • ${item.damage} ${item.damageType?.substring(0, 3) || ''}</span>
+            </div>
+            ${item.feature ? `<div class="equipment-feature">${escapeHtml(item.feature)}</div>` : ''}
+          </div>
+        `;
+      }
+    }
+
+    function toggleCollapsible(element) {
+      element.classList.toggle('expanded');
+    }
+
+    window.toggleCollapsible = toggleCollapsible;
+
+    // Combat tracker update functions
+    async function updateHP(delta) {
+      if (!currentCharacterId || !charactersRef) return;
+      const char = characters[currentCharacterId];
+      if (!char) return;
+
+      const newHP = Math.max(0, Math.min(char.hp.max, char.hp.current + delta));
+      if (newHP === char.hp.current) return;
+
+      try {
+        await charactersRef.child(currentCharacterId).child('hp/current').set(newHP);
+        showSyncIndicator();
+      } catch (error) {
+        console.error('Error updating HP:', error);
+      }
+    }
+
+    window.updateHP = updateHP;
+
+    async function toggleStress(index) {
+      if (!currentCharacterId || !charactersRef) return;
+      const char = characters[currentCharacterId];
+      if (!char) return;
+
+      // If clicking on a marked slot, unmark it and all after
+      // If clicking on an unmarked slot, mark it and all before
+      const newStress = index < char.stress.current ? index : index + 1;
+
+      try {
+        await charactersRef.child(currentCharacterId).child('stress/current').set(newStress);
+        showSyncIndicator();
+      } catch (error) {
+        console.error('Error updating stress:', error);
+      }
+    }
+
+    window.toggleStress = toggleStress;
+
+    async function updateHope(delta) {
+      if (!currentCharacterId || !charactersRef) return;
+      const char = characters[currentCharacterId];
+      if (!char) return;
+
+      const newHope = Math.max(0, char.hope + delta);
+      if (newHope === char.hope) return;
+
+      try {
+        await charactersRef.child(currentCharacterId).child('hope').set(newHope);
+        showSyncIndicator();
+      } catch (error) {
+        console.error('Error updating hope:', error);
+      }
+    }
+
+    window.updateHope = updateHope;
+
+    async function toggleArmorSlot(index) {
+      if (!currentCharacterId || !charactersRef) return;
+      const char = characters[currentCharacterId];
+      if (!char) return;
+
+      const newMarked = index < char.armorSlots.marked ? index : index + 1;
+
+      try {
+        await charactersRef.child(currentCharacterId).child('armorSlots/marked').set(newMarked);
+        showSyncIndicator();
+      } catch (error) {
+        console.error('Error updating armor slots:', error);
+      }
+    }
+
+    window.toggleArmorSlot = toggleArmorSlot;
+
+    function showSyncIndicator() {
+      syncIndicator.classList.add('visible');
+      setTimeout(() => {
+        syncIndicator.classList.remove('visible');
+      }, 1500);
+    }
+
+    // ============================================
+    // CHARACTER CREATION WIZARD
+    // ============================================
+
+    function startWizard() {
+      // Reset wizard state
+      Object.assign(wizardState, {
+        currentStep: 1,
+        selectedClass: null,
+        selectedSubclass: null,
+        selectedAncestry: null,
+        selectedCommunity: null,
+        traits: {},
+        primaryWeapon: null,
+        secondaryWeapon: null,
+        armor: null,
+        background: '',
+        experiences: ['', ''],
+        selectedDomainCards: [],
+        connections: ['', '', ''],
+        characterName: '',
+        mixedAncestryFeatures: []
+      });
+
+      classCarouselIndex = 0;
+      communityCarouselIndex = 0;
+
+      // Render initial content
+      renderClassCarousel();
+      updateWizardProgress();
+      updateWizardButtons();
+      showWizardStep(1);
+      showScreen(wizardScreen);
+    }
+
+    function showWizardStep(step) {
+      for (let i = 1; i <= wizardState.totalSteps; i++) {
+        document.getElementById(`step${i}`).classList.remove('active');
+      }
+      document.getElementById(`step${step}`).classList.add('active');
+    }
+
+    function updateWizardProgress() {
+      const percent = (wizardState.currentStep / wizardState.totalSteps) * 100;
+      progressFill.style.width = `${percent}%`;
+      progressText.textContent = `Step ${wizardState.currentStep} of ${wizardState.totalSteps}: ${stepNames[wizardState.currentStep - 1]}`;
+    }
+
+    function updateWizardButtons() {
+      wizardPrevBtn.disabled = wizardState.currentStep === 1;
+
+      if (wizardState.currentStep === wizardState.totalSteps) {
+        wizardNextBtn.textContent = 'Create Character';
+      } else {
+        wizardNextBtn.textContent = 'Next';
+      }
+
+      // Validate current step
+      wizardNextBtn.disabled = !validateCurrentStep();
+    }
+
+    function validateCurrentStep() {
+      switch (wizardState.currentStep) {
+        case 1: return wizardState.selectedClass !== null;
+        case 2: return wizardState.selectedSubclass !== null;
+        case 3: return wizardState.selectedAncestry !== null;
+        case 4: return wizardState.selectedCommunity !== null;
+        case 5: return Object.keys(wizardState.traits).length === 6;
+        case 6: return wizardState.primaryWeapon !== null && wizardState.armor !== null;
+        case 7:
+          const exp1 = document.getElementById('experience1')?.value.trim();
+          const exp2 = document.getElementById('experience2')?.value.trim();
+          return exp1 && exp2;
+        case 8: return wizardState.selectedDomainCards.length === 2;
+        case 9:
+          const name = document.getElementById('characterNameInput')?.value.trim();
+          return name && name.length > 0;
+        default: return true;
+      }
+    }
+
+    function nextWizardStep() {
+      if (!validateCurrentStep()) return;
+
+      // Save current step data
+      saveCurrentStepData();
+
+      if (wizardState.currentStep === wizardState.totalSteps) {
+        createCharacter();
+        return;
+      }
+
+      wizardState.currentStep++;
+
+      // Render content for new step
+      switch (wizardState.currentStep) {
+        case 2: renderSubclassGrid(); break;
+        case 3: renderAncestryGrid(); break;
+        case 4: renderCommunityCarousel(); break;
+        case 5: renderTraitAssignment(); break;
+        case 6: renderEquipmentSection(); break;
+        case 8: renderDomainSelection(); break;
+        case 9: renderPartyMembers(); break;
+      }
+
+      showWizardStep(wizardState.currentStep);
+      updateWizardProgress();
+      updateWizardButtons();
+    }
+
+    function prevWizardStep() {
+      if (wizardState.currentStep === 1) return;
+
+      saveCurrentStepData();
+      wizardState.currentStep--;
+      showWizardStep(wizardState.currentStep);
+      updateWizardProgress();
+      updateWizardButtons();
+    }
+
+    function saveCurrentStepData() {
+      switch (wizardState.currentStep) {
+        case 7:
+          wizardState.background = document.getElementById('backgroundInput').value.trim();
+          wizardState.experiences = [
+            document.getElementById('experience1').value.trim(),
+            document.getElementById('experience2').value.trim()
+          ];
+          break;
+        case 9:
+          wizardState.connections = [
+            document.getElementById('connection1').value.trim(),
+            document.getElementById('connection2').value.trim(),
+            document.getElementById('connection3').value.trim()
+          ];
+          wizardState.characterName = document.getElementById('characterNameInput').value.trim();
+          break;
+      }
+    }
+
+    // ============================================
+    // WIZARD STEP RENDERERS
+    // ============================================
+
+    function renderClassCarousel() {
+      const track = document.getElementById('classCarouselTrack');
+      const indicators = document.getElementById('classIndicators');
+      const classIds = Object.keys(CLASSES);
+
+      track.innerHTML = classIds.map((id, index) => {
+        const cls = CLASSES[id];
+        const selected = wizardState.selectedClass === id ? 'selected' : '';
+        return `
+          <div class="carousel-card ${selected}" data-class="${id}" onclick="selectClass('${id}')">
+            <div class="class-card-name">${cls.name}</div>
+            <div class="class-card-domains">
+              ${cls.domains.map(d => `<span class="domain-badge">${d}</span>`).join('')}
+            </div>
+            <div class="class-card-stats">
+              <div class="stat-box">
+                <div class="stat-label">Evasion</div>
+                <div class="stat-value">${cls.startingEvasion}</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">HP at Lvl 1</div>
+                <div class="stat-value">${cls.hpFormula.base + cls.hpFormula.perLevel}</div>
+              </div>
+            </div>
+            <div class="class-card-description">${cls.description}</div>
+          </div>
+        `;
+      }).join('');
+
+      indicators.innerHTML = classIds.map((_, index) => {
+        const active = index === classCarouselIndex ? 'active' : '';
+        return `<div class="carousel-indicator ${active}" onclick="scrollToClassCard(${index})"></div>`;
+      }).join('');
+
+      setupCarouselTouch('classCarousel', 'classCarouselTrack', 'classIndicators', (index) => {
+        classCarouselIndex = index;
+      });
+    }
+
+    function selectClass(classId) {
+      wizardState.selectedClass = classId;
+      wizardState.selectedSubclass = null; // Reset subclass when class changes
+
+      // Update visual selection
+      document.querySelectorAll('#classCarouselTrack .carousel-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.class === classId);
+      });
+
+      updateWizardButtons();
+    }
+
+    window.selectClass = selectClass;
+
+    function scrollToClassCard(index) {
+      const track = document.getElementById('classCarouselTrack');
+      const cards = track.querySelectorAll('.carousel-card');
+      if (cards[index]) {
+        cards[index].scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        classCarouselIndex = index;
+        updateCarouselIndicators('classIndicators', index);
+      }
+    }
+
+    window.scrollToClassCard = scrollToClassCard;
+
+    function renderSubclassGrid() {
+      const grid = document.getElementById('subclassGrid');
+      const classData = CLASSES[wizardState.selectedClass];
+      if (!classData) return;
+
+      const subclassIds = Object.keys(classData.subclasses);
+      grid.innerHTML = subclassIds.map(id => {
+        const sub = classData.subclasses[id];
+        const selected = wizardState.selectedSubclass === id ? 'selected' : '';
+        return `
+          <div class="subclass-card ${selected}" data-subclass="${id}" onclick="selectSubclass('${id}')">
+            <div class="subclass-name">${sub.name}</div>
+            <div class="spellcast-trait">Spellcast: ${sub.spellcastTrait}</div>
+            <div class="foundation-name">${sub.foundation.name}</div>
+            <div class="foundation-description">${sub.foundation.description}</div>
+            ${sub.requiresCompanion ? '<div class="companion-warning">Requires a companion sheet (not yet implemented)</div>' : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectSubclass(subclassId) {
+      wizardState.selectedSubclass = subclassId;
+
+      document.querySelectorAll('#subclassGrid .subclass-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.subclass === subclassId);
+      });
+
+      updateWizardButtons();
+    }
+
+    window.selectSubclass = selectSubclass;
+
+    function renderAncestryGrid() {
+      const grid = document.getElementById('ancestryGrid');
+      const ancestryIds = Object.keys(ANCESTRIES);
+
+      grid.innerHTML = ancestryIds.map(id => {
+        const anc = ANCESTRIES[id];
+        const selected = wizardState.selectedAncestry === id ? 'selected' : '';
+        return `
+          <div class="ancestry-card ${selected}" data-ancestry="${id}" onclick="selectAncestry('${id}')">
+            <div class="ancestry-name">${anc.name}</div>
+            <div class="ancestry-features">${anc.features.map(f => f.name).join(' & ')}</div>
+          </div>
+        `;
+      }).join('') + `
+        <div class="ancestry-card mixed-ancestry ${wizardState.selectedAncestry === 'mixed' ? 'selected' : ''}" data-ancestry="mixed" onclick="openMixedAncestry()">
+          <div class="ancestry-name">Mixed Ancestry</div>
+          <div class="ancestry-features">Choose one feature from two different ancestries</div>
+        </div>
+      `;
+    }
+
+    function selectAncestry(ancestryId) {
+      if (ancestryId === 'mixed') {
+        openMixedAncestry();
+        return;
+      }
+
+      wizardState.selectedAncestry = ancestryId;
+      wizardState.mixedAncestryFeatures = [];
+
+      document.querySelectorAll('#ancestryGrid .ancestry-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.ancestry === ancestryId);
+      });
+
+      updateWizardButtons();
+    }
+
+    window.selectAncestry = selectAncestry;
+
+    function openMixedAncestry() {
+      const modal = document.getElementById('mixedAncestryModal');
+      const content = document.getElementById('mixedAncestryContent');
+
+      // Build mixed ancestry selection UI
+      const ancestryIds = Object.keys(ANCESTRIES);
+      content.innerHTML = `
+        <p style="margin-bottom: 1rem; color: rgba(255,255,255,0.7);">Select one feature from the first ancestry:</p>
+        <div id="mixedFeature1Selection" style="margin-bottom: 1.5rem;">
+          ${ancestryIds.map(id => {
+            const anc = ANCESTRIES[id];
+            return `
+              <div style="margin-bottom: 0.5rem;">
+                <strong style="color: #ffd700;">${anc.name}</strong>
+                <div style="margin-left: 1rem;">
+                  <label style="display: block; padding: 0.5rem; cursor: pointer; border-radius: 8px; transition: background 0.2s;">
+                    <input type="radio" name="mixedFeature1" value="${id}:0" style="margin-right: 0.5rem;">
+                    <span style="color: #b388ff;">${anc.features[0].name}</span>
+                  </label>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <p style="margin-bottom: 1rem; color: rgba(255,255,255,0.7);">Select one feature from the second ancestry:</p>
+        <div id="mixedFeature2Selection">
+          ${ancestryIds.map(id => {
+            const anc = ANCESTRIES[id];
+            return `
+              <div style="margin-bottom: 0.5rem;">
+                <strong style="color: #ffd700;">${anc.name}</strong>
+                <div style="margin-left: 1rem;">
+                  <label style="display: block; padding: 0.5rem; cursor: pointer; border-radius: 8px; transition: background 0.2s;">
+                    <input type="radio" name="mixedFeature2" value="${id}:0" style="margin-right: 0.5rem;">
+                    <span style="color: #b388ff;">${anc.features[0].name}</span>
+                  </label>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+
+      // Add change listeners
+      content.querySelectorAll('input[type="radio"]').forEach(input => {
+        input.addEventListener('change', validateMixedAncestry);
+      });
+
+      document.getElementById('confirmMixedBtn').disabled = true;
+      modal.classList.add('visible');
+    }
+
+    window.openMixedAncestry = openMixedAncestry;
+
+    function validateMixedAncestry() {
+      const feature1 = document.querySelector('input[name="mixedFeature1"]:checked');
+      const feature2 = document.querySelector('input[name="mixedFeature2"]:checked');
+
+      const confirmBtn = document.getElementById('confirmMixedBtn');
+
+      if (feature1 && feature2) {
+        const [ancestry1] = feature1.value.split(':');
+        const [ancestry2] = feature2.value.split(':');
+
+        // Must be from different ancestries
+        confirmBtn.disabled = ancestry1 === ancestry2;
+      } else {
+        confirmBtn.disabled = true;
+      }
+    }
+
+    function confirmMixedAncestry() {
+      const feature1 = document.querySelector('input[name="mixedFeature1"]:checked');
+      const feature2 = document.querySelector('input[name="mixedFeature2"]:checked');
+
+      if (!feature1 || !feature2) return;
+
+      const [ancestry1, index1] = feature1.value.split(':');
+      const [ancestry2, index2] = feature2.value.split(':');
+
+      wizardState.selectedAncestry = 'mixed';
+      wizardState.mixedAncestryFeatures = [
+        { ancestry: ancestry1, featureIndex: parseInt(index1) },
+        { ancestry: ancestry2, featureIndex: parseInt(index2) }
+      ];
+
+      document.querySelectorAll('#ancestryGrid .ancestry-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.ancestry === 'mixed');
+      });
+
+      document.getElementById('mixedAncestryModal').classList.remove('visible');
+      updateWizardButtons();
+    }
+
+    document.getElementById('confirmMixedBtn')?.addEventListener('click', confirmMixedAncestry);
+    document.getElementById('cancelMixedBtn')?.addEventListener('click', () => {
+      document.getElementById('mixedAncestryModal').classList.remove('visible');
+    });
+
+    function renderCommunityCarousel() {
+      const track = document.getElementById('communityCarouselTrack');
+      const indicators = document.getElementById('communityIndicators');
+      const communityIds = Object.keys(COMMUNITIES);
+
+      track.innerHTML = communityIds.map((id, index) => {
+        const comm = COMMUNITIES[id];
+        const selected = wizardState.selectedCommunity === id ? 'selected' : '';
+        return `
+          <div class="carousel-card ${selected}" data-community="${id}" onclick="selectCommunity('${id}')">
+            <div class="class-card-name">${comm.name}</div>
+            <div style="margin-bottom: 1rem;">
+              <div class="foundation-name">${comm.feature.name}</div>
+              <div class="foundation-description">${comm.feature.description}</div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+              ${comm.adjectives.map(adj => `<span class="domain-badge" style="background: rgba(255,255,255,0.1);">${adj}</span>`).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      indicators.innerHTML = communityIds.map((_, index) => {
+        const active = index === communityCarouselIndex ? 'active' : '';
+        return `<div class="carousel-indicator ${active}" onclick="scrollToCommunityCard(${index})"></div>`;
+      }).join('');
+
+      setupCarouselTouch('communityCarousel', 'communityCarouselTrack', 'communityIndicators', (index) => {
+        communityCarouselIndex = index;
+      });
+    }
+
+    function selectCommunity(communityId) {
+      wizardState.selectedCommunity = communityId;
+
+      document.querySelectorAll('#communityCarouselTrack .carousel-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.community === communityId);
+      });
+
+      updateWizardButtons();
+    }
+
+    window.selectCommunity = selectCommunity;
+
+    function scrollToCommunityCard(index) {
+      const track = document.getElementById('communityCarouselTrack');
+      const cards = track.querySelectorAll('.carousel-card');
+      if (cards[index]) {
+        cards[index].scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        communityCarouselIndex = index;
+        updateCarouselIndicators('communityIndicators', index);
+      }
+    }
+
+    window.scrollToCommunityCard = scrollToCommunityCard;
+
+    function renderTraitAssignment() {
+      const pool = document.getElementById('traitPool');
+      const slots = document.getElementById('traitSlots');
+      const classData = CLASSES[wizardState.selectedClass];
+      const subclassData = classData?.subclasses[wizardState.selectedSubclass];
+      const spellcastTrait = subclassData?.spellcastTrait;
+
+      // Render value pool
+      const assignedValues = Object.values(wizardState.traits);
+      const availableValues = [...TRAIT_VALUES];
+
+      pool.innerHTML = TRAIT_VALUES.map((value, index) => {
+        const timesAvailable = TRAIT_VALUES.filter(v => v === value).length;
+        const timesAssigned = assignedValues.filter(v => v === value).length;
+        const isAssigned = timesAssigned >= timesAvailable;
+        const displayValue = value >= 0 ? `+${value}` : value;
+
+        return `
+          <div class="trait-value-chip ${isAssigned ? 'assigned' : ''}"
+               data-value="${value}"
+               data-index="${index}"
+               onclick="selectTraitValue(${value}, ${index})">
+            ${displayValue}
+          </div>
+        `;
+      }).join('');
+
+      // Render trait slots
+      slots.innerHTML = TRAITS.map(trait => {
+        const value = wizardState.traits[trait];
+        const hasValue = value !== undefined;
+        const displayValue = hasValue ? (value >= 0 ? `+${value}` : value) : '';
+        const isSpellcast = trait === spellcastTrait;
+
+        return `
+          <div class="trait-slot ${isSpellcast ? 'spellcast' : ''}"
+               data-trait="${trait}"
+               onclick="assignToTrait('${trait}')">
+            <span class="trait-slot-name">${trait}</span>
+            <span class="trait-slot-value ${hasValue ? 'filled' : ''}">${displayValue}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    let selectedTraitValue = null;
+    let selectedTraitIndex = null;
+
+    function selectTraitValue(value, index) {
+      // Check if this value is still available
+      const assignedValues = Object.values(wizardState.traits);
+      const timesAvailable = TRAIT_VALUES.filter(v => v === value).length;
+      const timesAssigned = assignedValues.filter(v => v === value).length;
+
+      if (timesAssigned >= timesAvailable) return;
+
+      selectedTraitValue = value;
+      selectedTraitIndex = index;
+
+      // Update visual selection
+      document.querySelectorAll('#traitPool .trait-value-chip').forEach(chip => {
+        chip.classList.remove('selected');
+      });
+      document.querySelector(`#traitPool .trait-value-chip[data-index="${index}"]`)?.classList.add('selected');
+    }
+
+    window.selectTraitValue = selectTraitValue;
+
+    function assignToTrait(trait) {
+      if (selectedTraitValue === null) {
+        // If no value selected, try to unassign
+        if (wizardState.traits[trait] !== undefined) {
+          delete wizardState.traits[trait];
+          renderTraitAssignment();
+          updateWizardButtons();
+        }
+        return;
+      }
+
+      // Assign the value
+      wizardState.traits[trait] = selectedTraitValue;
+      selectedTraitValue = null;
+      selectedTraitIndex = null;
+
+      renderTraitAssignment();
+      updateWizardButtons();
+    }
+
+    window.assignToTrait = assignToTrait;
+
+    function renderEquipmentSection() {
+      const section = document.getElementById('equipmentSection');
+
+      section.innerHTML = `
+        <!-- Primary Weapons -->
+        <div class="equipment-category">
+          <h4 class="equipment-category-title">Primary Weapon (choose 1)</h4>
+          <div class="equipment-carousel" id="primaryWeaponCarousel">
+            ${[...PRIMARY_WEAPONS.physical, ...PRIMARY_WEAPONS.magical].map((weapon, index) => {
+              const selected = wizardState.primaryWeapon?.name === weapon.name ? 'selected' : '';
+              const isMagical = weapon.damageType === 'magical';
+              return `
+                <div class="equipment-card ${selected}" onclick="selectPrimaryWeapon(${index})">
+                  <div class="equipment-name">${weapon.name}</div>
+                  <div class="equipment-stats">
+                    <div class="equipment-stat">Trait: <span>${weapon.trait}</span></div>
+                    <div class="equipment-stat">Range: <span>${weapon.range}</span></div>
+                    <div class="equipment-stat">Damage: <span>${weapon.damage} ${isMagical ? 'mag' : 'phy'}</span></div>
+                    <div class="equipment-stat">Burden: <span>${weapon.burden}</span></div>
+                  </div>
+                  ${weapon.feature ? `<div class="equipment-feature">${weapon.feature}</div>` : ''}
+                  ${isMagical ? '<div style="color: #b388ff; font-size: 0.8rem; margin-top: 0.5rem;">Requires Spellcast trait</div>' : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- Secondary Weapons -->
+        <div class="equipment-category">
+          <h4 class="equipment-category-title">Secondary Weapon (choose 1, optional)</h4>
+          <div class="equipment-carousel" id="secondaryWeaponCarousel">
+            ${SECONDARY_WEAPONS.map((weapon, index) => {
+              const selected = wizardState.secondaryWeapon?.name === weapon.name ? 'selected' : '';
+              return `
+                <div class="equipment-card ${selected}" onclick="selectSecondaryWeapon(${index})">
+                  <div class="equipment-name">${weapon.name}</div>
+                  <div class="equipment-stats">
+                    <div class="equipment-stat">Trait: <span>${weapon.trait}</span></div>
+                    <div class="equipment-stat">Range: <span>${weapon.range}</span></div>
+                    <div class="equipment-stat">Damage: <span>${weapon.damage} phy</span></div>
+                    <div class="equipment-stat">Burden: <span>${weapon.burden}</span></div>
+                  </div>
+                  ${weapon.feature ? `<div class="equipment-feature">${weapon.feature}</div>` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- Armor -->
+        <div class="equipment-category">
+          <h4 class="equipment-category-title">Armor (choose 1)</h4>
+          <div class="equipment-carousel" id="armorCarousel">
+            ${ARMOR.map((armor, index) => {
+              const selected = wizardState.armor?.name === armor.name ? 'selected' : '';
+              return `
+                <div class="equipment-card ${selected}" onclick="selectArmor(${index})">
+                  <div class="equipment-name">${armor.name}</div>
+                  <div class="equipment-stats">
+                    <div class="equipment-stat">Armor Score: <span>${armor.baseScore}</span></div>
+                    <div class="equipment-stat">Major: <span>${armor.baseThresholds.major}+</span></div>
+                    <div class="equipment-stat">Severe: <span>${armor.baseThresholds.severe}+</span></div>
+                    <div class="equipment-stat">Slots: <span>${armor.baseScore}</span></div>
+                  </div>
+                  ${armor.feature ? `<div class="equipment-feature">${armor.feature}</div>` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function selectPrimaryWeapon(index) {
+      const allWeapons = [...PRIMARY_WEAPONS.physical, ...PRIMARY_WEAPONS.magical];
+      wizardState.primaryWeapon = { ...allWeapons[index], tier: 1 };
+
+      document.querySelectorAll('#primaryWeaponCarousel .equipment-card').forEach((card, i) => {
+        card.classList.toggle('selected', i === index);
+      });
+
+      updateWizardButtons();
+    }
+
+    window.selectPrimaryWeapon = selectPrimaryWeapon;
+
+    function selectSecondaryWeapon(index) {
+      // Toggle selection
+      if (wizardState.secondaryWeapon?.name === SECONDARY_WEAPONS[index].name) {
+        wizardState.secondaryWeapon = null;
+      } else {
+        wizardState.secondaryWeapon = { ...SECONDARY_WEAPONS[index], tier: 1 };
+      }
+
+      document.querySelectorAll('#secondaryWeaponCarousel .equipment-card').forEach((card, i) => {
+        card.classList.toggle('selected', wizardState.secondaryWeapon?.name === SECONDARY_WEAPONS[i].name);
+      });
+
+      updateWizardButtons();
+    }
+
+    window.selectSecondaryWeapon = selectSecondaryWeapon;
+
+    function selectArmor(index) {
+      wizardState.armor = { ...ARMOR[index], tier: 1 };
+
+      document.querySelectorAll('#armorCarousel .equipment-card').forEach((card, i) => {
+        card.classList.toggle('selected', i === index);
+      });
+
+      updateWizardButtons();
+    }
+
+    window.selectArmor = selectArmor;
+
+    function renderDomainSelection() {
+      const section = document.getElementById('domainSelection');
+      const classData = CLASSES[wizardState.selectedClass];
+      if (!classData) return;
+
+      const domains = classData.domains;
+
+      let html = `
+        <div class="selected-cards-count">
+          Selected: <span id="selectedCardsCount" class="selected-count-number">${wizardState.selectedDomainCards.length}</span> / 2
+        </div>
+      `;
+
+      domains.forEach(domainId => {
+        const domain = DOMAIN_CARDS[domainId];
+        if (!domain) return;
+
+        html += `
+          <div class="domain-section">
+            <div class="domain-section-header">
+              <div class="domain-icon">${domainId.charAt(0).toUpperCase()}</div>
+              <h3 class="domain-title">${domain.name}</h3>
+            </div>
+            <div class="domain-cards-carousel">
+              ${domain.cards.filter(card => card.level === 1).map(card => {
+                const selected = wizardState.selectedDomainCards.some(c => c.id === card.id) ? 'selected' : '';
+                return `
+                  <div class="domain-card ${selected}" data-card-id="${card.id}" onclick="toggleDomainCard('${card.id}', '${domainId}')">
+                    <div class="domain-card-header">
+                      <span class="domain-card-name">${card.name}</span>
+                      <span class="domain-card-type">${card.type}</span>
+                    </div>
+                    ${card.cost ? `<div class="domain-card-cost">${card.cost}</div>` : ''}
+                    <div class="domain-card-description">${card.description}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      section.innerHTML = html;
+    }
+
+    function toggleDomainCard(cardId, domainId) {
+      const domain = DOMAIN_CARDS[domainId];
+      const card = domain?.cards.find(c => c.id === cardId);
+      if (!card) return;
+
+      const existingIndex = wizardState.selectedDomainCards.findIndex(c => c.id === cardId);
+
+      if (existingIndex >= 0) {
+        // Deselect
+        wizardState.selectedDomainCards.splice(existingIndex, 1);
+      } else if (wizardState.selectedDomainCards.length < 2) {
+        // Select
+        wizardState.selectedDomainCards.push({ ...card, domain: domainId });
+      } else {
+        // Already have 2, don't add more
+        return;
+      }
+
+      // Update visuals
+      document.querySelectorAll('.domain-card').forEach(cardEl => {
+        const isSelected = wizardState.selectedDomainCards.some(c => c.id === cardEl.dataset.cardId);
+        cardEl.classList.toggle('selected', isSelected);
+      });
+
+      document.getElementById('selectedCardsCount').textContent = wizardState.selectedDomainCards.length;
+      updateWizardButtons();
+    }
+
+    window.toggleDomainCard = toggleDomainCard;
+
+    function renderPartyMembers() {
+      const partyMembersDiv = document.getElementById('partyMembers');
+      const chipsDiv = document.getElementById('partyMemberChips');
+
+      const otherCharacters = Object.values(characters).filter(c => c.name);
+
+      if (otherCharacters.length === 0) {
+        partyMembersDiv.classList.add('hidden');
+        return;
+      }
+
+      partyMembersDiv.classList.remove('hidden');
+      chipsDiv.innerHTML = otherCharacters.map(char =>
+        `<span class="party-member-chip" onclick="insertCharacterName('${escapeHtml(char.name)}')">${escapeHtml(char.name)}</span>`
+      ).join('');
+    }
+
+    function insertCharacterName(name) {
+      // Find the first empty or focused connection input and add the name
+      const inputs = ['connection1', 'connection2', 'connection3'];
+      for (const id of inputs) {
+        const input = document.getElementById(id);
+        if (document.activeElement === input || !input.value) {
+          const currentValue = input.value;
+          if (currentValue.includes('[')) {
+            input.value = currentValue.replace(/\[.*?\]/, name);
+          } else {
+            input.value = currentValue + (currentValue ? ' ' : '') + name;
+          }
+          input.focus();
+          break;
+        }
+      }
+    }
+
+    window.insertCharacterName = insertCharacterName;
+
+    // ============================================
+    // CHARACTER CREATION
+    // ============================================
+
+    async function createCharacter() {
+      saveCurrentStepData();
+
+      const classData = CLASSES[wizardState.selectedClass];
+      const level = 1;
+
+      // Calculate stats
+      const maxHP = calculateHP(wizardState.selectedClass, level);
+      const baseEvasion = calculateEvasion(wizardState.selectedClass, wizardState.armor, wizardState.secondaryWeapon);
+      const armorScore = calculateArmorScore(wizardState.armor, wizardState.secondaryWeapon);
+      const thresholds = calculateDamageThresholds(wizardState.armor, level);
+
+      // Build ancestry features
+      let ancestryFeatures = [];
+      if (wizardState.selectedAncestry === 'mixed') {
+        ancestryFeatures = wizardState.mixedAncestryFeatures.map(mf => {
+          const anc = ANCESTRIES[mf.ancestry];
+          return anc.features[mf.featureIndex].name;
+        });
+      } else {
+        const ancestry = ANCESTRIES[wizardState.selectedAncestry];
+        ancestryFeatures = ancestry.features.map(f => f.name);
+      }
+
+      const character = {
+        name: wizardState.characterName,
+        class: wizardState.selectedClass,
+        subclass: wizardState.selectedSubclass,
+        ancestry: wizardState.selectedAncestry,
+        community: wizardState.selectedCommunity,
+        level: level,
+        traits: wizardState.traits,
+        hp: {
+          current: maxHP,
+          max: maxHP
+        },
+        stress: {
+          current: 0,
+          max: classData?.stressSlots || 6
+        },
+        hope: 2,
+        evasion: baseEvasion,
+        armorScore: armorScore,
+        armorSlots: {
+          total: armorScore,
+          marked: 0
+        },
+        damageThresholds: thresholds,
+        equipment: {
+          primaryWeapon: wizardState.primaryWeapon,
+          secondaryWeapon: wizardState.secondaryWeapon,
+          armor: wizardState.armor,
+          inventoryWeapons: []
+        },
+        domainCards: wizardState.selectedDomainCards,
+        features: {
+          ancestry: ancestryFeatures,
+          community: COMMUNITIES[wizardState.selectedCommunity]?.feature.name,
+          class: [],
+          subclass: {
+            foundation: classData?.subclasses[wizardState.selectedSubclass]?.foundation.name,
+            specialization: null,
+            mastery: null
+          }
+        },
+        background: wizardState.background,
+        experiences: wizardState.experiences.filter(e => e).map(exp => ({
+          description: exp,
+          modifier: 1
+        })),
+        connections: wizardState.connections.filter(c => c),
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+
+      try {
+        const newCharRef = charactersRef.push();
+        await newCharRef.set(character);
+
+        showScreen(characterListScreen);
+      } catch (error) {
+        console.error('Error creating character:', error);
+        alert('Failed to create character. Please try again.');
+      }
+    }
+
+    // ============================================
+    // CAROUSEL TOUCH HANDLING
+    // ============================================
+
+    function setupCarouselTouch(containerId, trackId, indicatorsId, onIndexChange) {
+      const container = document.getElementById(containerId);
+      const track = document.getElementById(trackId);
+
+      let startX = 0;
+      let scrollLeft = 0;
+      let isScrolling = false;
+
+      track.addEventListener('scroll', () => {
+        const cards = track.querySelectorAll('.carousel-card');
+        const cardWidth = cards[0]?.offsetWidth + 16 || 300; // 16 = gap
+        const newIndex = Math.round(track.scrollLeft / cardWidth);
+
+        if (newIndex !== onIndexChange.currentIndex) {
+          onIndexChange(newIndex);
+          updateCarouselIndicators(indicatorsId, newIndex);
+        }
+      });
+    }
+
+    function updateCarouselIndicators(indicatorsId, activeIndex) {
+      const indicators = document.getElementById(indicatorsId);
+      if (!indicators) return;
+
+      indicators.querySelectorAll('.carousel-indicator').forEach((ind, i) => {
+        ind.classList.toggle('active', i === activeIndex);
+      });
+    }
+
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ============================================
+    // EVENT LISTENERS
+    // ============================================
+
+    // Room join
+    joinRoomBtn.addEventListener('click', joinRoom);
+    roomCodeInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') joinRoom();
+    });
+    roomCodeInput.addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase();
+    });
+
+    // Navigation
+    backToJoinBtn.addEventListener('click', leaveRoom);
+    createCharacterBtn.addEventListener('click', startWizard);
+    wizardBackBtn.addEventListener('click', () => showScreen(characterListScreen));
+    sheetBackBtn.addEventListener('click', () => {
+      currentCharacterId = null;
+      showScreen(characterListScreen);
+    });
+
+    // Wizard navigation
+    wizardPrevBtn.addEventListener('click', prevWizardStep);
+    wizardNextBtn.addEventListener('click', nextWizardStep);
+
+    // Experience and connection inputs - validate on change
+    ['experience1', 'experience2', 'characterNameInput'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', updateWizardButtons);
+    });
+
+    // Delete modal
+    cancelDeleteBtn.addEventListener('click', () => {
+      characterToDelete = null;
+      deleteModal.classList.remove('visible');
+    });
+    confirmDeleteBtn.addEventListener('click', deleteCharacter);
+
+    // Edit mode toggle
+    editModeBtn.addEventListener('click', () => {
+      editMode = !editMode;
+      editModeBtn.classList.toggle('active', editMode);
+      // TODO: Implement full edit mode functionality
+    });
+
+    // Initialize
+    showScreen(roomJoinScreen);
+  </script>
+</body>
+</html>
