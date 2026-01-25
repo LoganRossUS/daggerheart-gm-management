@@ -5598,9 +5598,12 @@
       }
     }
 
-    // Run cleanup when page loads
+    // Run cleanup when page loads (non-blocking)
     if (database) {
-      cleanupStaleRooms();
+      cleanupStaleRooms().catch(e => {
+        // Cleanup failures shouldn't block the app
+        console.log('Room cleanup skipped due to permissions');
+      });
     }
 
     // ========== GM Session Persistence ==========
