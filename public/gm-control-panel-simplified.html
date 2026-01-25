@@ -2777,6 +2777,30 @@
       background: rgba(244, 67, 54, 0.1);
     }
 
+    .save-to-campaign-btn {
+      padding: 10px 24px;
+      border: 1px solid rgba(33, 150, 243, 0.5);
+      border-radius: 6px;
+      background: linear-gradient(135deg, #2196F3, #1976D2);
+      color: white;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .save-to-campaign-btn:hover {
+      transform: scale(1.02);
+      background: linear-gradient(135deg, #1976D2, #1565C0);
+    }
+
+    .save-to-campaign-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     /* Autocomplete Dropdown */
     .autocomplete-container {
       position: relative;
@@ -5619,30 +5643,37 @@
 
     // Get the active room code from localStorage
     function getStoredRoomCode() {
-      return localStorage.getItem('daggerheart_active_room');
+      const code = localStorage.getItem('daggerheart_active_room');
+      console.log('[Storage] getStoredRoomCode:', code);
+      return code;
     }
 
     // Store active room code
     function storeActiveRoom(roomCode) {
+      console.log('[Storage] Storing active room:', roomCode);
       localStorage.setItem('daggerheart_active_room', roomCode);
+      console.log('[Storage] Verified stored value:', localStorage.getItem('daggerheart_active_room'));
     }
 
     // Clear active room from localStorage
     function clearStoredRoom() {
+      console.log('[Storage] Clearing stored room');
       localStorage.removeItem('daggerheart_active_room');
     }
 
     // Check if GM has an active session and auto-reconnect
     async function checkForExistingSession() {
       if (!database) {
-        console.log('Firebase not available, skipping session check');
+        console.log('[Session] Firebase not available, skipping session check');
         return null;
       }
 
       const gmDeviceId = getOrCreateGMDeviceId();
+      console.log('[Session] GM Device ID:', gmDeviceId);
 
       // Check localStorage first (fastest)
       const localRoomCode = getStoredRoomCode();
+      console.log('[Session] Stored room code from localStorage:', localRoomCode);
 
       if (localRoomCode) {
         try {
@@ -5650,12 +5681,22 @@
           const roomSnapshot = await database.ref(`rooms/${localRoomCode}`).once('value');
           const room = roomSnapshot.val();
 
+          console.log('[Session] Room lookup result:', room ? {
+            hasGmDeviceId: !!room.gmDeviceId,
+            gmDeviceIdMatch: room.gmDeviceId === gmDeviceId,
+            status: room.status,
+            characterCount: room.characters ? Object.keys(room.characters).length : 0
+          } : 'Room not found in Firebase');
+
           if (room && room.gmDeviceId === gmDeviceId && room.status === 'active') {
-            console.log('Found active session in localStorage:', localRoomCode);
+            console.log('[Session] ✓ Found active session:', localRoomCode);
             return localRoomCode;
+          } else if (room) {
+            console.log('[Session] ✗ Room exists but failed checks - gmDeviceId match:',
+              room.gmDeviceId === gmDeviceId, ', status:', room.status);
           }
         } catch (e) {
-          console.error('Error checking local room:', e);
+          console.error('[Session] Error checking local room:', e);
         }
       }
 
@@ -5663,6 +5704,7 @@
       try {
         const sessionSnapshot = await database.ref(`gmSessions/${gmDeviceId}`).once('value');
         const session = sessionSnapshot.val();
+        console.log('[Session] gmSessions lookup:', session);
 
         if (session?.activeRoomCode) {
           // Verify room still exists and is active
@@ -5670,14 +5712,16 @@
           const room = roomSnapshot.val();
 
           if (room && room.status === 'active') {
-            console.log('Found active session in Firebase:', session.activeRoomCode);
+            console.log('[Session] ✓ Found active session in gmSessions:', session.activeRoomCode);
             storeActiveRoom(session.activeRoomCode);
             return session.activeRoomCode;
           }
         }
       } catch (e) {
-        console.error('Error checking Firebase session:', e);
+        console.error('[Session] Error checking Firebase gmSessions:', e);
       }
+
+      console.log('[Session] No active session found');
 
       return null;
     }
@@ -5752,13 +5796,28 @@
     }
 
     // Show modal with reconnection option
-    function showReconnectModal(existingRoomCode) {
+    async function showReconnectModal(existingRoomCode) {
       const modal = document.getElementById('roomSessionModal');
       if (modal) {
         modal.style.display = 'flex';
         document.getElementById('sessionModalTitle').textContent = 'Welcome Back!';
         document.getElementById('reconnectInfo').style.display = 'block';
         document.getElementById('reconnectRoomCode').textContent = existingRoomCode;
+
+        // Try to fetch character count for the existing room
+        try {
+          const roomSnapshot = await database.ref(`rooms/${existingRoomCode}`).once('value');
+          const roomData = roomSnapshot.val();
+          const charCount = roomData?.characters ? Object.keys(roomData.characters).length : 0;
+          const charCountEl = document.getElementById('existingRoomCharCount');
+          if (charCountEl) {
+            charCountEl.textContent = charCount > 0 ? `(${charCount} character${charCount > 1 ? 's' : ''})` : '';
+            charCountEl.style.display = charCount > 0 ? 'inline' : 'none';
+          }
+          console.log('[Session] Existing room has', charCount, 'characters');
+        } catch (e) {
+          console.log('[Session] Could not fetch character count:', e.message);
+        }
       }
     }
 
@@ -5772,6 +5831,20 @@
 
     // Create a new room (generates new code)
     function createNewRoom() {
+      // Check if there's an existing session and warn about losing characters
+      const existingRoom = getStoredRoomCode();
+      if (existingRoom) {
+        const confirmed = confirm(
+          'Warning: Creating a new room will start a fresh session.\n\n' +
+          'Your previous room (' + existingRoom + ') and any characters in it will not be automatically transferred.\n\n' +
+          'Click "Cancel" to go back and click "Continue Session" instead, or "OK" to create a new room.'
+        );
+        if (!confirmed) {
+          return;
+        }
+        // Clear the old session
+        clearStoredRoom();
+      }
       hideSessionModal();
       initFirebaseHostNew();
     }
@@ -5828,7 +5901,7 @@
       <div id="reconnectInfo" class="reconnect-info" style="display: none;">
         <div class="reconnect-message">
           <span class="reconnect-icon">✓</span>
-          <span>Found your active room: <strong id="reconnectRoomCode">----</strong></span>
+          <span>Found your active room: <strong id="reconnectRoomCode">----</strong> <span id="existingRoomCharCount" style="display:none; color:#4CAF50;"></span></span>
         </div>
         <button class="session-btn primary" onclick="reconnectToRoom(document.getElementById('reconnectRoomCode').textContent)">
           Continue Session
@@ -6268,6 +6341,7 @@
             <div class="character-form-actions">
               <button class="save-character-btn" onclick="saveCurrentCharacter()">Save Character</button>
               <button class="delete-character-btn" onclick="deleteCurrentCharacter()">Delete Character</button>
+              <button id="saveToCampaignBtn" class="save-to-campaign-btn" onclick="saveRoomCharacterToCampaign()" style="display:none;" title="Copy this room character to your cloud campaign for permanent storage">Save to Campaign</button>
             </div>
           </div>
         </div>
@@ -9732,6 +9806,12 @@
 
     // Main initialization - checks for existing session first
     async function initFirebaseHost() {
+      console.log('[Init] ============================================');
+      console.log('[Init] GM Panel initialization starting...');
+      console.log('[Init] localStorage daggerheart_active_room:', localStorage.getItem('daggerheart_active_room'));
+      console.log('[Init] localStorage daggerheart_gm_device_id:', localStorage.getItem('daggerheart_gm_device_id'));
+      console.log('[Init] ============================================');
+
       const statusText = document.getElementById('connectionStatusText');
       statusText.textContent = 'Checking session...';
 
@@ -9745,7 +9825,9 @@
 
       try {
         // Check for existing session
+        console.log('[Init] Checking for existing session...');
         const existingRoomCode = await checkForExistingSession();
+        console.log('[Init] checkForExistingSession returned:', existingRoomCode);
 
         if (existingRoomCode) {
           // Show reconnect modal
@@ -12697,6 +12779,20 @@
         playerNameDisplay.value = char.playerName || '';
       }
 
+      // Show "Save to Campaign" button for room characters
+      const saveToCampaignBtn = document.getElementById('saveToCampaignBtn');
+      if (saveToCampaignBtn) {
+        saveToCampaignBtn.style.display = source === 'room' ? 'inline-block' : 'none';
+        // Disable if no campaign is selected
+        if (window.cloudFeatures?.canUse && !window.cloudFeatures.canUse('cloudSave')) {
+          saveToCampaignBtn.disabled = true;
+          saveToCampaignBtn.title = 'Select a cloud campaign first to save characters permanently';
+        } else {
+          saveToCampaignBtn.disabled = false;
+          saveToCampaignBtn.title = 'Copy this room character to your cloud campaign for permanent storage';
+        }
+      }
+
       renderCharactersList();
     }
 
@@ -12884,6 +12980,67 @@
       renderCharactersList();
       updateTabBadges();
       scheduleAutoSaveIfAvailable();
+    }
+
+    // Save a room character to the cloud campaign for permanent storage
+    function saveRoomCharacterToCampaign() {
+      if (!selectedCharacterId || selectedCharacterSource !== 'room') {
+        alert('Please select a room character first.');
+        return;
+      }
+
+      const roomChar = roomCharacters.find(c => c.id === selectedCharacterId);
+      if (!roomChar) {
+        alert('Could not find the selected room character.');
+        return;
+      }
+
+      // Check if character already exists in cloud by name
+      const existingCloud = playerCharacters.find(c => c.name === roomChar.name);
+      if (existingCloud) {
+        if (!confirm(`A character named "${roomChar.name}" already exists in your campaign. Do you want to replace it?`)) {
+          return;
+        }
+        // Remove the existing one
+        playerCharacters = playerCharacters.filter(c => c.id !== existingCloud.id);
+      }
+
+      // Convert room character format to cloud character format
+      const cloudChar = {
+        id: crypto.randomUUID(),
+        name: roomChar.name || 'Unnamed',
+        level: roomChar.level || 1,
+        ancestry: roomChar.ancestry || '',
+        characterClass: roomChar.class || roomChar.characterClass || '',
+        subclass: roomChar.subclass || '',
+        currentHp: roomChar.hp?.current ?? roomChar.currentHp ?? 0,
+        maxHp: roomChar.hp?.max ?? roomChar.maxHp ?? 0,
+        currentStress: roomChar.stress?.current ?? roomChar.currentStress ?? 0,
+        maxStress: roomChar.stress?.max ?? roomChar.maxStress ?? 0,
+        armor: roomChar.armorScore ?? roomChar.armorSlots?.total ?? roomChar.armor ?? 0,
+        evasion: roomChar.evasion || 10,
+        minorThreshold: roomChar.damageThresholds?.minor ?? roomChar.minorThreshold ?? '',
+        majorThreshold: roomChar.damageThresholds?.major ?? roomChar.majorThreshold ?? '',
+        severeThreshold: roomChar.damageThresholds?.severe ?? roomChar.severeThreshold ?? '',
+        domains: roomChar.domains || (roomChar.domainCards || []).map(c => c?.domain).filter(Boolean),
+        experiences: (roomChar.experiences || []).map(e => typeof e === 'object' ? e.description : e),
+        abilities: roomChar.abilities || [],
+        feats: roomChar.feats || [],
+        portrait: roomChar.portrait || roomChar.image || '',
+        notes: roomChar.notes || roomChar.background || '',
+        playerName: roomChar.playerName || ''
+      };
+
+      // Add to cloud characters
+      playerCharacters.push(cloudChar);
+
+      // Re-render and save
+      renderCharactersList();
+      updateTabBadges();
+      scheduleAutoSaveIfAvailable();
+
+      alert(`"${cloudChar.name}" has been saved to your cloud campaign! This character will now persist even after the room session ends.`);
+      console.log('[saveRoomCharacterToCampaign] Saved room character to cloud:', cloudChar);
     }
 
     // Character Image Upload
