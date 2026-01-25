@@ -10006,6 +10006,7 @@
             roomCharacters = Object.entries(chars).map(([id, char]) => ({
               ...char,
               id: id,
+              roomCharId: id, // Keep original room ID for syncing
               source: 'room' // Mark as room character for display
             }));
             console.log('Room characters updated:', roomCharacters.length);
@@ -10017,6 +10018,9 @@
                 await uploadRoomCharacterPortrait(charId, char.portrait);
               }
             }
+
+            // Auto-sync room characters to cloud campaign for permanent storage
+            await autoSyncRoomCharactersToCloud(chars);
           } else {
             roomCharacters = [];
           }
@@ -12632,10 +12636,18 @@
       const list = document.getElementById('charactersList');
       if (!list) return;
 
-      // Combine cloud characters and room characters
+      // Get IDs of room characters that have been synced to cloud
+      const syncedRoomCharIds = new Set(
+        playerCharacters.filter(c => c.roomCharId).map(c => c.roomCharId)
+      );
+
+      // Filter out room characters that are already synced to cloud (avoid duplicates)
+      const unsyncedRoomChars = roomCharacters.filter(c => !syncedRoomCharIds.has(c.id));
+
+      // Combine cloud characters and unsynced room characters
       const allCharacters = [
-        ...playerCharacters.map(c => ({ ...c, source: 'cloud' })),
-        ...roomCharacters
+        ...playerCharacters.map(c => ({ ...c, source: c.roomCharId ? 'synced' : 'cloud' })),
+        ...unsyncedRoomChars
       ];
 
       if (allCharacters.length === 0) {
@@ -12651,14 +12663,24 @@
         // Handle different field names between cloud and room characters
         const charClass = char.characterClass || char.class || '';
         const portrait = char.portrait || char.image || '';
-        const sourceIcon = char.source === 'room' ? '<span class="char-source-badge room" title="Created via Characters page">🎮</span>' : '';
+
+        // Show different icons based on source: room (not synced), synced (from room, saved to cloud), or cloud (created in GM panel)
+        let sourceIcon = '';
+        if (char.source === 'room') {
+          sourceIcon = '<span class="char-source-badge room" title="Created via Characters page (not yet saved to campaign)">🎮</span>';
+        } else if (char.source === 'synced') {
+          sourceIcon = '<span class="char-source-badge synced" title="Created via Characters page (saved to campaign)">☁️</span>';
+        }
 
         // Show player name if available
         const playerName = char.playerName ? `<div class="character-item-player">Played by: ${char.playerName}</div>` : '';
 
+        // Determine the source for selection (synced chars should be treated as cloud)
+        const selectionSource = char.source === 'synced' ? 'cloud' : char.source;
+
         return `
           <div class="character-item ${char.id === selectedCharacterId ? 'selected' : ''} ${char.source === 'room' ? 'room-character' : ''}"
-               data-character-id="${char.id}" data-source="${char.source}" onclick="selectCharacter('${char.id}', '${char.source}')">
+               data-character-id="${char.id}" data-source="${selectionSource}" onclick="selectCharacter('${char.id}', '${selectionSource}')">
             <div class="character-item-portrait">
               ${portrait ? `<img src="${portrait}" alt="${char.name}">` : ''}
             </div>
@@ -12982,7 +13004,85 @@
       scheduleAutoSaveIfAvailable();
     }
 
-    // Save a room character to the cloud campaign for permanent storage
+    // Auto-sync room characters to cloud campaign for permanent storage
+    // This runs automatically when room characters are received
+    async function autoSyncRoomCharactersToCloud(roomChars) {
+      // Check if cloud save is available
+      if (!window.cloudFeatures?.canUse || !window.cloudFeatures.canUse('cloudSave')) {
+        console.log('[AutoSync] Cloud save not available, skipping auto-sync');
+        return;
+      }
+
+      let hasChanges = false;
+
+      for (const [roomCharId, roomChar] of Object.entries(roomChars)) {
+        // Check if this room character already exists in cloud (by roomCharId link)
+        const existingIndex = playerCharacters.findIndex(c => c.roomCharId === roomCharId);
+
+        // Convert room character to cloud format
+        const cloudChar = convertRoomCharToCloud(roomCharId, roomChar);
+
+        if (existingIndex >= 0) {
+          // Update existing cloud character with room data
+          const existing = playerCharacters[existingIndex];
+          // Preserve cloud-specific fields, update from room
+          playerCharacters[existingIndex] = {
+            ...existing,
+            ...cloudChar,
+            id: existing.id, // Keep original cloud ID
+            roomCharId: roomCharId // Keep link to room character
+          };
+          console.log('[AutoSync] Updated existing cloud character:', cloudChar.name);
+          hasChanges = true;
+        } else {
+          // Add new character to cloud
+          cloudChar.id = crypto.randomUUID();
+          cloudChar.roomCharId = roomCharId;
+          playerCharacters.push(cloudChar);
+          console.log('[AutoSync] Added new cloud character:', cloudChar.name);
+          hasChanges = true;
+        }
+      }
+
+      if (hasChanges) {
+        // Re-render to show updated characters
+        renderCharactersList();
+        updateTabBadges();
+        // Save to cloud
+        scheduleAutoSaveIfAvailable();
+        console.log('[AutoSync] Characters synced to cloud campaign');
+      }
+    }
+
+    // Convert room character format to cloud character format
+    function convertRoomCharToCloud(roomCharId, roomChar) {
+      return {
+        name: roomChar.name || 'Unnamed',
+        level: roomChar.level || 1,
+        ancestry: roomChar.ancestry || '',
+        characterClass: roomChar.class || roomChar.characterClass || '',
+        subclass: roomChar.subclass || '',
+        currentHp: roomChar.hp?.current ?? roomChar.currentHp ?? 0,
+        maxHp: roomChar.hp?.max ?? roomChar.maxHp ?? 0,
+        currentStress: roomChar.stress?.current ?? roomChar.currentStress ?? 0,
+        maxStress: roomChar.stress?.max ?? roomChar.maxStress ?? 0,
+        armor: roomChar.armorScore ?? roomChar.armorSlots?.total ?? roomChar.armor ?? 0,
+        evasion: roomChar.evasion || 10,
+        minorThreshold: roomChar.damageThresholds?.minor ?? roomChar.minorThreshold ?? '',
+        majorThreshold: roomChar.damageThresholds?.major ?? roomChar.majorThreshold ?? '',
+        severeThreshold: roomChar.damageThresholds?.severe ?? roomChar.severeThreshold ?? '',
+        domains: roomChar.domains || (roomChar.domainCards || []).map(c => c?.domain).filter(Boolean),
+        experiences: (roomChar.experiences || []).map(e => typeof e === 'object' ? e.description : e),
+        abilities: roomChar.abilities || [],
+        feats: roomChar.feats || [],
+        portrait: roomChar.portrait || roomChar.image || '',
+        notes: roomChar.notes || roomChar.background || '',
+        playerName: roomChar.playerName || '',
+        roomCharId: roomCharId // Link back to room character for syncing
+      };
+    }
+
+    // Save a room character to the cloud campaign for permanent storage (manual button)
     function saveRoomCharacterToCampaign() {
       if (!selectedCharacterId || selectedCharacterSource !== 'room') {
         alert('Please select a room character first.');
