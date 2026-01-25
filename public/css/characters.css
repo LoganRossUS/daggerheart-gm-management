@@ -443,29 +443,40 @@ h4 { font-size: 1.1rem; }
   flex: 1;
   overflow: hidden;
   position: relative;
-  touch-action: pan-y pinch-zoom;
 }
 
 .carousel-track {
   display: flex;
-  transition: transform 0.3s ease;
   height: 100%;
   padding: 1rem;
   gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none;
 }
 
 .carousel-card {
   flex: 0 0 85%;
   max-width: 350px;
+  min-width: 280px;
   background: rgba(255, 255, 255, 0.08);
   border: 2px solid rgba(179, 136, 255, 0.3);
   border-radius: 20px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
   overflow-y: auto;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
 }
 
 .carousel-card:hover {
@@ -903,6 +914,124 @@ h4 { font-size: 1.1rem; }
   font-size: 0.85rem;
   color: #b388ff;
   margin-top: 0.5rem;
+}
+
+/* Level Selector */
+.level-selector {
+  padding: 1rem;
+  text-align: center;
+}
+
+.level-selector-label {
+  color: #b388ff;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.level-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.level-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  border: 2px solid rgba(179, 136, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-family: inherit;
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.level-btn:hover {
+  border-color: rgba(179, 136, 255, 0.6);
+  background: rgba(179, 136, 255, 0.1);
+}
+
+.level-btn.selected {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.level-info {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: left;
+}
+
+.level-info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.level-info-item:last-child {
+  border-bottom: none;
+}
+
+.level-info-label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.level-info-value {
+  color: #ffd700;
+  font-weight: 600;
+}
+
+/* Tier Badge */
+.tier-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.tier-badge.tier-1 {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: #fff;
+}
+
+.tier-badge.tier-2 {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  color: #fff;
+}
+
+.tier-badge.tier-3 {
+  background: linear-gradient(135deg, #c084fc, #a855f7);
+  color: #fff;
+}
+
+.tier-badge.tier-4 {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+}
+
+/* Level Badge for Domain Cards */
+.card-level-badge {
+  background: rgba(179, 136, 255, 0.3);
+  color: #b388ff;
+  padding: 0.15rem 0.4rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-left: 0.5rem;
 }
 
 /* Background & Experiences */
