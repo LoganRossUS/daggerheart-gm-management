@@ -2801,6 +2801,83 @@
       transform: none;
     }
 
+    /* Character Deleted Notification */
+    .char-delete-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #2d2d3d, #1a1a2e);
+      border: 1px solid rgba(255, 152, 0, 0.5);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      max-width: 400px;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .char-delete-notification.visible {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    .notification-content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .notification-icon {
+      font-size: 1.5rem;
+    }
+
+    .notification-text {
+      color: #f5f5f5;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .notification-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .notification-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .notification-btn.delete {
+      background: linear-gradient(135deg, #f44336, #d32f2f);
+      color: white;
+    }
+
+    .notification-btn.delete:hover {
+      background: linear-gradient(135deg, #d32f2f, #b71c1c);
+    }
+
+    .notification-btn.keep {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #aaa;
+    }
+
+    .notification-btn.keep:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
     /* Autocomplete Dropdown */
     .autocomplete-container {
       position: relative;
@@ -10002,8 +10079,24 @@
         });
 
         // Listen for characters created via characters.html
+        let previousRoomCharIds = new Set();
+
         roomRef.child('characters').on('value', async (snapshot) => {
           const chars = snapshot.val();
+          const currentCharIds = new Set(chars ? Object.keys(chars) : []);
+
+          // Check for deleted characters
+          for (const prevId of previousRoomCharIds) {
+            if (!currentCharIds.has(prevId)) {
+              // Character was deleted from room
+              console.log('[RoomSync] Character deleted from room:', prevId);
+              handleRoomCharacterDeleted(prevId);
+            }
+          }
+
+          // Update previous IDs for next comparison
+          previousRoomCharIds = currentCharIds;
+
           if (chars) {
             // Convert object to array with IDs
             roomCharacters = Object.entries(chars).map(([id, char]) => ({
@@ -13007,6 +13100,80 @@
       scheduleAutoSaveIfAvailable();
     }
 
+    // Handle when a character is deleted from the room (by player)
+    function handleRoomCharacterDeleted(roomCharId) {
+      // Find the corresponding cloud character
+      const cloudCharIndex = playerCharacters.findIndex(c => c.roomCharId === roomCharId);
+
+      if (cloudCharIndex >= 0) {
+        const cloudChar = playerCharacters[cloudCharIndex];
+        const charName = cloudChar.name || 'Unknown';
+
+        // Show notification to GM with option to delete from cloud
+        showCharacterDeletedNotification(charName, cloudCharIndex, roomCharId);
+      }
+    }
+
+    // Show notification when player deletes a character
+    function showCharacterDeletedNotification(charName, cloudCharIndex, roomCharId) {
+      // Create notification element if it doesn't exist
+      let notification = document.getElementById('charDeleteNotification');
+      if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'charDeleteNotification';
+        notification.className = 'char-delete-notification';
+        notification.innerHTML = `
+          <div class="notification-content">
+            <span class="notification-icon">⚠️</span>
+            <span class="notification-text"></span>
+            <div class="notification-actions">
+              <button class="notification-btn delete" onclick="confirmDeleteFromCloud()">Delete from Campaign</button>
+              <button class="notification-btn keep" onclick="dismissDeleteNotification()">Keep in Campaign</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(notification);
+      }
+
+      // Store the pending deletion info
+      window.pendingCharDeletion = { charName, cloudCharIndex, roomCharId };
+
+      // Update and show notification
+      notification.querySelector('.notification-text').textContent =
+        `"${charName}" was deleted by a player. Remove from your campaign too?`;
+      notification.classList.add('visible');
+    }
+
+    // Confirm deletion from cloud campaign
+    function confirmDeleteFromCloud() {
+      if (window.pendingCharDeletion) {
+        const { cloudCharIndex, charName } = window.pendingCharDeletion;
+        playerCharacters.splice(cloudCharIndex, 1);
+
+        // If this was the selected character, clear selection
+        if (selectedCharacterId === playerCharacters[cloudCharIndex]?.id) {
+          selectedCharacterId = null;
+          document.querySelector('.character-editor-empty').style.display = 'flex';
+          document.getElementById('characterEditorForm').style.display = 'none';
+        }
+
+        renderCharactersList();
+        updateTabBadges();
+        scheduleAutoSaveIfAvailable();
+        console.log('[DeleteSync] Deleted character from cloud campaign:', charName);
+      }
+      dismissDeleteNotification();
+    }
+
+    // Dismiss the delete notification
+    function dismissDeleteNotification() {
+      const notification = document.getElementById('charDeleteNotification');
+      if (notification) {
+        notification.classList.remove('visible');
+      }
+      window.pendingCharDeletion = null;
+    }
+
     // Auto-sync room characters to cloud campaign for permanent storage
     // This runs automatically when room characters are received
     async function autoSyncRoomCharactersToCloud(roomChars) {
@@ -13078,6 +13245,7 @@
         name: roomChar.name || 'Unnamed',
         level: roomChar.level || 1,
         ancestry: roomChar.ancestry || '',
+        community: roomChar.community || '', // Preserve community
         characterClass: roomChar.class || roomChar.characterClass || '',
         subclass: roomChar.subclass || '',
         currentHp: roomChar.hp?.current ?? roomChar.currentHp ?? 0,
@@ -13090,6 +13258,7 @@
         majorThreshold: roomChar.damageThresholds?.major ?? roomChar.majorThreshold ?? '',
         severeThreshold: roomChar.damageThresholds?.severe ?? roomChar.severeThreshold ?? '',
         domains: roomChar.domains || (roomChar.domainCards || []).map(c => c?.domain).filter(Boolean),
+        domainCards: roomChar.domainCards || [], // Preserve domain cards
         experiences: (roomChar.experiences || []).map(e => typeof e === 'object' ? e.description : e),
         abilities: roomChar.abilities || [],
         feats: roomChar.feats || [],
@@ -13106,15 +13275,16 @@
         name: cloudChar.name || 'Unnamed',
         level: cloudChar.level || 1,
         ancestry: cloudChar.ancestry || '',
+        community: cloudChar.community || '', // Required by /characters.html
         class: cloudChar.characterClass || cloudChar.class || '',
         subclass: cloudChar.subclass || '',
         hp: {
-          current: cloudChar.currentHp ?? 0,
-          max: cloudChar.maxHp ?? 0
+          current: cloudChar.currentHp ?? cloudChar.hp?.current ?? 10,
+          max: cloudChar.maxHp ?? cloudChar.hp?.max ?? 10
         },
         stress: {
-          current: cloudChar.currentStress ?? 0,
-          max: cloudChar.maxStress ?? 0
+          current: cloudChar.currentStress ?? cloudChar.stress?.current ?? 0,
+          max: cloudChar.maxStress ?? cloudChar.stress?.max ?? 6
         },
         armorScore: cloudChar.armor ?? 0,
         evasion: cloudChar.evasion || 10,
@@ -13124,6 +13294,7 @@
           severe: cloudChar.severeThreshold ?? ''
         },
         domains: cloudChar.domains || [],
+        domainCards: cloudChar.domainCards || [],
         experiences: (cloudChar.experiences || []).map(e =>
           typeof e === 'string' ? { description: e, modifier: 0 } : e
         ),
