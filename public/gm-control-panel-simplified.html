@@ -9844,10 +9844,12 @@
           }
         }
 
-        // Save GM session reference in Firebase
-        await database.ref(`gmSessions/${gmDeviceId}`).set({
+        // Save GM session reference in Firebase (non-blocking - may fail if rules not deployed)
+        database.ref(`gmSessions/${gmDeviceId}`).set({
           activeRoomCode: code,
           lastAccessed: firebase.database.ServerValue.TIMESTAMP
+        }).catch(err => {
+          console.log('gmSessions write skipped (rules may not be deployed):', err.message);
         });
 
         // Store locally for immediate reconnect
@@ -9861,8 +9863,8 @@
               active: true,
               timestamp: Date.now()
             });
-            // Also update lastAccessed
-            database.ref(`gmSessions/${gmDeviceId}/lastAccessed`).set(firebase.database.ServerValue.TIMESTAMP);
+            // Also update lastAccessed (non-blocking)
+            database.ref(`gmSessions/${gmDeviceId}/lastAccessed`).set(firebase.database.ServerValue.TIMESTAMP).catch(() => {});
           }
         }, 10000);
 
