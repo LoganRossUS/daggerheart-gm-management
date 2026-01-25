@@ -6109,6 +6109,10 @@
                   <label>Character Name</label>
                   <input type="text" id="charName" class="form-input" placeholder="Enter character name...">
                 </div>
+                <div class="form-group">
+                  <label>Player Name</label>
+                  <input type="text" id="charPlayerName" class="form-input" placeholder="Who plays this character?">
+                </div>
                 <div class="form-row">
                   <div class="form-group">
                     <label>Level</label>
@@ -7118,6 +7122,7 @@
     let playerCharacters = []; // Cloud campaign characters
     let roomCharacters = []; // Characters from Firebase room (created via characters.html)
     let selectedCharacterId = null;
+    let selectedCharacterSource = 'cloud'; // Track if selected char is 'cloud' or 'room'
     let currentCharacterAbilities = [];
     let currentCharacterExperiences = [];
     let currentCharacterFeats = [];
@@ -12591,6 +12596,7 @@
 
     function selectCharacter(charId, source = 'cloud') {
       selectedCharacterId = charId;
+      selectedCharacterSource = source; // Track source for saving
 
       // Find character in appropriate array based on source
       let char;
@@ -12612,6 +12618,8 @@
       // Handle different field names between cloud and room characters
       const charClass = char.characterClass || char.class || '';
       const hp = char.hp || {};
+      const stress = char.stress || {};
+      const thresholds = char.damageThresholds || {};
 
       // Populate form fields
       document.getElementById('charName').value = char.name || '';
@@ -12622,41 +12630,69 @@
       document.getElementById('charSubclass').value = char.subclass || '';
 
       // Handle HP - room characters use hp.current/hp.max, cloud uses currentHp/maxHp
-      document.getElementById('charCurrentHp').value = char.currentHp || hp.current || '';
-      document.getElementById('charMaxHp').value = char.maxHp || hp.max || '';
-      document.getElementById('charCurrentStress').value = char.currentStress || char.stress?.current || '';
-      document.getElementById('charMaxStress').value = char.maxStress || char.stress?.max || '';
-      document.getElementById('charArmor').value = char.armor || char.armorSlots || 0;
+      document.getElementById('charCurrentHp').value = char.currentHp ?? hp.current ?? '';
+      document.getElementById('charMaxHp').value = char.maxHp ?? hp.max ?? '';
+      document.getElementById('charCurrentStress').value = char.currentStress ?? stress.current ?? '';
+      document.getElementById('charMaxStress').value = char.maxStress ?? stress.max ?? '';
+
+      // Handle armor - room uses armorScore or armorSlots.total, cloud uses armor
+      const armorValue = char.armor ?? char.armorScore ?? char.armorSlots?.total ?? 0;
+      document.getElementById('charArmor').value = armorValue;
       document.getElementById('charEvasion').value = char.evasion || 10;
 
-      document.getElementById('charMinorThreshold').value = char.minorThreshold || '';
-      document.getElementById('charMajorThreshold').value = char.majorThreshold || '';
-      document.getElementById('charSevereThreshold').value = char.severeThreshold || '';
+      // Handle damage thresholds - room uses damageThresholds object
+      document.getElementById('charMinorThreshold').value = char.minorThreshold ?? thresholds.minor ?? '';
+      document.getElementById('charMajorThreshold').value = char.majorThreshold ?? thresholds.major ?? '';
+      document.getElementById('charSevereThreshold').value = char.severeThreshold ?? thresholds.severe ?? '';
 
-      // Set domains
+      // Set domains - room characters use domainCards array with card objects
       const domains = ['blade', 'bone', 'codex', 'grace', 'midnight', 'sage', 'splendor', 'valor'];
+      const charDomains = char.domains || [];
+      const domainCards = char.domainCards || [];
+      // Extract domain names from domainCards if present
+      const activeDomains = charDomains.length > 0 ? charDomains :
+        domainCards.map(card => card?.domain).filter(Boolean);
+
       domains.forEach(d => {
         const checkbox = document.getElementById('domain' + capitalizeFirst(d));
-        if (checkbox) checkbox.checked = (char.domains || []).includes(d);
+        if (checkbox) checkbox.checked = activeDomains.includes(d);
       });
 
-      // Set experiences, abilities, feats
-      currentCharacterExperiences = char.experiences || [];
+      // Set experiences - room characters have { description, modifier } objects
+      if (char.experiences && char.experiences.length > 0) {
+        if (typeof char.experiences[0] === 'object') {
+          // Room character format
+          currentCharacterExperiences = char.experiences.map(e => e.description || e);
+        } else {
+          // Cloud character format (strings)
+          currentCharacterExperiences = char.experiences;
+        }
+      } else {
+        currentCharacterExperiences = [];
+      }
+
       currentCharacterAbilities = char.abilities || [];
       currentCharacterFeats = char.feats || [];
       renderExperiencesList();
       renderAbilitiesList();
       renderFeatsList();
 
+      // Notes/Background
       document.getElementById('charNotes').value = char.notes || char.background || '';
 
-      // Portrait - handle both cloud (portrait) and room (image) field names
+      // Portrait
       const portraitEl = document.getElementById('characterPortrait');
       const portraitUrl = char.portrait || char.image;
       if (portraitUrl) {
         portraitEl.innerHTML = `<img src="${portraitUrl}" alt="${char.name}">`;
       } else {
         portraitEl.innerHTML = '<span class="portrait-placeholder">No Image</span>';
+      }
+
+      // Show player name if available (room characters)
+      const playerNameDisplay = document.getElementById('charPlayerName');
+      if (playerNameDisplay) {
+        playerNameDisplay.value = char.playerName || '';
       }
 
       renderCharactersList();
