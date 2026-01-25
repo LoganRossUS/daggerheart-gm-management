@@ -64,14 +64,30 @@
 
     <div class="wizard-progress">
       <div class="progress-bar">
-        <div id="progressFill" class="progress-fill" style="width: 11.11%"></div>
+        <div id="progressFill" class="progress-fill" style="width: 10%"></div>
       </div>
-      <div id="progressText" class="progress-text">Step 1 of 9: Choose Class</div>
+      <div id="progressText" class="progress-text">Step 1 of 10: Choose Level</div>
     </div>
 
     <div class="wizard-content">
-      <!-- Step 1: Choose Class -->
+      <!-- Step 1: Choose Level (NEW) -->
       <div id="step1" class="wizard-step active">
+        <div class="wizard-step-header">
+          <h2>Choose Starting Level</h2>
+          <p>Select the level for your new character</p>
+        </div>
+        <div class="level-selector">
+          <div class="level-buttons" id="levelButtons">
+            <!-- Level buttons rendered by JS -->
+          </div>
+          <div class="level-info" id="levelInfo">
+            <!-- Level info rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Choose Class -->
+      <div id="step2" class="wizard-step">
         <div class="wizard-step-header">
           <h2>Choose Your Class</h2>
           <p>Swipe to explore, tap to select</p>
@@ -84,8 +100,8 @@
         <div class="carousel-indicators" id="classIndicators"></div>
       </div>
 
-      <!-- Step 2: Choose Subclass -->
-      <div id="step2" class="wizard-step">
+      <!-- Step 3: Choose Subclass -->
+      <div id="step3" class="wizard-step">
         <div class="wizard-step-header">
           <h2>Choose Your Subclass</h2>
           <p id="subclassHint">Defines your Spellcast trait and foundation ability</p>
@@ -95,19 +111,22 @@
         </div>
       </div>
 
-      <!-- Step 3: Choose Ancestry -->
-      <div id="step3" class="wizard-step">
+      <!-- Step 4: Choose Ancestry -->
+      <div id="step4" class="wizard-step">
         <div class="wizard-step-header">
           <h2>Choose Your Ancestry</h2>
           <p>Your heritage and natural abilities</p>
         </div>
-        <div class="ancestry-grid" id="ancestryGrid">
-          <!-- Ancestry cards rendered by JS -->
+        <div class="carousel-container" id="ancestryCarousel">
+          <div class="carousel-track" id="ancestryCarouselTrack">
+            <!-- Ancestry cards rendered by JS -->
+          </div>
         </div>
+        <div class="carousel-indicators" id="ancestryIndicators"></div>
       </div>
 
-      <!-- Step 4: Choose Community -->
-      <div id="step4" class="wizard-step">
+      <!-- Step 5: Choose Community -->
+      <div id="step5" class="wizard-step">
         <div class="wizard-step-header">
           <h2>Choose Your Community</h2>
           <p>Where you grew up shapes who you are</p>
@@ -120,8 +139,8 @@
         <div class="carousel-indicators" id="communityIndicators"></div>
       </div>
 
-      <!-- Step 5: Assign Traits -->
-      <div id="step5" class="wizard-step">
+      <!-- Step 6: Assign Traits -->
+      <div id="step6" class="wizard-step">
         <div class="wizard-step-header">
           <h2>Assign Your Traits</h2>
           <p>Tap a value, then tap a trait to assign it</p>
@@ -136,19 +155,19 @@
         </div>
       </div>
 
-      <!-- Step 6: Choose Equipment -->
-      <div id="step6" class="wizard-step">
+      <!-- Step 7: Choose Equipment -->
+      <div id="step7" class="wizard-step">
         <div class="wizard-step-header">
           <h2>Choose Your Equipment</h2>
-          <p>Select your starting gear</p>
+          <p id="equipmentHint">Select your starting gear</p>
         </div>
         <div class="equipment-section" id="equipmentSection">
           <!-- Equipment selections rendered by JS -->
         </div>
       </div>
 
-      <!-- Step 7: Background & Experiences -->
-      <div id="step7" class="wizard-step">
+      <!-- Step 8: Background & Experiences -->
+      <div id="step8" class="wizard-step">
         <div class="wizard-step-header">
           <h2>Background & Experiences</h2>
           <p>What shaped your character?</p>
@@ -179,22 +198,22 @@
         </div>
       </div>
 
-      <!-- Step 8: Choose Domain Cards -->
-      <div id="step8" class="wizard-step">
+      <!-- Step 9: Choose Domain Cards -->
+      <div id="step9" class="wizard-step">
         <div class="wizard-step-header">
           <h2>Choose Domain Cards</h2>
-          <p>Select 2 cards from your class domains</p>
+          <p id="domainCardsHint">Select 2 cards from your class domains</p>
         </div>
         <div class="domain-selection" id="domainSelection">
           <div class="selected-cards-count">
-            Selected: <span id="selectedCardsCount" class="selected-count-number">0</span> / 2
+            Selected: <span id="selectedCardsCount" class="selected-count-number">0</span> / <span id="requiredCardsCount">2</span>
           </div>
           <!-- Domain sections rendered by JS -->
         </div>
       </div>
 
-      <!-- Step 9: Create Connections -->
-      <div id="step9" class="wizard-step">
+      <!-- Step 10: Create Connections -->
+      <div id="step10" class="wizard-step">
         <div class="wizard-step-header">
           <h2>Create Connections</h2>
           <p>How do you relate to others?</p>
@@ -332,6 +351,7 @@
     let currentRoomCode = null;
     let roomRef = null;
     let charactersRef = null;
+    let currentCharacterRef = null; // For real-time updates on character sheet
     let characters = {};
     let currentCharacterId = null;
     let editMode = false;
@@ -339,7 +359,8 @@
     // Wizard State
     const wizardState = {
       currentStep: 1,
-      totalSteps: 9,
+      totalSteps: 10,
+      selectedLevel: 1,
       selectedClass: null,
       selectedSubclass: null,
       selectedAncestry: null,
@@ -353,7 +374,6 @@
       selectedDomainCards: [],
       connections: ['', '', ''],
       characterName: '',
-      // For mixed ancestry
       mixedAncestryFeatures: []
     };
 
@@ -384,10 +404,12 @@
 
     // Carousel state
     let classCarouselIndex = 0;
+    let ancestryCarouselIndex = 0;
     let communityCarouselIndex = 0;
 
     // Step names for progress display
     const stepNames = [
+      'Choose Level',
       'Choose Class',
       'Choose Subclass',
       'Choose Ancestry',
@@ -400,10 +422,45 @@
     ];
 
     // ============================================
+    // TIER/LEVEL HELPER FUNCTIONS
+    // ============================================
+
+    function getCharacterTier(level) {
+      if (level >= 8) return 4;
+      if (level >= 5) return 3;
+      if (level >= 2) return 2;
+      return 1;
+    }
+
+    function getMaxDomainCardLevel(level) {
+      if (level >= 5) return 3; // Mastery
+      if (level >= 2) return 2; // Specialization
+      return 1; // Foundation
+    }
+
+    function getDomainCardSlots(level) {
+      return 2 + Math.max(0, level - 1);
+    }
+
+    function getTierName(tier) {
+      return ['', 'Foundation', 'Improved', 'Superior', 'Legendary'][tier] || '';
+    }
+
+    function getCardLevelName(level) {
+      return ['', 'Foundation', 'Specialization', 'Mastery'][level] || '';
+    }
+
+    // ============================================
     // SCREEN NAVIGATION
     // ============================================
 
     function showScreen(screen) {
+      // Clean up character sheet listener when leaving
+      if (currentCharacterRef) {
+        currentCharacterRef.off();
+        currentCharacterRef = null;
+      }
+
       roomJoinScreen.classList.add('hidden');
       characterListScreen.classList.add('hidden');
       wizardScreen.classList.add('hidden');
@@ -439,6 +496,11 @@
         charactersRef.on('value', (snapshot) => {
           characters = snapshot.val() || {};
           renderCharacterList();
+
+          // If we're viewing a character sheet, update it
+          if (currentCharacterId && characters[currentCharacterId]) {
+            updateCharacterSheetDisplay(characters[currentCharacterId]);
+          }
         });
 
         showScreen(characterListScreen);
@@ -453,10 +515,15 @@
       if (charactersRef) {
         charactersRef.off();
       }
+      if (currentCharacterRef) {
+        currentCharacterRef.off();
+      }
       currentRoomCode = null;
       roomRef = null;
       charactersRef = null;
+      currentCharacterRef = null;
       characters = {};
+      currentCharacterId = null;
       roomCodeInput.value = '';
       showScreen(roomJoinScreen);
     }
@@ -489,7 +556,7 @@
 
       characterList.innerHTML = characterIds.map(id => {
         const char = characters[id];
-        const hpPercent = (char.hp.current / char.hp.max) * 100;
+        const hpPercent = char.hp ? (char.hp.current / char.hp.max) * 100 : 100;
         let hpClass = '';
         if (hpPercent <= 25) hpClass = 'critical';
         else if (hpPercent <= 50) hpClass = 'low';
@@ -512,7 +579,7 @@
               <div class="hp-bar-container">
                 <div class="hp-bar-fill ${hpClass}" style="width: ${hpPercent}%"></div>
               </div>
-              <span class="hp-value">${char.hp.current}/${char.hp.max}</span>
+              <span class="hp-value">${char.hp?.current || 0}/${char.hp?.max || 0}</span>
             </div>
             <div class="character-card-delete" id="delete-${id}">
               <button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); hideDeleteOverlay('${id}')">Cancel</button>
@@ -577,7 +644,7 @@
     }
 
     // ============================================
-    // CHARACTER SHEET
+    // CHARACTER SHEET - REAL-TIME UPDATES
     // ============================================
 
     function openCharacterSheet(id) {
@@ -587,10 +654,62 @@
 
       document.getElementById('sheetCharacterName').textContent = char.name;
       renderCharacterSheet(char);
+
+      // Set up real-time listener for this specific character
+      if (currentCharacterRef) {
+        currentCharacterRef.off();
+      }
+      currentCharacterRef = charactersRef.child(id);
+      currentCharacterRef.on('value', (snapshot) => {
+        const updatedChar = snapshot.val();
+        if (updatedChar) {
+          characters[id] = updatedChar;
+          updateCharacterSheetDisplay(updatedChar);
+        }
+      });
+
       showScreen(characterSheetScreen);
     }
 
     window.openCharacterSheet = openCharacterSheet;
+
+    // Update only the dynamic parts of the character sheet (for real-time updates)
+    function updateCharacterSheetDisplay(char) {
+      // Update HP
+      const hpCurrent = document.getElementById('currentHp');
+      if (hpCurrent) {
+        const hpPercent = (char.hp.current / char.hp.max) * 100;
+        let hpClass = '';
+        if (hpPercent <= 25) hpClass = 'critical';
+        else if (hpPercent <= 50) hpClass = 'low';
+        hpCurrent.textContent = char.hp.current;
+        hpCurrent.className = 'hp-current ' + hpClass;
+      }
+
+      // Update Stress
+      const stressTracker = document.getElementById('stressTracker');
+      if (stressTracker) {
+        stressTracker.innerHTML = renderStressSlots(char.stress.current, char.stress.max);
+      }
+
+      // Update Hope
+      const hopeCurrent = document.getElementById('currentHope');
+      if (hopeCurrent) {
+        hopeCurrent.textContent = char.hope;
+      }
+
+      // Update Armor Slots
+      const armorTracker = document.getElementById('armorTracker');
+      if (armorTracker) {
+        armorTracker.innerHTML = renderArmorSlots(char.armorSlots.marked, char.armorSlots.total);
+      }
+
+      // Update Armor Slots label
+      const armorLabel = document.getElementById('armorSlotsLabel');
+      if (armorLabel) {
+        armorLabel.textContent = `Armor Slots (${char.armorSlots.marked}/${char.armorSlots.total})`;
+      }
+    }
 
     function renderCharacterSheet(char) {
       const classData = CLASSES[char.class];
@@ -657,7 +776,7 @@
 
           <!-- Armor Slots -->
           <div class="tracker-section">
-            <div class="tracker-label">Armor Slots (${char.armorSlots.marked}/${char.armorSlots.total})</div>
+            <div class="tracker-label" id="armorSlotsLabel">Armor Slots (${char.armorSlots.marked}/${char.armorSlots.total})</div>
             <div class="armor-tracker" id="armorTracker">
               ${renderArmorSlots(char.armorSlots.marked, char.armorSlots.total)}
             </div>
@@ -690,7 +809,7 @@
             <div class="collapsible-inner">
               <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 0.75rem;">Add your Experience bonus when relevant to a roll</p>
               <div class="experience-list">
-                ${char.experiences.map(exp => `
+                ${(char.experiences || []).map(exp => `
                   <div class="experience-item">
                     <span class="modifier">+${exp.modifier}</span>
                     <span class="description">${escapeHtml(exp.description)}</span>
@@ -710,8 +829,8 @@
           <div class="collapsible-content">
             <div class="collapsible-inner">
               <div class="attack-reference">
-                ${renderWeaponSummary(char.equipment.primaryWeapon, 'Primary', char.traits)}
-                ${char.equipment.secondaryWeapon ? renderWeaponSummary(char.equipment.secondaryWeapon, 'Secondary', char.traits) : ''}
+                ${renderWeaponSummary(char.equipment?.primaryWeapon, 'Primary', char.traits)}
+                ${char.equipment?.secondaryWeapon ? renderWeaponSummary(char.equipment.secondaryWeapon, 'Secondary', char.traits) : ''}
               </div>
             </div>
           </div>
@@ -726,7 +845,7 @@
           <div class="collapsible-content">
             <div class="collapsible-inner">
               <div class="sheet-domain-cards">
-                ${char.domainCards.map(card => `
+                ${(char.domainCards || []).map(card => `
                   <div class="sheet-domain-card">
                     <div class="sheet-domain-card-name">${escapeHtml(card.name)}</div>
                     <div class="sheet-domain-card-type">${card.type}${card.cost ? ` • ${card.cost}` : ''}</div>
@@ -762,9 +881,9 @@
           <div class="collapsible-content">
             <div class="collapsible-inner">
               <div class="equipment-list">
-                ${renderEquipmentItem(char.equipment.primaryWeapon, 'Primary Weapon')}
-                ${char.equipment.secondaryWeapon ? renderEquipmentItem(char.equipment.secondaryWeapon, 'Secondary Weapon') : ''}
-                ${renderEquipmentItem(char.equipment.armor, 'Armor')}
+                ${renderEquipmentItem(char.equipment?.primaryWeapon, 'Primary Weapon')}
+                ${char.equipment?.secondaryWeapon ? renderEquipmentItem(char.equipment.secondaryWeapon, 'Secondary Weapon') : ''}
+                ${renderEquipmentItem(char.equipment?.armor, 'Armor')}
               </div>
             </div>
           </div>
@@ -780,7 +899,7 @@
             <div class="collapsible-inner">
               <div class="trait-grid">
                 ${TRAITS.map(trait => {
-                  const value = char.traits[trait];
+                  const value = char.traits?.[trait] || 0;
                   const valueClass = value > 0 ? 'positive' : value < 0 ? 'negative' : '';
                   const displayValue = value >= 0 ? `+${value}` : value;
                   return `
@@ -851,7 +970,7 @@
 
     function renderWeaponSummary(weapon, type, traits) {
       if (!weapon) return '';
-      const traitValue = traits[weapon.trait] || 0;
+      const traitValue = traits?.[weapon.trait] || 0;
       const traitDisplay = traitValue >= 0 ? `+${traitValue}` : traitValue;
 
       return `
@@ -894,12 +1013,22 @@
 
       // Ancestry Features
       if (char.features?.ancestry) {
-        char.features.ancestry.forEach((featureName, index) => {
-          const featureData = ancestryData?.features?.find(f => f.name === featureName);
+        char.features.ancestry.forEach((featureName) => {
+          // Try to find feature data from ancestry
+          let featureData = ancestryData?.features?.find(f => f.name === featureName);
+
+          // If mixed ancestry, search all ancestries
+          if (!featureData && char.ancestry === 'mixed') {
+            for (const ancId of Object.keys(ANCESTRIES)) {
+              featureData = ANCESTRIES[ancId].features.find(f => f.name === featureName);
+              if (featureData) break;
+            }
+          }
+
           if (featureData) {
             features.push({
               name: featureData.name,
-              source: ancestryData.name + ' Ancestry',
+              source: (char.ancestry === 'mixed' ? 'Mixed' : ancestryData?.name || '') + ' Ancestry',
               description: featureData.description
             });
           }
@@ -965,7 +1094,7 @@
 
     window.toggleCollapsible = toggleCollapsible;
 
-    // Combat tracker update functions
+    // Combat tracker update functions - Now update Firebase which triggers real-time updates
     async function updateHP(delta) {
       if (!currentCharacterId || !charactersRef) return;
       const char = characters[currentCharacterId];
@@ -989,8 +1118,6 @@
       const char = characters[currentCharacterId];
       if (!char) return;
 
-      // If clicking on a marked slot, unmark it and all after
-      // If clicking on an unmarked slot, mark it and all before
       const newStress = index < char.stress.current ? index : index + 1;
 
       try {
@@ -1053,6 +1180,7 @@
       // Reset wizard state
       Object.assign(wizardState, {
         currentStep: 1,
+        selectedLevel: 1,
         selectedClass: null,
         selectedSubclass: null,
         selectedAncestry: null,
@@ -1070,10 +1198,11 @@
       });
 
       classCarouselIndex = 0;
+      ancestryCarouselIndex = 0;
       communityCarouselIndex = 0;
 
       // Render initial content
-      renderClassCarousel();
+      renderLevelSelector();
       updateWizardProgress();
       updateWizardButtons();
       showWizardStep(1);
@@ -1102,24 +1231,26 @@
         wizardNextBtn.textContent = 'Next';
       }
 
-      // Validate current step
       wizardNextBtn.disabled = !validateCurrentStep();
     }
 
     function validateCurrentStep() {
       switch (wizardState.currentStep) {
-        case 1: return wizardState.selectedClass !== null;
-        case 2: return wizardState.selectedSubclass !== null;
-        case 3: return wizardState.selectedAncestry !== null;
-        case 4: return wizardState.selectedCommunity !== null;
-        case 5: return Object.keys(wizardState.traits).length === 6;
-        case 6: return wizardState.primaryWeapon !== null && wizardState.armor !== null;
-        case 7:
+        case 1: return wizardState.selectedLevel >= 1 && wizardState.selectedLevel <= 10;
+        case 2: return wizardState.selectedClass !== null;
+        case 3: return wizardState.selectedSubclass !== null;
+        case 4: return wizardState.selectedAncestry !== null;
+        case 5: return wizardState.selectedCommunity !== null;
+        case 6: return Object.keys(wizardState.traits).length === 6;
+        case 7: return wizardState.primaryWeapon !== null && wizardState.armor !== null;
+        case 8:
           const exp1 = document.getElementById('experience1')?.value.trim();
           const exp2 = document.getElementById('experience2')?.value.trim();
           return exp1 && exp2;
-        case 8: return wizardState.selectedDomainCards.length === 2;
         case 9:
+          const requiredCards = getDomainCardSlots(wizardState.selectedLevel);
+          return wizardState.selectedDomainCards.length === requiredCards;
+        case 10:
           const name = document.getElementById('characterNameInput')?.value.trim();
           return name && name.length > 0;
         default: return true;
@@ -1129,7 +1260,6 @@
     function nextWizardStep() {
       if (!validateCurrentStep()) return;
 
-      // Save current step data
       saveCurrentStepData();
 
       if (wizardState.currentStep === wizardState.totalSteps) {
@@ -1141,13 +1271,14 @@
 
       // Render content for new step
       switch (wizardState.currentStep) {
-        case 2: renderSubclassGrid(); break;
-        case 3: renderAncestryGrid(); break;
-        case 4: renderCommunityCarousel(); break;
-        case 5: renderTraitAssignment(); break;
-        case 6: renderEquipmentSection(); break;
-        case 8: renderDomainSelection(); break;
-        case 9: renderPartyMembers(); break;
+        case 2: renderClassCarousel(); break;
+        case 3: renderSubclassGrid(); break;
+        case 4: renderAncestryCarousel(); break;
+        case 5: renderCommunityCarousel(); break;
+        case 6: renderTraitAssignment(); break;
+        case 7: renderEquipmentSection(); break;
+        case 9: renderDomainSelection(); break;
+        case 10: renderPartyMembers(); break;
       }
 
       showWizardStep(wizardState.currentStep);
@@ -1160,6 +1291,19 @@
 
       saveCurrentStepData();
       wizardState.currentStep--;
+
+      // Re-render step if needed
+      switch (wizardState.currentStep) {
+        case 1: renderLevelSelector(); break;
+        case 2: renderClassCarousel(); break;
+        case 3: renderSubclassGrid(); break;
+        case 4: renderAncestryCarousel(); break;
+        case 5: renderCommunityCarousel(); break;
+        case 6: renderTraitAssignment(); break;
+        case 7: renderEquipmentSection(); break;
+        case 9: renderDomainSelection(); break;
+      }
+
       showWizardStep(wizardState.currentStep);
       updateWizardProgress();
       updateWizardButtons();
@@ -1167,14 +1311,14 @@
 
     function saveCurrentStepData() {
       switch (wizardState.currentStep) {
-        case 7:
+        case 8:
           wizardState.background = document.getElementById('backgroundInput').value.trim();
           wizardState.experiences = [
             document.getElementById('experience1').value.trim(),
             document.getElementById('experience2').value.trim()
           ];
           break;
-        case 9:
+        case 10:
           wizardState.connections = [
             document.getElementById('connection1').value.trim(),
             document.getElementById('connection2').value.trim(),
@@ -1189,14 +1333,75 @@
     // WIZARD STEP RENDERERS
     // ============================================
 
+    function renderLevelSelector() {
+      const buttonsContainer = document.getElementById('levelButtons');
+      const infoContainer = document.getElementById('levelInfo');
+
+      buttonsContainer.innerHTML = Array.from({ length: 10 }, (_, i) => {
+        const level = i + 1;
+        const selected = wizardState.selectedLevel === level ? 'selected' : '';
+        return `<button class="level-btn ${selected}" data-level="${level}" onclick="selectLevel(${level})">${level}</button>`;
+      }).join('');
+
+      updateLevelInfo();
+    }
+
+    function selectLevel(level) {
+      wizardState.selectedLevel = level;
+
+      // Clear equipment and cards selections when level changes (tier filtering)
+      wizardState.primaryWeapon = null;
+      wizardState.secondaryWeapon = null;
+      wizardState.armor = null;
+      wizardState.selectedDomainCards = [];
+
+      document.querySelectorAll('.level-btn').forEach(btn => {
+        btn.classList.toggle('selected', parseInt(btn.dataset.level) === level);
+      });
+
+      updateLevelInfo();
+      updateWizardButtons();
+    }
+
+    window.selectLevel = selectLevel;
+
+    function updateLevelInfo() {
+      const level = wizardState.selectedLevel;
+      const tier = getCharacterTier(level);
+      const cardLevel = getMaxDomainCardLevel(level);
+      const cardSlots = getDomainCardSlots(level);
+
+      const infoContainer = document.getElementById('levelInfo');
+      infoContainer.innerHTML = `
+        <div class="level-info-item">
+          <span class="level-info-label">Equipment Tier</span>
+          <span class="level-info-value">Tier ${tier} (${getTierName(tier)})</span>
+        </div>
+        <div class="level-info-item">
+          <span class="level-info-label">Domain Cards</span>
+          <span class="level-info-value">${cardSlots} cards (up to ${getCardLevelName(cardLevel)})</span>
+        </div>
+        <div class="level-info-item">
+          <span class="level-info-label">HP Bonus</span>
+          <span class="level-info-value">+${level} per level multiplier</span>
+        </div>
+        <div class="level-info-item">
+          <span class="level-info-label">Threshold Bonus</span>
+          <span class="level-info-value">+${level} to Major/Severe</span>
+        </div>
+      `;
+    }
+
     function renderClassCarousel() {
       const track = document.getElementById('classCarouselTrack');
       const indicators = document.getElementById('classIndicators');
       const classIds = Object.keys(CLASSES);
+      const level = wizardState.selectedLevel;
 
       track.innerHTML = classIds.map((id, index) => {
         const cls = CLASSES[id];
         const selected = wizardState.selectedClass === id ? 'selected' : '';
+        const hp = calculateHP(id, level);
         return `
           <div class="carousel-card ${selected}" data-class="${id}" onclick="selectClass('${id}')">
             <div class="class-card-name">${cls.name}</div>
@@ -1209,8 +1414,8 @@
                 <div class="stat-value">${cls.startingEvasion}</div>
               </div>
               <div class="stat-box">
-                <div class="stat-label">HP at Lvl 1</div>
-                <div class="stat-value">${cls.hpFormula.base + cls.hpFormula.perLevel}</div>
+                <div class="stat-label">HP at Lvl ${level}</div>
+                <div class="stat-value">${hp}</div>
               </div>
             </div>
             <div class="class-card-description">${cls.description}</div>
@@ -1223,16 +1428,23 @@
         return `<div class="carousel-indicator ${active}" onclick="scrollToClassCard(${index})"></div>`;
       }).join('');
 
-      setupCarouselTouch('classCarousel', 'classCarouselTrack', 'classIndicators', (index) => {
+      // Re-scroll to current position
+      setTimeout(() => {
+        const cards = track.querySelectorAll('.carousel-card');
+        if (cards[classCarouselIndex]) {
+          cards[classCarouselIndex].scrollIntoView({ behavior: 'auto', inline: 'center' });
+        }
+      }, 50);
+
+      setupCarouselScroll(track, 'classIndicators', (index) => {
         classCarouselIndex = index;
       });
     }
 
     function selectClass(classId) {
       wizardState.selectedClass = classId;
-      wizardState.selectedSubclass = null; // Reset subclass when class changes
+      wizardState.selectedSubclass = null;
 
-      // Update visual selection
       document.querySelectorAll('#classCarouselTrack .carousel-card').forEach(card => {
         card.classList.toggle('selected', card.dataset.class === classId);
       });
@@ -1287,25 +1499,48 @@
 
     window.selectSubclass = selectSubclass;
 
-    function renderAncestryGrid() {
-      const grid = document.getElementById('ancestryGrid');
+    function renderAncestryCarousel() {
+      const track = document.getElementById('ancestryCarouselTrack');
+      const indicators = document.getElementById('ancestryIndicators');
       const ancestryIds = Object.keys(ANCESTRIES);
 
-      grid.innerHTML = ancestryIds.map(id => {
+      track.innerHTML = ancestryIds.map((id, index) => {
         const anc = ANCESTRIES[id];
         const selected = wizardState.selectedAncestry === id ? 'selected' : '';
         return `
-          <div class="ancestry-card ${selected}" data-ancestry="${id}" onclick="selectAncestry('${id}')">
-            <div class="ancestry-name">${anc.name}</div>
-            <div class="ancestry-features">${anc.features.map(f => f.name).join(' & ')}</div>
+          <div class="carousel-card ${selected}" data-ancestry="${id}" onclick="selectAncestry('${id}')">
+            <div class="class-card-name">${anc.name}</div>
+            <div class="foundation-description" style="margin-bottom: 1rem;">${anc.description}</div>
+            <div style="margin-top: auto;">
+              ${anc.features.map(f => `
+                <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem;">
+                  <div style="color: #b388ff; font-weight: 600; margin-bottom: 0.25rem;">${f.name}</div>
+                  <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">${f.description}</div>
+                </div>
+              `).join('')}
+            </div>
           </div>
         `;
       }).join('') + `
-        <div class="ancestry-card mixed-ancestry ${wizardState.selectedAncestry === 'mixed' ? 'selected' : ''}" data-ancestry="mixed" onclick="openMixedAncestry()">
-          <div class="ancestry-name">Mixed Ancestry</div>
-          <div class="ancestry-features">Choose one feature from two different ancestries</div>
+        <div class="carousel-card ${wizardState.selectedAncestry === 'mixed' ? 'selected' : ''}" data-ancestry="mixed" onclick="openMixedAncestry()">
+          <div class="class-card-name">Mixed Ancestry</div>
+          <div class="foundation-description">
+            Choose one feature from each of two different ancestries. This represents a character with diverse heritage.
+          </div>
+          <div style="margin-top: auto; padding: 1rem; background: rgba(179,136,255,0.2); border-radius: 8px; text-align: center;">
+            <span style="color: #b388ff;">Tap to customize</span>
+          </div>
         </div>
       `;
+
+      indicators.innerHTML = [...ancestryIds, 'mixed'].map((_, index) => {
+        const active = index === ancestryCarouselIndex ? 'active' : '';
+        return `<div class="carousel-indicator ${active}" onclick="scrollToAncestryCard(${index})"></div>`;
+      }).join('');
+
+      setupCarouselScroll(track, 'ancestryIndicators', (index) => {
+        ancestryCarouselIndex = index;
+      });
     }
 
     function selectAncestry(ancestryId) {
@@ -1317,7 +1552,7 @@
       wizardState.selectedAncestry = ancestryId;
       wizardState.mixedAncestryFeatures = [];
 
-      document.querySelectorAll('#ancestryGrid .ancestry-card').forEach(card => {
+      document.querySelectorAll('#ancestryCarouselTrack .carousel-card').forEach(card => {
         card.classList.toggle('selected', card.dataset.ancestry === ancestryId);
       });
 
@@ -1326,11 +1561,22 @@
 
     window.selectAncestry = selectAncestry;
 
+    function scrollToAncestryCard(index) {
+      const track = document.getElementById('ancestryCarouselTrack');
+      const cards = track.querySelectorAll('.carousel-card');
+      if (cards[index]) {
+        cards[index].scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        ancestryCarouselIndex = index;
+        updateCarouselIndicators('ancestryIndicators', index);
+      }
+    }
+
+    window.scrollToAncestryCard = scrollToAncestryCard;
+
     function openMixedAncestry() {
       const modal = document.getElementById('mixedAncestryModal');
       const content = document.getElementById('mixedAncestryContent');
 
-      // Build mixed ancestry selection UI
       const ancestryIds = Object.keys(ANCESTRIES);
       content.innerHTML = `
         <p style="margin-bottom: 1rem; color: rgba(255,255,255,0.7);">Select one feature from the first ancestry:</p>
@@ -1369,7 +1615,6 @@
         </div>
       `;
 
-      // Add change listeners
       content.querySelectorAll('input[type="radio"]').forEach(input => {
         input.addEventListener('change', validateMixedAncestry);
       });
@@ -1389,8 +1634,6 @@
       if (feature1 && feature2) {
         const [ancestry1] = feature1.value.split(':');
         const [ancestry2] = feature2.value.split(':');
-
-        // Must be from different ancestries
         confirmBtn.disabled = ancestry1 === ancestry2;
       } else {
         confirmBtn.disabled = true;
@@ -1412,7 +1655,7 @@
         { ancestry: ancestry2, featureIndex: parseInt(index2) }
       ];
 
-      document.querySelectorAll('#ancestryGrid .ancestry-card').forEach(card => {
+      document.querySelectorAll('#ancestryCarouselTrack .carousel-card').forEach(card => {
         card.classList.toggle('selected', card.dataset.ancestry === 'mixed');
       });
 
@@ -1440,7 +1683,7 @@
               <div class="foundation-name">${comm.feature.name}</div>
               <div class="foundation-description">${comm.feature.description}</div>
             </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: auto;">
               ${comm.adjectives.map(adj => `<span class="domain-badge" style="background: rgba(255,255,255,0.1);">${adj}</span>`).join('')}
             </div>
           </div>
@@ -1452,7 +1695,7 @@
         return `<div class="carousel-indicator ${active}" onclick="scrollToCommunityCard(${index})"></div>`;
       }).join('');
 
-      setupCarouselTouch('communityCarousel', 'communityCarouselTrack', 'communityIndicators', (index) => {
+      setupCarouselScroll(track, 'communityIndicators', (index) => {
         communityCarouselIndex = index;
       });
     }
@@ -1488,9 +1731,7 @@
       const subclassData = classData?.subclasses[wizardState.selectedSubclass];
       const spellcastTrait = subclassData?.spellcastTrait;
 
-      // Render value pool
       const assignedValues = Object.values(wizardState.traits);
-      const availableValues = [...TRAIT_VALUES];
 
       pool.innerHTML = TRAIT_VALUES.map((value, index) => {
         const timesAvailable = TRAIT_VALUES.filter(v => v === value).length;
@@ -1508,7 +1749,6 @@
         `;
       }).join('');
 
-      // Render trait slots
       slots.innerHTML = TRAITS.map(trait => {
         const value = wizardState.traits[trait];
         const hasValue = value !== undefined;
@@ -1530,7 +1770,6 @@
     let selectedTraitIndex = null;
 
     function selectTraitValue(value, index) {
-      // Check if this value is still available
       const assignedValues = Object.values(wizardState.traits);
       const timesAvailable = TRAIT_VALUES.filter(v => v === value).length;
       const timesAssigned = assignedValues.filter(v => v === value).length;
@@ -1540,7 +1779,6 @@
       selectedTraitValue = value;
       selectedTraitIndex = index;
 
-      // Update visual selection
       document.querySelectorAll('#traitPool .trait-value-chip').forEach(chip => {
         chip.classList.remove('selected');
       });
@@ -1551,7 +1789,6 @@
 
     function assignToTrait(trait) {
       if (selectedTraitValue === null) {
-        // If no value selected, try to unassign
         if (wizardState.traits[trait] !== undefined) {
           delete wizardState.traits[trait];
           renderTraitAssignment();
@@ -1560,7 +1797,6 @@
         return;
       }
 
-      // Assign the value
       wizardState.traits[trait] = selectedTraitValue;
       selectedTraitValue = null;
       selectedTraitIndex = null;
@@ -1573,17 +1809,27 @@
 
     function renderEquipmentSection() {
       const section = document.getElementById('equipmentSection');
+      const tier = getCharacterTier(wizardState.selectedLevel);
+
+      // Update hint
+      document.getElementById('equipmentHint').textContent = `Select Tier 1-${tier} equipment for Level ${wizardState.selectedLevel}`;
+
+      // Filter weapons by tier (for now, all are Tier 1)
+      const allPrimary = [...PRIMARY_WEAPONS.physical, ...PRIMARY_WEAPONS.magical].map(w => ({ ...w, tier: 1 }));
+      const allSecondary = SECONDARY_WEAPONS.map(w => ({ ...w, tier: 1 }));
+      const allArmor = ARMOR.map(a => ({ ...a, tier: 1 }));
 
       section.innerHTML = `
         <!-- Primary Weapons -->
         <div class="equipment-category">
           <h4 class="equipment-category-title">Primary Weapon (choose 1)</h4>
           <div class="equipment-carousel" id="primaryWeaponCarousel">
-            ${[...PRIMARY_WEAPONS.physical, ...PRIMARY_WEAPONS.magical].map((weapon, index) => {
+            ${allPrimary.map((weapon, index) => {
               const selected = wizardState.primaryWeapon?.name === weapon.name ? 'selected' : '';
               const isMagical = weapon.damageType === 'magical';
               return `
-                <div class="equipment-card ${selected}" onclick="selectPrimaryWeapon(${index})">
+                <div class="equipment-card ${selected}" style="position: relative;" onclick="selectPrimaryWeapon(${index})">
+                  <span class="tier-badge tier-${weapon.tier}">Tier ${weapon.tier}</span>
                   <div class="equipment-name">${weapon.name}</div>
                   <div class="equipment-stats">
                     <div class="equipment-stat">Trait: <span>${weapon.trait}</span></div>
@@ -1601,12 +1847,13 @@
 
         <!-- Secondary Weapons -->
         <div class="equipment-category">
-          <h4 class="equipment-category-title">Secondary Weapon (choose 1, optional)</h4>
+          <h4 class="equipment-category-title">Secondary Weapon (optional)</h4>
           <div class="equipment-carousel" id="secondaryWeaponCarousel">
-            ${SECONDARY_WEAPONS.map((weapon, index) => {
+            ${allSecondary.map((weapon, index) => {
               const selected = wizardState.secondaryWeapon?.name === weapon.name ? 'selected' : '';
               return `
-                <div class="equipment-card ${selected}" onclick="selectSecondaryWeapon(${index})">
+                <div class="equipment-card ${selected}" style="position: relative;" onclick="selectSecondaryWeapon(${index})">
+                  <span class="tier-badge tier-${weapon.tier}">Tier ${weapon.tier}</span>
                   <div class="equipment-name">${weapon.name}</div>
                   <div class="equipment-stats">
                     <div class="equipment-stat">Trait: <span>${weapon.trait}</span></div>
@@ -1625,10 +1872,11 @@
         <div class="equipment-category">
           <h4 class="equipment-category-title">Armor (choose 1)</h4>
           <div class="equipment-carousel" id="armorCarousel">
-            ${ARMOR.map((armor, index) => {
+            ${allArmor.map((armor, index) => {
               const selected = wizardState.armor?.name === armor.name ? 'selected' : '';
               return `
-                <div class="equipment-card ${selected}" onclick="selectArmor(${index})">
+                <div class="equipment-card ${selected}" style="position: relative;" onclick="selectArmor(${index})">
+                  <span class="tier-badge tier-${armor.tier}">Tier ${armor.tier}</span>
                   <div class="equipment-name">${armor.name}</div>
                   <div class="equipment-stats">
                     <div class="equipment-stat">Armor Score: <span>${armor.baseScore}</span></div>
@@ -1659,7 +1907,6 @@
     window.selectPrimaryWeapon = selectPrimaryWeapon;
 
     function selectSecondaryWeapon(index) {
-      // Toggle selection
       if (wizardState.secondaryWeapon?.name === SECONDARY_WEAPONS[index].name) {
         wizardState.secondaryWeapon = null;
       } else {
@@ -1693,16 +1940,25 @@
       if (!classData) return;
 
       const domains = classData.domains;
+      const maxCardLevel = getMaxDomainCardLevel(wizardState.selectedLevel);
+      const requiredCards = getDomainCardSlots(wizardState.selectedLevel);
+
+      document.getElementById('domainCardsHint').textContent =
+        `Select ${requiredCards} cards (up to ${getCardLevelName(maxCardLevel)} level)`;
+      document.getElementById('requiredCardsCount').textContent = requiredCards;
 
       let html = `
         <div class="selected-cards-count">
-          Selected: <span id="selectedCardsCount" class="selected-count-number">${wizardState.selectedDomainCards.length}</span> / 2
+          Selected: <span id="selectedCardsCount" class="selected-count-number">${wizardState.selectedDomainCards.length}</span> / ${requiredCards}
         </div>
       `;
 
       domains.forEach(domainId => {
         const domain = DOMAIN_CARDS[domainId];
         if (!domain) return;
+
+        // Filter cards by level
+        const availableCards = domain.cards.filter(card => card.level <= maxCardLevel);
 
         html += `
           <div class="domain-section">
@@ -1711,12 +1967,12 @@
               <h3 class="domain-title">${domain.name}</h3>
             </div>
             <div class="domain-cards-carousel">
-              ${domain.cards.filter(card => card.level === 1).map(card => {
+              ${availableCards.map(card => {
                 const selected = wizardState.selectedDomainCards.some(c => c.id === card.id) ? 'selected' : '';
                 return `
                   <div class="domain-card ${selected}" data-card-id="${card.id}" onclick="toggleDomainCard('${card.id}', '${domainId}')">
                     <div class="domain-card-header">
-                      <span class="domain-card-name">${card.name}</span>
+                      <span class="domain-card-name">${card.name}<span class="card-level-badge">${getCardLevelName(card.level)}</span></span>
                       <span class="domain-card-type">${card.type}</span>
                     </div>
                     ${card.cost ? `<div class="domain-card-cost">${card.cost}</div>` : ''}
@@ -1738,19 +1994,16 @@
       if (!card) return;
 
       const existingIndex = wizardState.selectedDomainCards.findIndex(c => c.id === cardId);
+      const requiredCards = getDomainCardSlots(wizardState.selectedLevel);
 
       if (existingIndex >= 0) {
-        // Deselect
         wizardState.selectedDomainCards.splice(existingIndex, 1);
-      } else if (wizardState.selectedDomainCards.length < 2) {
-        // Select
+      } else if (wizardState.selectedDomainCards.length < requiredCards) {
         wizardState.selectedDomainCards.push({ ...card, domain: domainId });
       } else {
-        // Already have 2, don't add more
         return;
       }
 
-      // Update visuals
       document.querySelectorAll('.domain-card').forEach(cardEl => {
         const isSelected = wizardState.selectedDomainCards.some(c => c.id === cardEl.dataset.cardId);
         cardEl.classList.toggle('selected', isSelected);
@@ -1780,7 +2033,6 @@
     }
 
     function insertCharacterName(name) {
-      // Find the first empty or focused connection input and add the name
       const inputs = ['connection1', 'connection2', 'connection3'];
       for (const id of inputs) {
         const input = document.getElementById(id);
@@ -1807,15 +2059,13 @@
       saveCurrentStepData();
 
       const classData = CLASSES[wizardState.selectedClass];
-      const level = 1;
+      const level = wizardState.selectedLevel;
 
-      // Calculate stats
       const maxHP = calculateHP(wizardState.selectedClass, level);
       const baseEvasion = calculateEvasion(wizardState.selectedClass, wizardState.armor, wizardState.secondaryWeapon);
       const armorScore = calculateArmorScore(wizardState.armor, wizardState.secondaryWeapon);
       const thresholds = calculateDamageThresholds(wizardState.armor, level);
 
-      // Build ancestry features
       let ancestryFeatures = [];
       if (wizardState.selectedAncestry === 'mixed') {
         ancestryFeatures = wizardState.mixedAncestryFeatures.map(mf => {
@@ -1881,7 +2131,6 @@
       try {
         const newCharRef = charactersRef.push();
         await newCharRef.set(character);
-
         showScreen(characterListScreen);
       } catch (error) {
         console.error('Error creating character:', error);
@@ -1890,26 +2139,36 @@
     }
 
     // ============================================
-    // CAROUSEL TOUCH HANDLING
+    // CAROUSEL HELPERS
     // ============================================
 
-    function setupCarouselTouch(containerId, trackId, indicatorsId, onIndexChange) {
-      const container = document.getElementById(containerId);
-      const track = document.getElementById(trackId);
-
-      let startX = 0;
-      let scrollLeft = 0;
-      let isScrolling = false;
+    function setupCarouselScroll(track, indicatorsId, onIndexChange) {
+      let scrollTimeout;
 
       track.addEventListener('scroll', () => {
-        const cards = track.querySelectorAll('.carousel-card');
-        const cardWidth = cards[0]?.offsetWidth + 16 || 300; // 16 = gap
-        const newIndex = Math.round(track.scrollLeft / cardWidth);
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          const cards = track.querySelectorAll('.carousel-card');
+          const trackRect = track.getBoundingClientRect();
+          const trackCenter = trackRect.left + trackRect.width / 2;
 
-        if (newIndex !== onIndexChange.currentIndex) {
-          onIndexChange(newIndex);
-          updateCarouselIndicators(indicatorsId, newIndex);
-        }
+          let closestIndex = 0;
+          let closestDistance = Infinity;
+
+          cards.forEach((card, index) => {
+            const cardRect = card.getBoundingClientRect();
+            const cardCenter = cardRect.left + cardRect.width / 2;
+            const distance = Math.abs(cardCenter - trackCenter);
+
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestIndex = index;
+            }
+          });
+
+          onIndexChange(closestIndex);
+          updateCarouselIndicators(indicatorsId, closestIndex);
+        }, 100);
       });
     }
 
@@ -1937,7 +2196,6 @@
     // EVENT LISTENERS
     // ============================================
 
-    // Room join
     joinRoomBtn.addEventListener('click', joinRoom);
     roomCodeInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') joinRoom();
@@ -1946,7 +2204,6 @@
       e.target.value = e.target.value.toUpperCase();
     });
 
-    // Navigation
     backToJoinBtn.addEventListener('click', leaveRoom);
     createCharacterBtn.addEventListener('click', startWizard);
     wizardBackBtn.addEventListener('click', () => showScreen(characterListScreen));
@@ -1955,27 +2212,22 @@
       showScreen(characterListScreen);
     });
 
-    // Wizard navigation
     wizardPrevBtn.addEventListener('click', prevWizardStep);
     wizardNextBtn.addEventListener('click', nextWizardStep);
 
-    // Experience and connection inputs - validate on change
     ['experience1', 'experience2', 'characterNameInput'].forEach(id => {
       document.getElementById(id)?.addEventListener('input', updateWizardButtons);
     });
 
-    // Delete modal
     cancelDeleteBtn.addEventListener('click', () => {
       characterToDelete = null;
       deleteModal.classList.remove('visible');
     });
     confirmDeleteBtn.addEventListener('click', deleteCharacter);
 
-    // Edit mode toggle
     editModeBtn.addEventListener('click', () => {
       editMode = !editMode;
       editModeBtn.classList.toggle('active', editMode);
-      // TODO: Implement full edit mode functionality
     });
 
     // Initialize
