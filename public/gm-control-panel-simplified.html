@@ -2299,6 +2299,20 @@
       text-overflow: ellipsis;
     }
 
+    .character-item.room-character {
+      border-left: 3px solid #4CAF50;
+    }
+
+    .char-source-badge {
+      font-size: 0.7rem;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .char-source-badge.room {
+      color: #4CAF50;
+    }
+
     .character-editor {
       background: rgba(0,0,0,0.3);
       border-radius: 8px;
@@ -5677,11 +5691,12 @@
             heartbeatInterval = null;
           }
 
-          // Clean up room reference
+          // Clean up room reference and listeners
           if (roomRef) {
             roomRef.child('gm').off();
             roomRef.child('clients').off();
             roomRef.child('battleMapRequest').off();
+            roomRef.child('characters').off(); // Clean up characters listener
             roomRef = null;
           }
 
@@ -5694,6 +5709,11 @@
       // Clear local storage
       clearStoredRoom();
       roomCode = null;
+
+      // Clear room characters
+      roomCharacters = [];
+      renderCharactersList();
+      updateTabBadges();
 
       // Reset UI to show create room state
       document.getElementById('roomCodeDisplay').textContent = '----';
@@ -7085,7 +7105,8 @@
     let nextCountdownId = 1;
 
     // ========== Characters State ==========
-    let playerCharacters = [];
+    let playerCharacters = []; // Cloud campaign characters
+    let roomCharacters = []; // Characters from Firebase room (created via characters.html)
     let selectedCharacterId = null;
     let currentCharacterAbilities = [];
     let currentCharacterExperiences = [];
@@ -7186,7 +7207,8 @@
       }
 
       if (charactersBadge) {
-        charactersBadge.textContent = playerCharacters.length;
+        // Count both cloud characters and room characters
+        charactersBadge.textContent = playerCharacters.length + roomCharacters.length;
       }
     }
 
@@ -9825,6 +9847,25 @@
           }
         });
 
+        // Listen for characters created via characters.html
+        roomRef.child('characters').on('value', (snapshot) => {
+          const chars = snapshot.val();
+          if (chars) {
+            // Convert object to array with IDs
+            roomCharacters = Object.entries(chars).map(([id, char]) => ({
+              ...char,
+              id: id,
+              source: 'room' // Mark as room character for display
+            }));
+            console.log('Room characters updated:', roomCharacters.length);
+          } else {
+            roomCharacters = [];
+          }
+          // Re-render to show combined characters
+          renderCharactersList();
+          updateTabBadges();
+        });
+
         // Send initial state
         setTimeout(() => {
           sendFullSync();
@@ -12432,38 +12473,58 @@
       const list = document.getElementById('charactersList');
       if (!list) return;
 
-      if (playerCharacters.length === 0) {
+      // Combine cloud characters and room characters
+      const allCharacters = [
+        ...playerCharacters.map(c => ({ ...c, source: 'cloud' })),
+        ...roomCharacters
+      ];
+
+      if (allCharacters.length === 0) {
         list.innerHTML = `
           <div class="characters-empty">
-            No characters yet. Click "+ Add PC" to create a player character.
+            No characters yet. Click "+ Add PC" to create a player character, or have players create characters via the Characters page.
           </div>
         `;
         return;
       }
 
-      list.innerHTML = playerCharacters.map(char => `
-        <div class="character-item ${char.id === selectedCharacterId ? 'selected' : ''}"
-             data-character-id="${char.id}" onclick="selectCharacter('${char.id}')">
-          <div class="character-item-portrait">
-            ${char.portrait ? `<img src="${char.portrait}" alt="${char.name}">` : ''}
-          </div>
-          <div class="character-item-info">
-            <div class="character-item-name">${char.name || 'Unnamed'}</div>
-            <div class="character-item-meta">
-              Level ${char.level} ${char.ancestry ? capitalizeFirst(char.ancestry) : ''} ${char.characterClass ? capitalizeFirst(char.characterClass) : ''}
+      list.innerHTML = allCharacters.map(char => {
+        // Handle different field names between cloud and room characters
+        const charClass = char.characterClass || char.class || '';
+        const portrait = char.portrait || char.image || '';
+        const sourceIcon = char.source === 'room' ? '<span class="char-source-badge room" title="Created via Characters page">🎮</span>' : '';
+
+        return `
+          <div class="character-item ${char.id === selectedCharacterId ? 'selected' : ''} ${char.source === 'room' ? 'room-character' : ''}"
+               data-character-id="${char.id}" data-source="${char.source}" onclick="selectCharacter('${char.id}', '${char.source}')">
+            <div class="character-item-portrait">
+              ${portrait ? `<img src="${portrait}" alt="${char.name}">` : ''}
+            </div>
+            <div class="character-item-info">
+              <div class="character-item-name">${char.name || 'Unnamed'} ${sourceIcon}</div>
+              <div class="character-item-meta">
+                Level ${char.level || 1} ${char.ancestry ? capitalizeFirst(char.ancestry) : ''} ${charClass ? capitalizeFirst(charClass) : ''}
+              </div>
             </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function capitalizeFirst(str) {
       return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
     }
 
-    function selectCharacter(charId) {
+    function selectCharacter(charId, source = 'cloud') {
       selectedCharacterId = charId;
-      const char = playerCharacters.find(c => c.id === charId);
+
+      // Find character in appropriate array based on source
+      let char;
+      if (source === 'room') {
+        char = roomCharacters.find(c => c.id === charId);
+      } else {
+        char = playerCharacters.find(c => c.id === charId);
+      }
 
       if (!char) {
         document.querySelector('.character-editor-empty').style.display = 'flex';
@@ -12474,19 +12535,24 @@
       document.querySelector('.character-editor-empty').style.display = 'none';
       document.getElementById('characterEditorForm').style.display = 'block';
 
+      // Handle different field names between cloud and room characters
+      const charClass = char.characterClass || char.class || '';
+      const hp = char.hp || {};
+
       // Populate form fields
       document.getElementById('charName').value = char.name || '';
       document.getElementById('charLevel').value = char.level || 1;
       document.getElementById('charAncestry').value = char.ancestry || '';
-      document.getElementById('charClass').value = char.characterClass || '';
+      document.getElementById('charClass').value = charClass;
       updateSubclassOptions();
       document.getElementById('charSubclass').value = char.subclass || '';
 
-      document.getElementById('charCurrentHp').value = char.currentHp || '';
-      document.getElementById('charMaxHp').value = char.maxHp || '';
-      document.getElementById('charCurrentStress').value = char.currentStress || '';
-      document.getElementById('charMaxStress').value = char.maxStress || '';
-      document.getElementById('charArmor').value = char.armor || 0;
+      // Handle HP - room characters use hp.current/hp.max, cloud uses currentHp/maxHp
+      document.getElementById('charCurrentHp').value = char.currentHp || hp.current || '';
+      document.getElementById('charMaxHp').value = char.maxHp || hp.max || '';
+      document.getElementById('charCurrentStress').value = char.currentStress || char.stress?.current || '';
+      document.getElementById('charMaxStress').value = char.maxStress || char.stress?.max || '';
+      document.getElementById('charArmor').value = char.armor || char.armorSlots || 0;
       document.getElementById('charEvasion').value = char.evasion || 10;
 
       document.getElementById('charMinorThreshold').value = char.minorThreshold || '';
@@ -12508,12 +12574,13 @@
       renderAbilitiesList();
       renderFeatsList();
 
-      document.getElementById('charNotes').value = char.notes || '';
+      document.getElementById('charNotes').value = char.notes || char.background || '';
 
-      // Portrait
+      // Portrait - handle both cloud (portrait) and room (image) field names
       const portraitEl = document.getElementById('characterPortrait');
-      if (char.portrait) {
-        portraitEl.innerHTML = `<img src="${char.portrait}" alt="${char.name}">`;
+      const portraitUrl = char.portrait || char.image;
+      if (portraitUrl) {
+        portraitEl.innerHTML = `<img src="${portraitUrl}" alt="${char.name}">`;
       } else {
         portraitEl.innerHTML = '<span class="portrait-placeholder">No Image</span>';
       }
