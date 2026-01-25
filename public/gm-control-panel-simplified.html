@@ -2313,6 +2313,13 @@
       color: #4CAF50;
     }
 
+    .character-item-player {
+      font-size: 0.65rem;
+      color: #b388ff;
+      font-style: italic;
+      margin-top: 2px;
+    }
+
     .character-editor {
       background: rgba(0,0,0,0.3);
       border-radius: 8px;
@@ -7589,6 +7596,58 @@
       });
     }
 
+    // Upload room character portrait to cloud and update Firebase
+    async function uploadRoomCharacterPortrait(charId, base64Image) {
+      // Only upload if cloud features are available
+      if (!window.cloudFeatures?.canUse?.('cloudSave')) {
+        console.log('Cloud upload not available - portrait will remain as base64');
+        return;
+      }
+
+      if (!roomRef) {
+        console.log('No room reference - cannot update character portrait');
+        return;
+      }
+
+      try {
+        // Convert base64 to file for upload
+        const file = base64ToFile(base64Image, `character-${charId}-portrait.jpg`);
+
+        // Upload to cloud
+        const result = await window.cloudFeatures.uploadFile(file);
+        const cloudUrl = result.url;
+
+        console.log('Uploaded character portrait to cloud:', cloudUrl);
+
+        // Update character in Firebase with cloud URL
+        await roomRef.child('characters').child(charId).child('portrait').set(cloudUrl);
+
+        // Update local roomCharacters array
+        const charIndex = roomCharacters.findIndex(c => c.id === charId);
+        if (charIndex !== -1) {
+          roomCharacters[charIndex].portrait = cloudUrl;
+          renderCharactersList();
+        }
+
+        console.log('Updated character portrait in Firebase');
+      } catch (err) {
+        console.error('Failed to upload character portrait to cloud:', err);
+      }
+    }
+
+    // Convert base64 data URL to File object
+    function base64ToFile(dataUrl, filename) {
+      const arr = dataUrl.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new File([u8arr], filename, { type: mime });
+    }
+
     // ========== Battle Map ==========
     async function handleMapUpload(event) {
       const file = event.target.files[0];
@@ -9848,7 +9907,7 @@
         });
 
         // Listen for characters created via characters.html
-        roomRef.child('characters').on('value', (snapshot) => {
+        roomRef.child('characters').on('value', async (snapshot) => {
           const chars = snapshot.val();
           if (chars) {
             // Convert object to array with IDs
@@ -9858,6 +9917,14 @@
               source: 'room' // Mark as room character for display
             }));
             console.log('Room characters updated:', roomCharacters.length);
+
+            // Auto-upload base64 portraits to cloud storage
+            for (const [charId, char] of Object.entries(chars)) {
+              if (char.portrait && char.portrait.startsWith('data:')) {
+                // This is a base64 image - upload to cloud if possible
+                await uploadRoomCharacterPortrait(charId, char.portrait);
+              }
+            }
           } else {
             roomCharacters = [];
           }
@@ -12494,6 +12561,9 @@
         const portrait = char.portrait || char.image || '';
         const sourceIcon = char.source === 'room' ? '<span class="char-source-badge room" title="Created via Characters page">🎮</span>' : '';
 
+        // Show player name if available
+        const playerName = char.playerName ? `<div class="character-item-player">Played by: ${char.playerName}</div>` : '';
+
         return `
           <div class="character-item ${char.id === selectedCharacterId ? 'selected' : ''} ${char.source === 'room' ? 'room-character' : ''}"
                data-character-id="${char.id}" data-source="${char.source}" onclick="selectCharacter('${char.id}', '${char.source}')">
@@ -12505,6 +12575,7 @@
               <div class="character-item-meta">
                 Level ${char.level || 1} ${char.ancestry ? capitalizeFirst(char.ancestry) : ''} ${charClass ? capitalizeFirst(charClass) : ''}
               </div>
+              ${playerName}
             </div>
           </div>
         `;

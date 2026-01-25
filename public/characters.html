@@ -243,6 +243,31 @@
             <label class="form-label">Character Name</label>
             <input type="text" id="characterNameInput" placeholder="Enter your character's name">
           </div>
+          <div class="form-group" style="margin-top: 1rem;">
+            <label class="form-label">Your Name (Player)</label>
+            <input type="text" id="playerNameInput" placeholder="Enter your real name">
+          </div>
+          <div class="form-group portrait-upload-group" style="margin-top: 1.5rem;">
+            <label class="form-label">Character Portrait (Optional)</label>
+            <div class="portrait-upload-area" id="portraitUploadArea">
+              <div class="portrait-preview" id="portraitPreview">
+                <span class="portrait-placeholder-text">No image</span>
+              </div>
+              <div class="portrait-upload-controls">
+                <input type="file" id="portraitFileInput" accept="image/*" style="display: none;">
+                <button type="button" class="btn btn-secondary portrait-btn" onclick="document.getElementById('portraitFileInput').click()">
+                  Upload Image
+                </button>
+                <button type="button" class="btn btn-secondary portrait-btn" id="portraitUrlBtn" onclick="showPortraitUrlInput()">
+                  Use URL
+                </button>
+              </div>
+              <div id="portraitUrlInputArea" class="portrait-url-input hidden">
+                <input type="url" id="portraitUrlInput" placeholder="https://example.com/image.jpg">
+                <button type="button" class="btn btn-primary" onclick="applyPortraitUrl()">Apply</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -374,6 +399,8 @@
       selectedDomainCards: [],
       connections: ['', '', ''],
       characterName: '',
+      playerName: '',
+      portrait: null,
       mixedAncestryFeatures: []
     };
 
@@ -1194,12 +1221,20 @@
         selectedDomainCards: [],
         connections: ['', '', ''],
         characterName: '',
+        playerName: '',
+        portrait: null,
         mixedAncestryFeatures: []
       });
 
       classCarouselIndex = 0;
       ancestryCarouselIndex = 0;
       communityCarouselIndex = 0;
+
+      // Reset portrait preview
+      setPortraitPreview(null);
+      document.getElementById('portraitUrlInputArea').classList.add('hidden');
+      document.getElementById('portraitUrlInput').value = '';
+      document.getElementById('playerNameInput').value = '';
 
       // Render initial content
       renderLevelSelector();
@@ -1325,6 +1360,7 @@
             document.getElementById('connection3').value.trim()
           ];
           wizardState.characterName = document.getElementById('characterNameInput').value.trim();
+          wizardState.playerName = document.getElementById('playerNameInput').value.trim();
           break;
       }
     }
@@ -2052,6 +2088,105 @@
     window.insertCharacterName = insertCharacterName;
 
     // ============================================
+    // PORTRAIT UPLOAD
+    // ============================================
+
+    // Handle portrait file upload
+    document.getElementById('portraitFileInput').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image is too large. Please select an image under 5MB.');
+        return;
+      }
+
+      // Show loading state
+      const preview = document.getElementById('portraitPreview');
+      preview.innerHTML = '<span class="portrait-placeholder-text">Loading...</span>';
+
+      try {
+        // Convert to base64 for now (will be uploaded to cloud by GM panel)
+        const dataUrl = await fileToDataUrl(file);
+        setPortraitPreview(dataUrl);
+        wizardState.portrait = dataUrl;
+      } catch (error) {
+        console.error('Error processing portrait:', error);
+        alert('Failed to process image. Please try again.');
+        preview.innerHTML = '<span class="portrait-placeholder-text">No image</span>';
+      }
+    });
+
+    // Convert file to data URL
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(e);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Set portrait preview
+    function setPortraitPreview(imageUrl) {
+      const preview = document.getElementById('portraitPreview');
+      if (imageUrl) {
+        preview.innerHTML = `<img src="${imageUrl}" alt="Character portrait">`;
+        preview.classList.add('has-image');
+      } else {
+        preview.innerHTML = '<span class="portrait-placeholder-text">No image</span>';
+        preview.classList.remove('has-image');
+      }
+    }
+
+    // Show URL input for portrait
+    function showPortraitUrlInput() {
+      const urlArea = document.getElementById('portraitUrlInputArea');
+      urlArea.classList.toggle('hidden');
+    }
+
+    // Apply portrait from URL
+    function applyPortraitUrl() {
+      const urlInput = document.getElementById('portraitUrlInput');
+      const url = urlInput.value.trim();
+
+      if (!url) {
+        alert('Please enter an image URL');
+        return;
+      }
+
+      // Basic URL validation
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        alert('Please enter a valid URL starting with http:// or https://');
+        return;
+      }
+
+      // Test if image loads
+      const testImg = new Image();
+      testImg.onload = () => {
+        setPortraitPreview(url);
+        wizardState.portrait = url;
+        document.getElementById('portraitUrlInputArea').classList.add('hidden');
+        urlInput.value = '';
+      };
+      testImg.onerror = () => {
+        alert('Could not load image from that URL. Please check the URL and try again.');
+      };
+      testImg.src = url;
+    }
+
+    // Expose functions for onclick handlers
+    window.showPortraitUrlInput = showPortraitUrlInput;
+    window.applyPortraitUrl = applyPortraitUrl;
+
+    // ============================================
     // CHARACTER CREATION
     // ============================================
 
@@ -2124,6 +2259,8 @@
           modifier: 1
         })),
         connections: wizardState.connections.filter(c => c),
+        playerName: wizardState.playerName || null,
+        portrait: wizardState.portrait || null,
         createdAt: Date.now(),
         updatedAt: Date.now()
       };
