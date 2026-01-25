@@ -1068,6 +1068,68 @@
     .minimize-btn:hover {
       color: #b388ff;
     }
+
+    /* Leave Room Button */
+    .leave-room-btn {
+      background: rgba(244, 67, 54, 0.2);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      color: #f44336;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      margin-left: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .leave-room-btn:hover {
+      background: rgba(244, 67, 54, 0.3);
+    }
+
+    .connected-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* Session Ended Message */
+    .session-ended-message {
+      background: rgba(255, 152, 0, 0.15);
+      border: 1px solid rgba(255, 152, 0, 0.3);
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #ffb74d;
+      font-size: 0.85rem;
+    }
+
+    .ended-icon {
+      font-size: 1.1rem;
+    }
+
+    /* Reconnecting message */
+    .reconnecting-message {
+      color: #b388ff;
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 10px;
+    }
+
+    .reconnecting-spinner {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
   </style>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -1095,6 +1157,135 @@
       console.log('Firebase initialized successfully');
     } catch (e) {
       console.error('Firebase initialization error:', e);
+    }
+
+    // ========== Player Session Persistence ==========
+    // Get or create a persistent player session ID
+    function getOrCreatePlayerSessionId() {
+      let sessionId = localStorage.getItem('daggerheart_player_session');
+      if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        localStorage.setItem('daggerheart_player_session', sessionId);
+      }
+      return sessionId;
+    }
+
+    // Store room code in localStorage and cookie
+    function storePlayerRoom(roomCode) {
+      localStorage.setItem('daggerheart_player_room', roomCode);
+      // Also set a cookie as backup (7 day expiry)
+      document.cookie = `daggerheart_room=${roomCode}; max-age=${60 * 60 * 24 * 7}; path=/; SameSite=Strict`;
+    }
+
+    // Get stored room code from localStorage or cookie
+    function getStoredPlayerRoom() {
+      // Try localStorage first
+      let roomCode = localStorage.getItem('daggerheart_player_room');
+      if (roomCode) return roomCode;
+
+      // Fallback to cookie
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; daggerheart_room=`);
+      if (parts.length === 2) {
+        roomCode = parts.pop().split(';').shift();
+        if (roomCode) {
+          // Restore to localStorage
+          localStorage.setItem('daggerheart_player_room', roomCode);
+        }
+      }
+      return roomCode || null;
+    }
+
+    // Clear player session data
+    function clearPlayerSession() {
+      localStorage.removeItem('daggerheart_player_room');
+      localStorage.removeItem('daggerheart_player_session');
+      document.cookie = 'daggerheart_room=; max-age=0; path=/';
+    }
+
+    // Leave the current room
+    function leaveRoom() {
+      if (confirm('Are you sure you want to leave this room? You will need to re-enter the room code to reconnect.')) {
+        // Clear stored data
+        clearPlayerSession();
+        savedRoomCode = null;
+
+        // Disconnect from Firebase
+        if (roomRef) {
+          const sessionId = getOrCreatePlayerSessionId();
+          roomRef.child('clients').child(sessionId).remove();
+          roomRef = null;
+        }
+
+        // Stop heartbeat monitoring
+        stopHeartbeatMonitoring();
+
+        // Reset UI
+        const statusEl = document.getElementById('connectionStatus');
+        const connectBtn = document.getElementById('connectBtn');
+        const title = statusEl.querySelector('.connection-title');
+
+        statusEl.classList.remove('connected');
+        statusEl.classList.remove('minimized');
+        title.textContent = 'Enter GM Room Code';
+        statusEl.querySelector('.connection-details').innerHTML = `
+          <div class="room-code-label">Room Code from GM Panel</div>
+          <input type="text" id="roomCodeInput" class="room-code-input" placeholder="FIRE-DRAGON-00" maxlength="20" onkeyup="handleRoomCodeKeyup(event)">
+          <button class="connect-btn" id="connectBtn" onclick="connectToGM()">Connect</button>
+        `;
+
+        // Hide leave room button
+        const leaveBtn = document.getElementById('leaveRoomBtn');
+        if (leaveBtn) leaveBtn.style.display = 'none';
+      }
+    }
+
+    // Check for existing session and auto-reconnect
+    async function checkForExistingPlayerSession() {
+      const roomCode = getStoredPlayerRoom();
+
+      if (!roomCode || !database) {
+        return null;
+      }
+
+      try {
+        // Verify room still exists and is active
+        const roomSnapshot = await database.ref(`rooms/${roomCode}`).once('value');
+        const room = roomSnapshot.val();
+
+        if (room && room.status === 'active') {
+          console.log('Found active player session:', roomCode);
+          return roomCode;
+        } else if (room && room.status === 'ended') {
+          console.log('Previous room has ended');
+          // Clear stored session
+          clearPlayerSession();
+          return null;
+        }
+      } catch (e) {
+        console.error('Error checking player session:', e);
+      }
+
+      return null;
+    }
+
+    // Show session ended message
+    function showSessionEndedMessage() {
+      const statusEl = document.getElementById('connectionStatus');
+      const title = statusEl.querySelector('.connection-title');
+
+      statusEl.classList.remove('connected');
+      statusEl.classList.remove('minimized');
+      title.textContent = 'Previous session has ended';
+      statusEl.querySelector('.connection-details').innerHTML = `
+        <div class="session-ended-message">
+          <span class="ended-icon">⚠️</span>
+          <span>The room you were in has ended.</span>
+        </div>
+        <div class="room-code-label">Enter new room code:</div>
+        <input type="text" id="roomCodeInput" class="room-code-input" placeholder="FIRE-DRAGON-00" maxlength="20" onkeyup="handleRoomCodeKeyup(event)">
+        <button class="connect-btn" id="connectBtn" onclick="connectToGM()">Connect</button>
+      `;
     }
   </script>
 </head>
@@ -1892,7 +2083,8 @@
 
     // Firebase connection state
     let roomRef = null;
-    let clientId = 'player-' + Math.random().toString(36).substr(2, 9);
+    // Use persistent session ID (defined in persistence functions above)
+    let clientId = null; // Will be set from getOrCreatePlayerSessionId()
     let firebaseConnected = false;
 
     // Session management - clear stale data when connecting to a new room
@@ -2271,8 +2463,9 @@
     }
 
     // Connect to GM via Firebase
-    function connectToGM() {
-      const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+    function connectToGM(autoConnectCode = null) {
+      const roomCodeInput = document.getElementById('roomCodeInput');
+      const roomCode = autoConnectCode || (roomCodeInput ? roomCodeInput.value.trim().toUpperCase() : null);
       if (!roomCode) {
         return;
       }
@@ -2284,29 +2477,47 @@
       savedRoomCode = roomCode;
       reconnectAttempts = 0;
 
+      // Store for persistence
+      storePlayerRoom(roomCode);
+
       const statusEl = document.getElementById('connectionStatus');
       const connectBtn = document.getElementById('connectBtn');
       const title = statusEl.querySelector('.connection-title');
 
       // Update UI to show connecting
-      connectBtn.disabled = true;
-      connectBtn.textContent = 'Connecting...';
-      connectBtn.classList.add('connecting');
+      if (connectBtn) {
+        connectBtn.disabled = true;
+        connectBtn.textContent = 'Connecting...';
+        connectBtn.classList.add('connecting');
+      }
       title.textContent = 'Connecting to GM...';
 
       // Check if Firebase is loaded
       if (!database) {
         console.error('Firebase not initialized');
         title.textContent = 'Firebase not configured';
-        connectBtn.disabled = false;
-        connectBtn.textContent = 'Retry';
-        connectBtn.classList.remove('connecting');
+        if (connectBtn) {
+          connectBtn.disabled = false;
+          connectBtn.textContent = 'Retry';
+          connectBtn.classList.remove('connecting');
+        }
         return;
       }
 
       try {
         // Connect to the GM's room in Firebase
         roomRef = database.ref('rooms/' + roomCode);
+
+        // First check if room exists and is active
+        roomRef.once('value', (snapshot) => {
+          const roomData = snapshot.val();
+          if (roomData && roomData.status === 'ended') {
+            console.log('Room has ended');
+            clearPlayerSession();
+            showSessionEndedMessage();
+            return;
+          }
+        });
 
         // Check if GM is active
         roomRef.child('gm').on('value', (snapshot) => {
@@ -2319,23 +2530,47 @@
             // Update UI to show connected
             statusEl.classList.add('connected');
             title.textContent = 'Connected to GM';
-            connectBtn.classList.remove('connecting');
-            connectBtn.disabled = true;
-            connectBtn.textContent = 'Connected';
-            statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Receiving data from GM panel</div>';
+            if (connectBtn) {
+              connectBtn.classList.remove('connecting');
+              connectBtn.disabled = true;
+              connectBtn.textContent = 'Connected';
+            }
+            statusEl.querySelector('.connection-details').innerHTML = `
+              <div class="connected-info">
+                <span>Room: <strong>${roomCode}</strong></span>
+                <button class="leave-room-btn" id="leaveRoomBtn" onclick="leaveRoom()">Leave Room</button>
+              </div>
+            `;
 
-            // Register as connected client
-            roomRef.child('clients').child(clientId).set({
+            // Get player session ID
+            const playerSessionId = getOrCreatePlayerSessionId();
+
+            // Register as connected client with session ID
+            roomRef.child('clients').child(playerSessionId).set({
               connected: true,
               timestamp: Date.now(),
-              requestSync: true
+              requestSync: true,
+              status: 'online'
             });
 
             // Remove client on disconnect
-            roomRef.child('clients').child(clientId).onDisconnect().remove();
+            roomRef.child('clients').child(playerSessionId).onDisconnect().update({
+              status: 'offline',
+              timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
 
             // Start heartbeat monitoring
             startHeartbeatMonitoring();
+          }
+        });
+
+        // Listen for room status changes (GM ended session)
+        roomRef.child('status').on('value', (snapshot) => {
+          const status = snapshot.val();
+          if (status === 'ended' && statusEl.classList.contains('connected')) {
+            console.log('Room ended by GM');
+            clearPlayerSession();
+            showSessionEndedMessage();
           }
         });
 
@@ -2347,18 +2582,22 @@
           if (!statusEl.classList.contains('connected')) {
             console.log('Connection timeout - GM not found or inactive');
             title.textContent = 'GM not found. Check code?';
-            connectBtn.disabled = false;
-            connectBtn.textContent = 'Retry';
-            connectBtn.classList.remove('connecting');
+            if (connectBtn) {
+              connectBtn.disabled = false;
+              connectBtn.textContent = 'Retry';
+              connectBtn.classList.remove('connecting');
+            }
           }
         }, 8000);
 
       } catch (e) {
         console.error('Firebase connection error:', e);
         title.textContent = 'Connection error';
-        connectBtn.disabled = false;
-        connectBtn.textContent = 'Retry';
-        connectBtn.classList.remove('connecting');
+        if (connectBtn) {
+          connectBtn.disabled = false;
+          connectBtn.textContent = 'Retry';
+          connectBtn.classList.remove('connecting');
+        }
       }
     }
 
@@ -2531,11 +2770,12 @@
 
       // Also send periodic client heartbeats to GM
       setInterval(() => {
-        if (roomNode) {
-          roomNode.get('clients').get(clientId).put({
+        if (roomRef && firebaseConnected) {
+          const sessionId = getOrCreatePlayerSessionId();
+          roomRef.child('clients').child(sessionId).update({
             connected: true,
             timestamp: Date.now(),
-            requestSync: false
+            status: 'online'
           });
         }
       }, 15000);
@@ -2552,7 +2792,7 @@
     }
 
     function checkHeartbeat() {
-      if (!roomNode) {
+      if (!roomRef || !firebaseConnected) {
         return; // Not connected, nothing to check
       }
 
@@ -2603,35 +2843,8 @@
       title.textContent = 'Reconnecting to GM...';
 
       try {
-        // Reconnect to the room
-        roomNode = gun.get('daggerheart-room-' + savedRoomCode);
-
-        // Check if GM is still active
-        roomNode.get('gm').once((gmData) => {
-          if (gmData && gmData.active && (Date.now() - gmData.timestamp) < 30000) {
-            console.log('Reconnected to GM!');
-            reconnectAttempts = 0;
-            lastHeartbeatReceived = Date.now();
-
-            statusEl.classList.add('connected');
-            title.textContent = 'Connected to GM';
-            statusEl.querySelector('.connection-details').innerHTML = '<div class="connected-info">Receiving data from GM panel</div>';
-
-            // Re-register as connected client and request sync
-            roomNode.get('clients').get(clientId).put({
-              connected: true,
-              timestamp: Date.now(),
-              requestSync: true
-            });
-
-            subscribeToGmData();
-            startHeartbeatMonitoring();
-          } else {
-            console.log('GM not active, scheduling reconnect...');
-            scheduleReconnect();
-          }
-        });
-
+        // Use the connectToGM function for reconnection
+        connectToGM(savedRoomCode);
       } catch (e) {
         console.error('Reconnection error:', e);
         scheduleReconnect();
@@ -2639,7 +2852,8 @@
     }
 
     function handleDisconnection() {
-      roomNode = null;
+      roomRef = null;
+      firebaseConnected = false;
       stopHeartbeatMonitoring();
 
       const statusEl = document.getElementById('connectionStatus');
@@ -2658,6 +2872,58 @@
 
     // Show default Daggerheart domains image on startup
     showDefaultImage();
+
+    // Check for existing session and auto-reconnect
+    async function initPlayerSession() {
+      const statusEl = document.getElementById('connectionStatus');
+      const title = statusEl.querySelector('.connection-title');
+
+      // Show reconnecting message
+      title.textContent = 'Checking session...';
+      statusEl.querySelector('.connection-details').innerHTML = `
+        <div class="reconnecting-message">
+          <span class="reconnecting-spinner">🔄</span>
+          Looking for active session...
+        </div>
+      `;
+
+      try {
+        const existingRoomCode = await checkForExistingPlayerSession();
+
+        if (existingRoomCode) {
+          console.log('Auto-reconnecting to room:', existingRoomCode);
+          title.textContent = 'Reconnecting...';
+          statusEl.querySelector('.connection-details').innerHTML = `
+            <div class="reconnecting-message">
+              <span class="reconnecting-spinner">🔄</span>
+              Reconnecting to room ${existingRoomCode}...
+            </div>
+          `;
+          // Auto-connect to the existing room
+          connectToGM(existingRoomCode);
+        } else {
+          // No existing session - show normal join UI
+          title.textContent = 'Enter GM Room Code';
+          statusEl.querySelector('.connection-details').innerHTML = `
+            <div class="room-code-label">Room Code from GM Panel</div>
+            <input type="text" id="roomCodeInput" class="room-code-input" placeholder="FIRE-DRAGON-00" maxlength="20" onkeyup="handleRoomCodeKeyup(event)">
+            <button class="connect-btn" id="connectBtn" onclick="connectToGM()">Connect</button>
+          `;
+        }
+      } catch (e) {
+        console.error('Error during session check:', e);
+        // Show normal join UI on error
+        title.textContent = 'Enter GM Room Code';
+        statusEl.querySelector('.connection-details').innerHTML = `
+          <div class="room-code-label">Room Code from GM Panel</div>
+          <input type="text" id="roomCodeInput" class="room-code-input" placeholder="FIRE-DRAGON-00" maxlength="20" onkeyup="handleRoomCodeKeyup(event)">
+          <button class="connect-btn" id="connectBtn" onclick="connectToGM()">Connect</button>
+        `;
+      }
+    }
+
+    // Start session check
+    initPlayerSession();
 
     checkForUpdates();
 

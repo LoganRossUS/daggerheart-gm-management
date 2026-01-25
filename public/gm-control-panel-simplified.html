@@ -2299,6 +2299,27 @@
       text-overflow: ellipsis;
     }
 
+    .character-item.room-character {
+      border-left: 3px solid #4CAF50;
+    }
+
+    .char-source-badge {
+      font-size: 0.7rem;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .char-source-badge.room {
+      color: #4CAF50;
+    }
+
+    .character-item-player {
+      font-size: 0.65rem;
+      color: #b388ff;
+      font-style: italic;
+      margin-top: 2px;
+    }
+
     .character-editor {
       background: rgba(0,0,0,0.3);
       border-radius: 8px;
@@ -5318,6 +5339,162 @@
       background: rgba(244, 67, 54, 0.3);
       color: #f44336;
     }
+
+    /* Session Modal Styles */
+    .session-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      backdrop-filter: blur(4px);
+    }
+
+    .session-modal-content {
+      background: linear-gradient(180deg, #1e1e2e 0%, #12121a 100%);
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .session-modal-content h2 {
+      margin: 0 0 20px 0;
+      color: #e0e0e0;
+      font-size: 1.4rem;
+    }
+
+    .reconnect-info {
+      margin-bottom: 20px;
+    }
+
+    .reconnect-message {
+      background: rgba(76, 175, 80, 0.15);
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: #a5d6a7;
+    }
+
+    .reconnect-icon {
+      font-size: 1.2rem;
+      color: #4CAF50;
+    }
+
+    .session-section {
+      margin: 15px 0;
+    }
+
+    .session-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .session-btn.primary {
+      background: linear-gradient(180deg, #7c4dff 0%, #651fff 100%);
+      color: white;
+    }
+
+    .session-btn.primary:hover {
+      background: linear-gradient(180deg, #9c7aff 0%, #7c4dff 100%);
+      transform: translateY(-1px);
+    }
+
+    .session-btn:not(.primary):not(.secondary) {
+      background: rgba(179, 136, 255, 0.2);
+      color: #b388ff;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+    }
+
+    .session-btn:not(.primary):not(.secondary):hover {
+      background: rgba(179, 136, 255, 0.3);
+    }
+
+    .session-btn.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #888;
+      padding: 10px 16px;
+      width: auto;
+    }
+
+    .session-btn.secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: #e0e0e0;
+    }
+
+    .session-divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    .session-divider::before,
+    .session-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .session-divider span {
+      padding: 0 15px;
+    }
+
+    .manual-room-entry {
+      display: flex;
+      gap: 10px;
+    }
+
+    .session-input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.3);
+      color: #e0e0e0;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .session-input:focus {
+      outline: none;
+      border-color: rgba(179, 136, 255, 0.5);
+    }
+
+    .session-input::placeholder {
+      color: #555;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    /* End Session Button */
+    .end-session-btn {
+      background: rgba(244, 67, 54, 0.2) !important;
+      color: #f44336 !important;
+      border: 1px solid rgba(244, 67, 54, 0.3) !important;
+    }
+
+    .end-session-btn:hover {
+      background: rgba(244, 67, 54, 0.3) !important;
+    }
   </style>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -5386,13 +5563,16 @@
           const gmData = roomData?.gm;
 
           // Delete room if:
-          // 1. No GM data exists, or
-          // 2. GM is not active AND timestamp is older than threshold, or
-          // 3. GM timestamp is older than threshold (regardless of active status - they crashed)
+          // 1. Room status is 'ended', or
+          // 2. No GM data exists AND room is old, or
+          // 3. GM is not active AND timestamp is older than threshold AND room is not marked 'active'
+          const roomStatus = roomData?.status;
+          const isActiveRoom = roomStatus === 'active';
+
           const shouldDelete =
-            !gmData ||
-            (!gmData.active && gmData.timestamp && (now - gmData.timestamp) > STALE_THRESHOLD_MS) ||
-            (gmData.timestamp && (now - gmData.timestamp) > STALE_THRESHOLD_MS);
+            roomStatus === 'ended' ||
+            (!gmData && !isActiveRoom) ||
+            (!isActiveRoom && !gmData?.active && gmData?.timestamp && (now - gmData.timestamp) > STALE_THRESHOLD_MS);
 
           if (shouldDelete) {
             deletePromises.push(
@@ -5422,6 +5602,196 @@
     if (database) {
       cleanupStaleRooms();
     }
+
+    // ========== GM Session Persistence ==========
+    // Generate or retrieve a persistent GM Device ID
+    function getOrCreateGMDeviceId() {
+      let deviceId = localStorage.getItem('daggerheart_gm_device_id');
+      if (!deviceId) {
+        deviceId = crypto.randomUUID();
+        localStorage.setItem('daggerheart_gm_device_id', deviceId);
+      }
+      return deviceId;
+    }
+
+    // Get the active room code from localStorage
+    function getStoredRoomCode() {
+      return localStorage.getItem('daggerheart_active_room');
+    }
+
+    // Store active room code
+    function storeActiveRoom(roomCode) {
+      localStorage.setItem('daggerheart_active_room', roomCode);
+    }
+
+    // Clear active room from localStorage
+    function clearStoredRoom() {
+      localStorage.removeItem('daggerheart_active_room');
+    }
+
+    // Check if GM has an active session and auto-reconnect
+    async function checkForExistingSession() {
+      if (!database) {
+        console.log('Firebase not available, skipping session check');
+        return null;
+      }
+
+      const gmDeviceId = getOrCreateGMDeviceId();
+
+      // Check localStorage first (fastest)
+      const localRoomCode = getStoredRoomCode();
+
+      if (localRoomCode) {
+        try {
+          // Verify room still exists and belongs to this GM
+          const roomSnapshot = await database.ref(`rooms/${localRoomCode}`).once('value');
+          const room = roomSnapshot.val();
+
+          if (room && room.gmDeviceId === gmDeviceId && room.status === 'active') {
+            console.log('Found active session in localStorage:', localRoomCode);
+            return localRoomCode;
+          }
+        } catch (e) {
+          console.error('Error checking local room:', e);
+        }
+      }
+
+      // Fallback: check Firebase for any active session
+      try {
+        const sessionSnapshot = await database.ref(`gmSessions/${gmDeviceId}`).once('value');
+        const session = sessionSnapshot.val();
+
+        if (session?.activeRoomCode) {
+          // Verify room still exists and is active
+          const roomSnapshot = await database.ref(`rooms/${session.activeRoomCode}`).once('value');
+          const room = roomSnapshot.val();
+
+          if (room && room.status === 'active') {
+            console.log('Found active session in Firebase:', session.activeRoomCode);
+            storeActiveRoom(session.activeRoomCode);
+            return session.activeRoomCode;
+          }
+        }
+      } catch (e) {
+        console.error('Error checking Firebase session:', e);
+      }
+
+      return null;
+    }
+
+    // End the current GM session
+    async function endGMSession() {
+      const gmDeviceId = getOrCreateGMDeviceId();
+      const currentRoomCode = getStoredRoomCode();
+
+      if (currentRoomCode && database) {
+        try {
+          // Mark room as ended
+          await database.ref(`rooms/${currentRoomCode}/status`).set('ended');
+
+          // Clear GM's active session in Firebase
+          await database.ref(`gmSessions/${gmDeviceId}/activeRoomCode`).remove();
+
+          // Stop heartbeat
+          if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
+          }
+
+          // Clean up room reference and listeners
+          if (roomRef) {
+            roomRef.child('gm').off();
+            roomRef.child('clients').off();
+            roomRef.child('battleMapRequest').off();
+            roomRef.child('characters').off(); // Clean up characters listener
+            roomRef = null;
+          }
+
+          console.log('Session ended for room:', currentRoomCode);
+        } catch (e) {
+          console.error('Error ending session:', e);
+        }
+      }
+
+      // Clear local storage
+      clearStoredRoom();
+      roomCode = null;
+
+      // Clear room characters
+      roomCharacters = [];
+      renderCharactersList();
+      updateTabBadges();
+
+      // Reset UI to show create room state
+      document.getElementById('roomCodeDisplay').textContent = '----';
+      document.getElementById('connectionBtn').textContent = 'Room: ----';
+      document.getElementById('connectionBtn').classList.remove('connected');
+      document.getElementById('connectionDot').classList.remove('connected');
+      document.getElementById('connectionText').textContent = 'Not connected';
+      document.getElementById('connectionStatusText').textContent = 'Offline';
+
+      // Hide end session button, show create room option
+      const endSessionBtn = document.getElementById('endSessionBtn');
+      if (endSessionBtn) endSessionBtn.style.display = 'none';
+
+      // Show reconnection modal
+      showCreateRoomModal();
+    }
+
+    // Show modal for creating new room or entering existing code
+    function showCreateRoomModal() {
+      const modal = document.getElementById('roomSessionModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        document.getElementById('sessionModalTitle').textContent = 'Start a New Session';
+        document.getElementById('reconnectInfo').style.display = 'none';
+      }
+    }
+
+    // Show modal with reconnection option
+    function showReconnectModal(existingRoomCode) {
+      const modal = document.getElementById('roomSessionModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        document.getElementById('sessionModalTitle').textContent = 'Welcome Back!';
+        document.getElementById('reconnectInfo').style.display = 'block';
+        document.getElementById('reconnectRoomCode').textContent = existingRoomCode;
+      }
+    }
+
+    // Hide the session modal
+    function hideSessionModal() {
+      const modal = document.getElementById('roomSessionModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    // Create a new room (generates new code)
+    function createNewRoom() {
+      hideSessionModal();
+      initFirebaseHostNew();
+    }
+
+    // Reconnect to an existing room
+    function reconnectToRoom(existingRoomCode) {
+      hideSessionModal();
+      initFirebaseHostReconnect(existingRoomCode);
+    }
+
+    // Handle manual room code entry for reclaiming
+    function joinExistingRoom() {
+      const input = document.getElementById('manualRoomCodeInput');
+      const enteredCode = input.value.trim().toUpperCase();
+
+      if (!enteredCode) {
+        alert('Please enter a room code');
+        return;
+      }
+
+      hideSessionModal();
+      initFirebaseHostReconnect(enteredCode);
+    }
   </script>
 </head>
 <body>
@@ -5432,6 +5802,7 @@
       <a href="encounter-generator.html" class="header-btn" style="text-decoration: none;" title="Build encounters">Encounter Builder</a>
       <span id="connectionStatusText" style="font-size: 0.7rem; color: #888;">Initializing...</span>
       <button class="header-btn" id="connectionBtn" onclick="copyRoomCode()">Room: ----</button>
+      <button class="header-btn end-session-btn" id="endSessionBtn" onclick="confirmEndSession()" style="display: none;" title="End current session">End Session</button>
       <!-- Auth UI -->
       <div id="auth-container" class="auth-container">
         <button id="login-btn" class="auth-btn">Sign In</button>
@@ -5440,6 +5811,45 @@
           <span id="user-tier" class="tier-badge demo">DEMO</span>
           <button id="settings-btn" class="auth-btn" onclick="openSettingsModal()" title="Account Settings">&#9881;</button>
           <button id="logout-btn" class="auth-btn">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Room Session Modal -->
+  <div id="roomSessionModal" class="session-modal" style="display: none;">
+    <div class="session-modal-content">
+      <h2 id="sessionModalTitle">Start a New Session</h2>
+
+      <!-- Reconnect Info (shown when existing session found) -->
+      <div id="reconnectInfo" class="reconnect-info" style="display: none;">
+        <div class="reconnect-message">
+          <span class="reconnect-icon">✓</span>
+          <span>Found your active room: <strong id="reconnectRoomCode">----</strong></span>
+        </div>
+        <button class="session-btn primary" onclick="reconnectToRoom(document.getElementById('reconnectRoomCode').textContent)">
+          Continue Session
+        </button>
+        <div class="session-divider">
+          <span>or</span>
+        </div>
+      </div>
+
+      <!-- Create New Room -->
+      <div class="session-section">
+        <button class="session-btn" onclick="createNewRoom()">
+          Create New Room
+        </button>
+      </div>
+
+      <!-- Manual Room Entry -->
+      <div class="session-section">
+        <div class="session-divider">
+          <span>or resume existing room</span>
+        </div>
+        <div class="manual-room-entry">
+          <input type="text" id="manualRoomCodeInput" class="session-input" placeholder="FIRE-DRAGON-00" maxlength="20">
+          <button class="session-btn secondary" onclick="joinExistingRoom()">Rejoin</button>
         </div>
       </div>
     </div>
@@ -6702,7 +7112,8 @@
     let nextCountdownId = 1;
 
     // ========== Characters State ==========
-    let playerCharacters = [];
+    let playerCharacters = []; // Cloud campaign characters
+    let roomCharacters = []; // Characters from Firebase room (created via characters.html)
     let selectedCharacterId = null;
     let currentCharacterAbilities = [];
     let currentCharacterExperiences = [];
@@ -6803,7 +7214,8 @@
       }
 
       if (charactersBadge) {
-        charactersBadge.textContent = playerCharacters.length;
+        // Count both cloud characters and room characters
+        charactersBadge.textContent = playerCharacters.length + roomCharacters.length;
       }
     }
 
@@ -7182,6 +7594,58 @@
         reader.onload = (e) => resolve(e.target.result);
         reader.readAsDataURL(file);
       });
+    }
+
+    // Upload room character portrait to cloud and update Firebase
+    async function uploadRoomCharacterPortrait(charId, base64Image) {
+      // Only upload if cloud features are available
+      if (!window.cloudFeatures?.canUse?.('cloudSave')) {
+        console.log('Cloud upload not available - portrait will remain as base64');
+        return;
+      }
+
+      if (!roomRef) {
+        console.log('No room reference - cannot update character portrait');
+        return;
+      }
+
+      try {
+        // Convert base64 to file for upload
+        const file = base64ToFile(base64Image, `character-${charId}-portrait.jpg`);
+
+        // Upload to cloud
+        const result = await window.cloudFeatures.uploadFile(file);
+        const cloudUrl = result.url;
+
+        console.log('Uploaded character portrait to cloud:', cloudUrl);
+
+        // Update character in Firebase with cloud URL
+        await roomRef.child('characters').child(charId).child('portrait').set(cloudUrl);
+
+        // Update local roomCharacters array
+        const charIndex = roomCharacters.findIndex(c => c.id === charId);
+        if (charIndex !== -1) {
+          roomCharacters[charIndex].portrait = cloudUrl;
+          renderCharactersList();
+        }
+
+        console.log('Updated character portrait in Firebase');
+      } catch (err) {
+        console.error('Failed to upload character portrait to cloud:', err);
+      }
+    }
+
+    // Convert base64 data URL to File object
+    function base64ToFile(dataUrl, filename) {
+      const arr = dataUrl.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new File([u8arr], filename, { type: mime });
     }
 
     // ========== Battle Map ==========
@@ -9258,10 +9722,54 @@
       }
     }
 
-    function initFirebaseHost() {
+    // Main initialization - checks for existing session first
+    async function initFirebaseHost() {
+      const statusText = document.getElementById('connectionStatusText');
+      statusText.textContent = 'Checking session...';
+
+      // Check if Firebase is loaded and configured
+      if (!database) {
+        statusText.textContent = 'Offline';
+        console.error('Firebase not initialized. Please add your Firebase config.');
+        showCreateRoomModal();
+        return;
+      }
+
+      try {
+        // Check for existing session
+        const existingRoomCode = await checkForExistingSession();
+
+        if (existingRoomCode) {
+          // Show reconnect modal
+          showReconnectModal(existingRoomCode);
+        } else {
+          // No existing session - show create room modal
+          showCreateRoomModal();
+        }
+      } catch (e) {
+        console.error('Error checking for session:', e);
+        showCreateRoomModal();
+      }
+    }
+
+    // Create a new room with a fresh code
+    async function initFirebaseHostNew() {
       roomCode = generateRoomCode();
-      document.getElementById('roomCodeDisplay').textContent = roomCode;
-      document.getElementById('connectionBtn').textContent = 'Room: ' + roomCode;
+      await setupRoom(roomCode, true);
+    }
+
+    // Reconnect to an existing room
+    async function initFirebaseHostReconnect(existingCode) {
+      roomCode = existingCode;
+      await setupRoom(existingCode, false);
+    }
+
+    // Common room setup logic
+    async function setupRoom(code, isNewRoom) {
+      const gmDeviceId = getOrCreateGMDeviceId();
+
+      document.getElementById('roomCodeDisplay').textContent = code;
+      document.getElementById('connectionBtn').textContent = 'Room: ' + code;
 
       const dot = document.getElementById('connectionDot');
       const text = document.getElementById('connectionText');
@@ -9277,13 +9785,65 @@
 
       try {
         // Create room reference in Firebase
-        roomRef = database.ref('rooms/' + roomCode);
+        roomRef = database.ref('rooms/' + code);
 
-        // Mark room as active with GM heartbeat
-        roomRef.child('gm').set({
-          active: true,
-          timestamp: Date.now()
+        if (isNewRoom) {
+          // Set up new room with GM ownership
+          await roomRef.set({
+            gmDeviceId: gmDeviceId,
+            status: 'active',
+            createdAt: firebase.database.ServerValue.TIMESTAMP,
+            gm: {
+              active: true,
+              timestamp: Date.now()
+            }
+          });
+        } else {
+          // Verify room belongs to this GM or allow reclaiming
+          const roomSnapshot = await roomRef.once('value');
+          const roomData = roomSnapshot.val();
+
+          if (roomData) {
+            // Check if this GM owns the room or if room has no owner
+            if (roomData.gmDeviceId && roomData.gmDeviceId !== gmDeviceId) {
+              // Room owned by different GM - ask to reclaim
+              if (!confirm('This room belongs to another device. Do you want to take over this room?')) {
+                showCreateRoomModal();
+                return;
+              }
+            }
+
+            // Update room ownership and status
+            await roomRef.update({
+              gmDeviceId: gmDeviceId,
+              status: 'active',
+              gm: {
+                active: true,
+                timestamp: Date.now()
+              }
+            });
+          } else {
+            // Room doesn't exist - create it
+            await roomRef.set({
+              gmDeviceId: gmDeviceId,
+              status: 'active',
+              createdAt: firebase.database.ServerValue.TIMESTAMP,
+              gm: {
+                active: true,
+                timestamp: Date.now()
+              }
+            });
+          }
+        }
+
+        // Save GM session reference in Firebase
+        await database.ref(`gmSessions/${gmDeviceId}`).set({
+          activeRoomCode: code,
+          lastAccessed: firebase.database.ServerValue.TIMESTAMP
         });
+
+        // Store locally for immediate reconnect
+        storeActiveRoom(code);
 
         // Start GM heartbeat to keep room alive
         if (heartbeatInterval) clearInterval(heartbeatInterval);
@@ -9293,20 +9853,26 @@
               active: true,
               timestamp: Date.now()
             });
+            // Also update lastAccessed
+            database.ref(`gmSessions/${gmDeviceId}/lastAccessed`).set(firebase.database.ServerValue.TIMESTAMP);
           }
         }, 10000);
 
-        // Clean up room when GM disconnects
-        roomRef.child('gm').onDisconnect().set({
+        // Clean up room GM status when disconnects (but don't change room status)
+        roomRef.child('gm').onDisconnect().update({
           active: false,
-          timestamp: Date.now()
+          timestamp: firebase.database.ServerValue.TIMESTAMP
         });
 
-        console.log('GM hosting with room code:', roomCode);
+        console.log('GM hosting with room code:', code);
         text.textContent = 'Room ready';
         statusText.textContent = 'Ready';
         dot.classList.add('connected');
         document.getElementById('connectionBtn').classList.add('connected');
+
+        // Show End Session button
+        const endSessionBtn = document.getElementById('endSessionBtn');
+        if (endSessionBtn) endSessionBtn.style.display = 'inline-block';
 
         // Listen for client connections
         roomRef.child('clients').on('value', (snapshot) => {
@@ -9340,6 +9906,33 @@
           }
         });
 
+        // Listen for characters created via characters.html
+        roomRef.child('characters').on('value', async (snapshot) => {
+          const chars = snapshot.val();
+          if (chars) {
+            // Convert object to array with IDs
+            roomCharacters = Object.entries(chars).map(([id, char]) => ({
+              ...char,
+              id: id,
+              source: 'room' // Mark as room character for display
+            }));
+            console.log('Room characters updated:', roomCharacters.length);
+
+            // Auto-upload base64 portraits to cloud storage
+            for (const [charId, char] of Object.entries(chars)) {
+              if (char.portrait && char.portrait.startsWith('data:')) {
+                // This is a base64 image - upload to cloud if possible
+                await uploadRoomCharacterPortrait(charId, char.portrait);
+              }
+            }
+          } else {
+            roomCharacters = [];
+          }
+          // Re-render to show combined characters
+          renderCharactersList();
+          updateTabBadges();
+        });
+
         // Send initial state
         setTimeout(() => {
           sendFullSync();
@@ -9349,6 +9942,13 @@
         console.error('Failed to initialize Firebase:', e);
         text.textContent = 'Init failed - local mode';
         statusText.textContent = 'Local Mode';
+      }
+    }
+
+    // Confirm before ending session
+    function confirmEndSession() {
+      if (confirm('Are you sure you want to end this session? Players will be disconnected and need a new room code to reconnect.')) {
+        endGMSession();
       }
     }
 
@@ -11940,38 +12540,62 @@
       const list = document.getElementById('charactersList');
       if (!list) return;
 
-      if (playerCharacters.length === 0) {
+      // Combine cloud characters and room characters
+      const allCharacters = [
+        ...playerCharacters.map(c => ({ ...c, source: 'cloud' })),
+        ...roomCharacters
+      ];
+
+      if (allCharacters.length === 0) {
         list.innerHTML = `
           <div class="characters-empty">
-            No characters yet. Click "+ Add PC" to create a player character.
+            No characters yet. Click "+ Add PC" to create a player character, or have players create characters via the Characters page.
           </div>
         `;
         return;
       }
 
-      list.innerHTML = playerCharacters.map(char => `
-        <div class="character-item ${char.id === selectedCharacterId ? 'selected' : ''}"
-             data-character-id="${char.id}" onclick="selectCharacter('${char.id}')">
-          <div class="character-item-portrait">
-            ${char.portrait ? `<img src="${char.portrait}" alt="${char.name}">` : ''}
-          </div>
-          <div class="character-item-info">
-            <div class="character-item-name">${char.name || 'Unnamed'}</div>
-            <div class="character-item-meta">
-              Level ${char.level} ${char.ancestry ? capitalizeFirst(char.ancestry) : ''} ${char.characterClass ? capitalizeFirst(char.characterClass) : ''}
+      list.innerHTML = allCharacters.map(char => {
+        // Handle different field names between cloud and room characters
+        const charClass = char.characterClass || char.class || '';
+        const portrait = char.portrait || char.image || '';
+        const sourceIcon = char.source === 'room' ? '<span class="char-source-badge room" title="Created via Characters page">🎮</span>' : '';
+
+        // Show player name if available
+        const playerName = char.playerName ? `<div class="character-item-player">Played by: ${char.playerName}</div>` : '';
+
+        return `
+          <div class="character-item ${char.id === selectedCharacterId ? 'selected' : ''} ${char.source === 'room' ? 'room-character' : ''}"
+               data-character-id="${char.id}" data-source="${char.source}" onclick="selectCharacter('${char.id}', '${char.source}')">
+            <div class="character-item-portrait">
+              ${portrait ? `<img src="${portrait}" alt="${char.name}">` : ''}
+            </div>
+            <div class="character-item-info">
+              <div class="character-item-name">${char.name || 'Unnamed'} ${sourceIcon}</div>
+              <div class="character-item-meta">
+                Level ${char.level || 1} ${char.ancestry ? capitalizeFirst(char.ancestry) : ''} ${charClass ? capitalizeFirst(charClass) : ''}
+              </div>
+              ${playerName}
             </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function capitalizeFirst(str) {
       return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
     }
 
-    function selectCharacter(charId) {
+    function selectCharacter(charId, source = 'cloud') {
       selectedCharacterId = charId;
-      const char = playerCharacters.find(c => c.id === charId);
+
+      // Find character in appropriate array based on source
+      let char;
+      if (source === 'room') {
+        char = roomCharacters.find(c => c.id === charId);
+      } else {
+        char = playerCharacters.find(c => c.id === charId);
+      }
 
       if (!char) {
         document.querySelector('.character-editor-empty').style.display = 'flex';
@@ -11982,19 +12606,24 @@
       document.querySelector('.character-editor-empty').style.display = 'none';
       document.getElementById('characterEditorForm').style.display = 'block';
 
+      // Handle different field names between cloud and room characters
+      const charClass = char.characterClass || char.class || '';
+      const hp = char.hp || {};
+
       // Populate form fields
       document.getElementById('charName').value = char.name || '';
       document.getElementById('charLevel').value = char.level || 1;
       document.getElementById('charAncestry').value = char.ancestry || '';
-      document.getElementById('charClass').value = char.characterClass || '';
+      document.getElementById('charClass').value = charClass;
       updateSubclassOptions();
       document.getElementById('charSubclass').value = char.subclass || '';
 
-      document.getElementById('charCurrentHp').value = char.currentHp || '';
-      document.getElementById('charMaxHp').value = char.maxHp || '';
-      document.getElementById('charCurrentStress').value = char.currentStress || '';
-      document.getElementById('charMaxStress').value = char.maxStress || '';
-      document.getElementById('charArmor').value = char.armor || 0;
+      // Handle HP - room characters use hp.current/hp.max, cloud uses currentHp/maxHp
+      document.getElementById('charCurrentHp').value = char.currentHp || hp.current || '';
+      document.getElementById('charMaxHp').value = char.maxHp || hp.max || '';
+      document.getElementById('charCurrentStress').value = char.currentStress || char.stress?.current || '';
+      document.getElementById('charMaxStress').value = char.maxStress || char.stress?.max || '';
+      document.getElementById('charArmor').value = char.armor || char.armorSlots || 0;
       document.getElementById('charEvasion').value = char.evasion || 10;
 
       document.getElementById('charMinorThreshold').value = char.minorThreshold || '';
@@ -12016,12 +12645,13 @@
       renderAbilitiesList();
       renderFeatsList();
 
-      document.getElementById('charNotes').value = char.notes || '';
+      document.getElementById('charNotes').value = char.notes || char.background || '';
 
-      // Portrait
+      // Portrait - handle both cloud (portrait) and room (image) field names
       const portraitEl = document.getElementById('characterPortrait');
-      if (char.portrait) {
-        portraitEl.innerHTML = `<img src="${char.portrait}" alt="${char.name}">`;
+      const portraitUrl = char.portrait || char.image;
+      if (portraitUrl) {
+        portraitEl.innerHTML = `<img src="${portraitUrl}" alt="${char.name}">`;
       } else {
         portraitEl.innerHTML = '<span class="portrait-placeholder">No Image</span>';
       }
