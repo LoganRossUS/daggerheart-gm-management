@@ -2472,12 +2472,78 @@
     .character-stats-section h4,
     .character-domain-section h4,
     .character-experiences-section h4,
-    .character-abilities-section h4,
-    .character-feats-section h4,
+    .character-traits-section h4,
+    .character-equipment-section h4,
     .character-notes-section h4 {
       font-size: 0.85rem;
       color: #4CAF50;
       margin-bottom: 12px;
+    }
+
+    .character-traits-section,
+    .character-equipment-section {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .traits-display-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .trait-display-item {
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .trait-display-item .trait-name {
+      font-size: 0.75rem;
+      color: #aaa;
+    }
+
+    .trait-display-item .trait-value {
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+
+    .trait-display-item .trait-value.positive { color: #4CAF50; }
+    .trait-display-item .trait-value.negative { color: #f44336; }
+    .trait-display-item .trait-value.neutral { color: #888; }
+
+    .equipment-display-item {
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+
+    .equipment-display-item .equipment-label {
+      font-size: 0.7rem;
+      color: #888;
+      margin-bottom: 4px;
+    }
+
+    .equipment-display-item .equipment-name {
+      font-size: 0.85rem;
+      color: #e0e0e0;
+    }
+
+    .equipment-display-item .equipment-details {
+      font-size: 0.75rem;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    .equipment-empty {
+      color: #666;
+      font-size: 0.8rem;
+      font-style: italic;
     }
 
     .stats-grid {
@@ -6317,6 +6383,21 @@
                     </select>
                   </div>
                 </div>
+                <div class="form-group">
+                  <label>Community</label>
+                  <select id="charCommunity" class="form-select">
+                    <option value="">Select Community...</option>
+                    <option value="highborn">Highborn</option>
+                    <option value="loreborn">Loreborn</option>
+                    <option value="orderborn">Orderborn</option>
+                    <option value="ridgeborn">Ridgeborn</option>
+                    <option value="seaborn">Seaborn</option>
+                    <option value="slyborn">Slyborn</option>
+                    <option value="underborn">Underborn</option>
+                    <option value="wanderborn">Wanderborn</option>
+                    <option value="wildborn">Wildborn</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -6346,6 +6427,10 @@
                 <div class="stat-box">
                   <label>Evasion</label>
                   <input type="number" id="charEvasion" class="stat-input single" min="0" value="10">
+                </div>
+                <div class="stat-box">
+                  <label>Hope</label>
+                  <input type="number" id="charHope" class="stat-input single" min="0" value="2">
                 </div>
               </div>
 
@@ -6391,22 +6476,19 @@
               </div>
             </div>
 
-            <div class="character-abilities-section">
-              <h4>Abilities</h4>
-              <div class="abilities-list" id="abilitiesList">
-                <!-- Abilities rendered here -->
+            <div class="character-traits-section">
+              <h4>Traits</h4>
+              <p style="font-size: 0.75rem; color: #888; margin-bottom: 10px;">Traits are set during character creation in /characters</p>
+              <div class="traits-display-grid" id="traitsDisplay">
+                <!-- Traits rendered here -->
               </div>
-              <button class="add-ability-btn" onclick="addAbility()">+ Add Ability</button>
             </div>
 
-            <div class="character-feats-section">
-              <h4>Feats</h4>
-              <div class="feats-list" id="featsList">
-                <!-- Feats rendered here -->
-              </div>
-              <div class="add-feat-row">
-                <input type="text" id="newFeatInput" class="form-input" placeholder="Add a feat...">
-                <button class="add-item-btn" onclick="addFeat()">+</button>
+            <div class="character-equipment-section">
+              <h4>Equipment</h4>
+              <p style="font-size: 0.75rem; color: #888; margin-bottom: 10px;">Equipment is managed in /characters</p>
+              <div class="equipment-display" id="equipmentDisplay">
+                <!-- Equipment rendered here -->
               </div>
             </div>
 
@@ -7274,9 +7356,7 @@
     let roomCharacters = []; // Characters from Firebase room (created via characters.html)
     let selectedCharacterId = null;
     let selectedCharacterSource = 'cloud'; // Track if selected char is 'cloud' or 'room'
-    let currentCharacterAbilities = [];
     let currentCharacterExperiences = [];
-    let currentCharacterFeats = [];
 
     // ========== Notes State ==========
     let campaignNotes = [];
@@ -12873,11 +12953,25 @@
         currentCharacterExperiences = [];
       }
 
-      currentCharacterAbilities = char.abilities || [];
-      currentCharacterFeats = char.feats || [];
       renderExperiencesList();
-      renderAbilitiesList();
-      renderFeatsList();
+
+      // Community field
+      const communitySelect = document.getElementById('charCommunity');
+      if (communitySelect) {
+        communitySelect.value = char.community || '';
+      }
+
+      // Hope field
+      const hopeInput = document.getElementById('charHope');
+      if (hopeInput) {
+        hopeInput.value = char.hope ?? 2;
+      }
+
+      // Render Traits display
+      renderTraitsDisplay(char.traits);
+
+      // Render Equipment display
+      renderEquipmentDisplay(char.equipment);
 
       // Notes/Background
       document.getElementById('charNotes').value = char.notes || char.background || '';
@@ -12955,86 +13049,74 @@
       renderExperiencesList();
     }
 
-    function renderFeatsList() {
-      const list = document.getElementById('featsList');
-      if (!list) return;
+    // Render Traits display (read-only from /characters)
+    function renderTraitsDisplay(traits) {
+      const container = document.getElementById('traitsDisplay');
+      if (!container) return;
 
-      list.innerHTML = currentCharacterFeats.map((feat, index) => `
-        <div class="feat-item">
-          <span>${feat}</span>
-          <button class="remove-item-btn" onclick="removeFeat(${index})">×</button>
-        </div>
-      `).join('');
-    }
+      const traitNames = ['Agility', 'Strength', 'Finesse', 'Instinct', 'Presence', 'Knowledge'];
 
-    function addFeat() {
-      const input = document.getElementById('newFeatInput');
-      const value = input.value.trim();
-      if (!value) return;
-
-      currentCharacterFeats.push(value);
-      input.value = '';
-      renderFeatsList();
-    }
-
-    function removeFeat(index) {
-      currentCharacterFeats.splice(index, 1);
-      renderFeatsList();
-    }
-
-    function renderAbilitiesList() {
-      const list = document.getElementById('abilitiesList');
-      if (!list) return;
-
-      if (currentCharacterAbilities.length === 0) {
-        list.innerHTML = '';
+      if (!traits || Object.keys(traits).length === 0) {
+        container.innerHTML = '<div class="equipment-empty">No traits set</div>';
         return;
       }
 
-      list.innerHTML = currentCharacterAbilities.map((ability, index) => `
-        <div class="ability-card">
-          <div class="ability-card-header">
-            <span class="ability-name">${ability.name}</span>
-            <span class="ability-type">${ability.type}</span>
+      container.innerHTML = traitNames.map(trait => {
+        const value = traits[trait] ?? traits[trait.toLowerCase()] ?? 0;
+        const valueClass = value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral';
+        const displayValue = value >= 0 ? `+${value}` : value;
+        return `
+          <div class="trait-display-item">
+            <span class="trait-name">${trait}</span>
+            <span class="trait-value ${valueClass}">${displayValue}</span>
           </div>
-          <div class="ability-description">${ability.description}</div>
-          <div class="ability-actions">
-            <button class="remove-item-btn" onclick="removeAbility(${index})">×</button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
-    function addAbility() {
-      document.getElementById('addAbilityModal').classList.add('visible');
-      document.getElementById('abilityName').value = '';
-      document.getElementById('abilityType').value = 'passive';
-      document.getElementById('abilityDescription').value = '';
-    }
+    // Render Equipment display (read-only from /characters)
+    function renderEquipmentDisplay(equipment) {
+      const container = document.getElementById('equipmentDisplay');
+      if (!container) return;
 
-    function closeAbilityModal(e) {
-      if (e && e.target !== e.currentTarget) return;
-      document.getElementById('addAbilityModal').classList.remove('visible');
-    }
-
-    function saveAbility() {
-      const name = document.getElementById('abilityName').value.trim();
-      const type = document.getElementById('abilityType').value;
-      const description = document.getElementById('abilityDescription').value.trim();
-
-      if (!name) {
-        alert('Please enter an ability name');
+      if (!equipment || (!equipment.primaryWeapon && !equipment.secondaryWeapon && !equipment.armor)) {
+        container.innerHTML = '<div class="equipment-empty">No equipment set</div>';
         return;
       }
 
-      currentCharacterAbilities.push({ name, type, description });
-      renderAbilitiesList();
-      closeAbilityModal();
-    }
+      let html = '';
 
-    function removeAbility(index) {
-      currentCharacterAbilities.splice(index, 1);
-      renderAbilitiesList();
+      if (equipment.primaryWeapon) {
+        html += `
+          <div class="equipment-display-item">
+            <div class="equipment-label">Primary Weapon</div>
+            <div class="equipment-name">${equipment.primaryWeapon.name || 'Unknown'}</div>
+            <div class="equipment-details">${equipment.primaryWeapon.type || ''} ${equipment.primaryWeapon.damage || ''}</div>
+          </div>
+        `;
+      }
+
+      if (equipment.secondaryWeapon) {
+        html += `
+          <div class="equipment-display-item">
+            <div class="equipment-label">Secondary Weapon</div>
+            <div class="equipment-name">${equipment.secondaryWeapon.name || 'Unknown'}</div>
+            <div class="equipment-details">${equipment.secondaryWeapon.type || ''} ${equipment.secondaryWeapon.damage || ''}</div>
+          </div>
+        `;
+      }
+
+      if (equipment.armor) {
+        html += `
+          <div class="equipment-display-item">
+            <div class="equipment-label">Armor</div>
+            <div class="equipment-name">${equipment.armor.name || 'Unknown'}</div>
+            <div class="equipment-details">${equipment.armor.type || ''} ${equipment.armor.armorScore ? `Armor: ${equipment.armor.armorScore}` : ''}</div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
     }
 
     function getSelectedDomains() {
@@ -13060,6 +13142,7 @@
         name: document.getElementById('charName').value,
         level: parseInt(document.getElementById('charLevel').value) || 1,
         ancestry: document.getElementById('charAncestry').value,
+        community: document.getElementById('charCommunity').value,
         characterClass: document.getElementById('charClass').value,
         subclass: document.getElementById('charSubclass').value,
         currentHp: parseInt(document.getElementById('charCurrentHp').value) || 0,
@@ -13067,14 +13150,13 @@
         currentStress: parseInt(document.getElementById('charCurrentStress').value) || 0,
         maxStress: parseInt(document.getElementById('charMaxStress').value) || 0,
         armor: parseInt(document.getElementById('charArmor').value) || 0,
+        hope: parseInt(document.getElementById('charHope').value) || 2,
         evasion: parseInt(document.getElementById('charEvasion').value) || 10,
         minorThreshold: parseInt(document.getElementById('charMinorThreshold').value) || 0,
         majorThreshold: parseInt(document.getElementById('charMajorThreshold').value) || 0,
         severeThreshold: parseInt(document.getElementById('charSevereThreshold').value) || 0,
         domains: getSelectedDomains(),
         experiences: currentCharacterExperiences,
-        abilities: currentCharacterAbilities,
-        feats: currentCharacterFeats,
         notes: document.getElementById('charNotes').value,
         updatedAt: new Date().toISOString()
       };
@@ -13262,8 +13344,9 @@
         domains: roomChar.domains || (roomChar.domainCards || []).map(c => c?.domain).filter(Boolean),
         domainCards: roomChar.domainCards || [], // Preserve domain cards
         experiences: (roomChar.experiences || []).map(e => typeof e === 'object' ? e.description : e),
-        abilities: roomChar.abilities || [],
-        feats: roomChar.feats || [],
+        traits: roomChar.traits || {},
+        equipment: roomChar.equipment || {},
+        connections: roomChar.connections || [],
         portrait: roomChar.portrait || roomChar.image || '',
         notes: roomChar.notes || roomChar.background || '',
         playerName: roomChar.playerName || '',
@@ -13308,8 +13391,9 @@
         experiences: (cloudChar.experiences || []).map(e =>
           typeof e === 'string' ? { description: e, modifier: 0 } : e
         ),
-        abilities: cloudChar.abilities || [],
-        feats: cloudChar.feats || [],
+        traits: cloudChar.traits || {},
+        equipment: cloudChar.equipment || {},
+        connections: cloudChar.connections || [],
         portrait: cloudChar.portrait || '',
         background: cloudChar.notes || cloudChar.background || '',
         playerName: cloudChar.playerName || ''
