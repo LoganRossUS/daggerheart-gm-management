@@ -13253,6 +13253,8 @@
         currentStress: roomChar.stress?.current ?? roomChar.currentStress ?? 0,
         maxStress: roomChar.stress?.max ?? roomChar.maxStress ?? 0,
         armor: roomChar.armorScore ?? roomChar.armorSlots?.total ?? roomChar.armor ?? 0,
+        armorSlots: roomChar.armorSlots || { total: roomChar.armorScore ?? 0, marked: 0 },
+        hope: roomChar.hope ?? 2,
         evasion: roomChar.evasion || 10,
         minorThreshold: roomChar.damageThresholds?.minor ?? roomChar.minorThreshold ?? '',
         majorThreshold: roomChar.damageThresholds?.major ?? roomChar.majorThreshold ?? '',
@@ -13271,6 +13273,9 @@
 
     // Convert cloud character format to room character format
     function convertCloudCharToRoom(cloudChar) {
+      const armorValue = cloudChar.armor ?? cloudChar.armorSlots?.total ?? 0;
+      const armorMarked = cloudChar.armorSlots?.marked ?? 0;
+
       return {
         name: cloudChar.name || 'Unnamed',
         level: cloudChar.level || 1,
@@ -13286,12 +13291,17 @@
           current: cloudChar.currentStress ?? cloudChar.stress?.current ?? 0,
           max: cloudChar.maxStress ?? cloudChar.stress?.max ?? 6
         },
-        armorScore: cloudChar.armor ?? 0,
+        armorScore: armorValue,
+        armorSlots: {
+          total: armorValue,
+          marked: armorMarked
+        },
         evasion: cloudChar.evasion || 10,
+        hope: cloudChar.hope ?? 2,
         damageThresholds: {
-          minor: cloudChar.minorThreshold ?? '',
-          major: cloudChar.majorThreshold ?? '',
-          severe: cloudChar.severeThreshold ?? ''
+          minor: cloudChar.minorThreshold ?? cloudChar.damageThresholds?.minor ?? '',
+          major: cloudChar.majorThreshold ?? cloudChar.damageThresholds?.major ?? '',
+          severe: cloudChar.severeThreshold ?? cloudChar.damageThresholds?.severe ?? ''
         },
         domains: cloudChar.domains || [],
         domainCards: cloudChar.domainCards || [],
@@ -13301,7 +13311,7 @@
         abilities: cloudChar.abilities || [],
         feats: cloudChar.feats || [],
         portrait: cloudChar.portrait || '',
-        background: cloudChar.notes || '',
+        background: cloudChar.notes || cloudChar.background || '',
         playerName: cloudChar.playerName || ''
       };
     }
