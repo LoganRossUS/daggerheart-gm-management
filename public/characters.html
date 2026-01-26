@@ -1404,23 +1404,38 @@
         return '<div class="empty-inventory">No items in inventory. Click "Add Item" to search for equipment.</div>';
       }
 
-      return inventory.map((item, index) => `
-        <div class="inventory-item">
-          <div class="inventory-item-info">
-            <div class="inventory-item-name">${escapeHtml(item.name)}</div>
-            <div class="inventory-item-stats">
-              ${item.type === 'weapon' ? `${item.trait} • ${item.range} • ${item.damage}` :
-                item.type === 'armor' ? `Armor Score: ${item.baseScore}` :
-                item.type === 'consumable' ? 'Consumable' :
-                item.description ? item.description.substring(0, 50) + '...' : 'Item'}
+      return inventory.map((item, index) => {
+        let statsText = '';
+        let typeLabel = item.type || 'item';
+
+        if (item.type === 'weapon') {
+          statsText = `${item.trait} • ${item.range} • ${item.damage}`;
+        } else if (item.type === 'armor') {
+          statsText = `Armor Score: ${item.baseScore}`;
+        } else if (item.type === 'consumable') {
+          typeLabel = `Consumable (${item.rarity || 'common'})`;
+          statsText = item.description ? item.description.substring(0, 60) + (item.description.length > 60 ? '...' : '') : '';
+        } else if (item.type === 'loot') {
+          typeLabel = `Loot (${item.rarity || 'common'})`;
+          statsText = item.description ? item.description.substring(0, 60) + (item.description.length > 60 ? '...' : '') : '';
+        } else if (item.description) {
+          statsText = item.description.substring(0, 60) + (item.description.length > 60 ? '...' : '');
+        }
+
+        return `
+          <div class="inventory-item">
+            <div class="inventory-item-info">
+              <div class="inventory-item-name">${escapeHtml(item.name)}</div>
+              <div class="inventory-item-stats">${typeLabel}${statsText ? ' • ' + statsText : ''}</div>
+            </div>
+            <div class="inventory-item-actions">
+              ${item.type === 'weapon' ? `<button class="equip-btn" onclick="equipWeapon(${index})">Equip</button>` : ''}
+              ${item.type === 'consumable' ? `<button class="equip-btn" onclick="useConsumable(${index})">Use</button>` : ''}
+              <button class="remove-btn" onclick="removeFromInventory(${index})">Remove</button>
             </div>
           </div>
-          <div class="inventory-item-actions">
-            ${item.type === 'weapon' ? `<button class="equip-btn" onclick="equipWeapon(${index})">Equip</button>` : ''}
-            <button class="remove-btn" onclick="removeFromInventory(${index})">Remove</button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function showLootSearch() {
@@ -1569,8 +1584,44 @@
         });
       }
 
+      // Search loot items
+      if (data.loot) {
+        const rarityToTier = { common: '1', uncommon: '2', rare: '3', legendary: '4' };
+        Object.entries(data.loot).forEach(([rarity, items]) => {
+          items.forEach(item => {
+            if (item.name.toLowerCase().includes(queryLower)) {
+              results.push({
+                name: item.name,
+                description: item.description,
+                type: 'loot',
+                rarity: rarity,
+                tier: rarityToTier[rarity] || '1'
+              });
+            }
+          });
+        });
+      }
+
+      // Search consumables
+      if (data.consumables) {
+        const rarityToTier = { common: '1', uncommon: '2', rare: '3', legendary: '4' };
+        Object.entries(data.consumables).forEach(([rarity, items]) => {
+          items.forEach(item => {
+            if (item.name.toLowerCase().includes(queryLower)) {
+              results.push({
+                name: item.name,
+                description: item.description,
+                type: 'consumable',
+                rarity: rarity,
+                tier: rarityToTier[rarity] || '1'
+              });
+            }
+          });
+        });
+      }
+
       // Limit results
-      const limitedResults = results.slice(0, 10);
+      const limitedResults = results.slice(0, 15);
 
       if (limitedResults.length === 0) {
         dropdown.innerHTML = '<div class="loot-search-item"><div class="loot-search-item-name">No items found</div></div>';
@@ -1578,8 +1629,8 @@
         dropdown.innerHTML = limitedResults.map((item, index) => `
           <div class="loot-search-item" onclick="addToInventory(${index})" data-index="${index}">
             <div class="loot-search-item-name">${escapeHtml(item.name)}</div>
-            <div class="loot-search-item-type">${item.type === 'weapon' ? `${item.weaponType} weapon` : item.type} - Tier ${item.tier}</div>
-            ${item.feature ? `<div class="loot-search-item-desc">${escapeHtml(item.feature)}</div>` : ''}
+            <div class="loot-search-item-type">${item.type}${item.weaponType ? ` (${item.weaponType})` : ''} - ${item.rarity ? item.rarity : 'Tier ' + item.tier}</div>
+            ${item.feature || item.description ? `<div class="loot-search-item-desc">${escapeHtml(item.feature || item.description)}</div>` : ''}
           </div>
         `).join('');
       }
@@ -1633,6 +1684,31 @@
     }
 
     window.removeFromInventory = removeFromInventory;
+
+    async function useConsumable(index) {
+      if (!currentCharacterId || !charactersRef) return;
+      const char = characters[currentCharacterId];
+      if (!char || !char.equipment?.inventory) return;
+
+      const item = char.equipment.inventory[index];
+      if (!item || item.type !== 'consumable') return;
+
+      // Show confirmation with item effect
+      const confirmed = confirm(`Use ${item.name}?\n\nEffect: ${item.description || 'No description'}\n\nThis will remove the item from your inventory.`);
+      if (!confirmed) return;
+
+      // Remove from inventory after use
+      const newInventory = char.equipment.inventory.filter((_, i) => i !== index);
+
+      try {
+        await charactersRef.child(currentCharacterId).child('equipment/inventory').set(newInventory);
+        showSyncIndicator();
+      } catch (error) {
+        console.error('Error using consumable:', error);
+      }
+    }
+
+    window.useConsumable = useConsumable;
 
     async function equipWeapon(inventoryIndex) {
       if (!currentCharacterId || !charactersRef) return;
