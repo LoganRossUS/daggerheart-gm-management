@@ -485,6 +485,173 @@
       color: #e0e0e0;
     }
 
+    /* Quick Note Modal */
+    .quick-note-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      backdrop-filter: blur(4px);
+    }
+
+    .quick-note-modal.visible {
+      display: flex;
+    }
+
+    .quick-note-modal-content {
+      background: linear-gradient(180deg, #1e1e2e 0%, #12121a 100%);
+      border: 1px solid rgba(79, 195, 247, 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .quick-note-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .quick-note-modal-header h3 {
+      margin: 0;
+      color: #4fc3f7;
+      font-size: 1.2rem;
+      font-family: 'Cinzel', serif;
+    }
+
+    .quick-note-modal-close {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 1.5rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .quick-note-modal-close:hover {
+      color: #fff;
+    }
+
+    .quick-note-form-group {
+      margin-bottom: 16px;
+    }
+
+    .quick-note-form-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 6px;
+      font-family: 'Cinzel', serif;
+    }
+
+    .quick-note-form-group input,
+    .quick-note-form-group select,
+    .quick-note-form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: #2a2a3e;
+      color: #e0e0e0;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+
+    .quick-note-form-group input:focus,
+    .quick-note-form-group select:focus,
+    .quick-note-form-group textarea:focus {
+      outline: none;
+      border-color: #4fc3f7;
+    }
+
+    .quick-note-form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .quick-note-category-buttons {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .quick-note-category-btn {
+      padding: 8px 12px;
+      border: 1px solid #444;
+      border-radius: 6px;
+      background: #2a2a3e;
+      color: #888;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-note-category-btn:hover {
+      border-color: #4fc3f7;
+      color: #e0e0e0;
+    }
+
+    .quick-note-category-btn.active {
+      background: linear-gradient(135deg, #4fc3f7, #0288d1);
+      border-color: #4fc3f7;
+      color: white;
+    }
+
+    .quick-note-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .quick-note-modal-footer button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-note-cancel {
+      background: rgba(255,255,255,0.1);
+      color: #888;
+    }
+
+    .quick-note-cancel:hover {
+      background: rgba(255,255,255,0.2);
+      color: #e0e0e0;
+    }
+
+    .quick-note-save {
+      background: linear-gradient(135deg, #4CAF50, #2e7d32);
+      color: white;
+    }
+
+    .quick-note-save:hover {
+      transform: scale(1.02);
+    }
+
+    .keyboard-hint {
+      font-size: 0.65rem;
+      color: #666;
+      background: rgba(255,255,255,0.1);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+
     /* NPC Name Generator */
     .npc-name-section {
       display: flex;
@@ -3935,6 +4102,10 @@
         width: auto;
       }
 
+      .keyboard-hint {
+        display: none;
+      }
+
       .preview-grid {
         grid-template-columns: 1fr;
       }
@@ -6038,6 +6209,38 @@
     </div>
   </div>
 
+  <!-- Quick Note Modal -->
+  <div id="quickNoteModal" class="quick-note-modal">
+    <div class="quick-note-modal-content">
+      <div class="quick-note-modal-header">
+        <h3>Quick Note</h3>
+        <button class="quick-note-modal-close" onclick="closeQuickNoteModal()">&times;</button>
+      </div>
+      <div class="quick-note-form-group">
+        <label>Title</label>
+        <input type="text" id="quickNoteModalTitle" placeholder="Note title...">
+      </div>
+      <div class="quick-note-form-group">
+        <label>Category</label>
+        <div class="quick-note-category-buttons">
+          <button class="quick-note-category-btn active" data-category="session" onclick="selectQuickNoteCategory('session')">[S] Session</button>
+          <button class="quick-note-category-btn" data-category="npc" onclick="selectQuickNoteCategory('npc')">[N] NPC</button>
+          <button class="quick-note-category-btn" data-category="location" onclick="selectQuickNoteCategory('location')">[L] Location</button>
+          <button class="quick-note-category-btn" data-category="plot" onclick="selectQuickNoteCategory('plot')">[P] Plot</button>
+          <button class="quick-note-category-btn" data-category="rules" onclick="selectQuickNoteCategory('rules')">[R] Rules</button>
+        </div>
+      </div>
+      <div class="quick-note-form-group">
+        <label>Content</label>
+        <textarea id="quickNoteModalContent" placeholder="Write your note here..."></textarea>
+      </div>
+      <div class="quick-note-modal-footer">
+        <button class="quick-note-cancel" onclick="closeQuickNoteModal()">Cancel</button>
+        <button class="quick-note-save" onclick="saveQuickNoteModal()">Save Note</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Room Session Modal -->
   <div id="roomSessionModal" class="session-modal" style="display: none;">
     <div class="session-modal-content">
@@ -6108,12 +6311,13 @@
     <div class="fear-compact">
       <span class="fear-label">FEAR</span>
       <div class="fear-btns">
-        <button class="fear-btn remove" onclick="adjustFear(-1)">-</button>
+        <button class="fear-btn remove" onclick="adjustFear(-1)" title="Spend Fear (Shift+Alt+Down)">-</button>
       </div>
       <div class="fear-value" id="fearDisplay">0</div>
       <div class="fear-btns">
-        <button class="fear-btn add" onclick="adjustFear(1)">+</button>
+        <button class="fear-btn add" onclick="adjustFear(1)" title="Add Fear (Shift+Alt+Up)">+</button>
       </div>
+      <span class="keyboard-hint" title="Shift+Alt+Up to add, Shift+Alt+Down to spend">Shift+Alt+Arrows</span>
     </div>
 
     <div class="countdown-section">
@@ -6158,12 +6362,8 @@
 
     <div class="quicknote-section">
       <span class="quicknote-label">NOTE</span>
-      <button class="quicknote-btn" id="quickNoteAddBtn" onclick="showQuickNoteInput()">+ Add</button>
-      <div class="quicknote-input-container" id="quickNoteInputContainer">
-        <input type="text" class="quicknote-input" id="quickNoteInput" placeholder="Enter quick note..." onkeydown="handleQuickNoteKeydown(event)">
-        <button class="quicknote-save-btn" onclick="saveQuickNote()">Save</button>
-        <button class="quicknote-cancel-btn" onclick="hideQuickNoteInput()">X</button>
-      </div>
+      <button class="quicknote-btn" onclick="openQuickNoteModal()">+ Add</button>
+      <span class="keyboard-hint">Alt+N</span>
     </div>
   </div>
 
@@ -12798,39 +12998,50 @@
       scheduleAutoSaveIfAvailable();
     }
 
-    // ========== Quick Note Functions ==========
-    function showQuickNoteInput() {
-      document.getElementById('quickNoteAddBtn').style.display = 'none';
-      document.getElementById('quickNoteInputContainer').classList.add('active');
-      document.getElementById('quickNoteInput').focus();
+    // ========== Quick Note Modal Functions ==========
+    let quickNoteSelectedCategory = 'session';
+
+    function openQuickNoteModal() {
+      const modal = document.getElementById('quickNoteModal');
+      modal.classList.add('visible');
+      document.getElementById('quickNoteModalTitle').value = '';
+      document.getElementById('quickNoteModalContent').value = '';
+      quickNoteSelectedCategory = 'session';
+      updateQuickNoteCategoryButtons();
+      document.getElementById('quickNoteModalTitle').focus();
     }
 
-    function hideQuickNoteInput() {
-      document.getElementById('quickNoteAddBtn').style.display = 'inline-block';
-      document.getElementById('quickNoteInputContainer').classList.remove('active');
-      document.getElementById('quickNoteInput').value = '';
+    function closeQuickNoteModal() {
+      const modal = document.getElementById('quickNoteModal');
+      modal.classList.remove('visible');
     }
 
-    function handleQuickNoteKeydown(event) {
-      if (event.key === 'Enter') {
-        saveQuickNote();
-      } else if (event.key === 'Escape') {
-        hideQuickNoteInput();
-      }
+    function selectQuickNoteCategory(category) {
+      quickNoteSelectedCategory = category;
+      updateQuickNoteCategoryButtons();
     }
 
-    function saveQuickNote() {
-      const noteText = document.getElementById('quickNoteInput').value.trim();
-      if (!noteText) {
-        hideQuickNoteInput();
+    function updateQuickNoteCategoryButtons() {
+      const buttons = document.querySelectorAll('.quick-note-category-btn');
+      buttons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.category === quickNoteSelectedCategory);
+      });
+    }
+
+    function saveQuickNoteModal() {
+      const title = document.getElementById('quickNoteModalTitle').value.trim();
+      const content = document.getElementById('quickNoteModalContent').value.trim();
+
+      if (!title && !content) {
+        closeQuickNoteModal();
         return;
       }
 
       const newNote = {
         id: 'note-' + Math.random().toString(36).substr(2, 9),
-        title: noteText.length > 50 ? noteText.substring(0, 50) + '...' : noteText,
-        category: 'session',
-        content: noteText,
+        title: title || (content.length > 50 ? content.substring(0, 50) + '...' : content),
+        category: quickNoteSelectedCategory,
+        content: content,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -12838,18 +13049,91 @@
       campaignNotes.push(newNote);
       renderNotesList();
       scheduleAutoSaveIfAvailable();
-      hideQuickNoteInput();
+      closeQuickNoteModal();
 
-      // Show brief confirmation
-      const btn = document.getElementById('quickNoteAddBtn');
-      const originalText = btn.textContent;
-      btn.textContent = 'Saved!';
-      btn.style.background = 'linear-gradient(135deg, #4CAF50, #2e7d32)';
-      setTimeout(() => {
-        btn.textContent = originalText;
-        btn.style.background = '';
-      }, 1500);
+      // Show brief confirmation via toast-style notification
+      showQuickNoteConfirmation();
     }
+
+    function showQuickNoteConfirmation() {
+      const categoryNames = { session: 'Session Note', npc: 'NPC', location: 'Location', plot: 'Plot Thread', rules: 'House Rule' };
+      const message = categoryNames[quickNoteSelectedCategory] || 'Note';
+
+      // Create toast element if it doesn't exist
+      let toast = document.getElementById('quickNoteToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'quickNoteToast';
+        toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #4CAF50, #2e7d32); color: white; padding: 12px 20px; border-radius: 6px; font-family: Cinzel, serif; font-size: 0.9rem; z-index: 10001; opacity: 0; transition: opacity 0.3s;';
+        document.body.appendChild(toast);
+      }
+
+      toast.textContent = `${message} saved!`;
+      toast.style.opacity = '1';
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+      }, 2000);
+    }
+
+    // Close quick note modal when clicking outside
+    document.getElementById('quickNoteModal')?.addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeQuickNoteModal();
+      }
+    });
+
+    // ========== Global Keyboard Shortcuts ==========
+    document.addEventListener('keydown', function(e) {
+      // Don't trigger shortcuts when typing in inputs/textareas (unless it's Escape)
+      const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+
+      // Alt+N - Open Quick Note Modal
+      if (e.altKey && !e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        const modal = document.getElementById('quickNoteModal');
+        if (modal.classList.contains('visible')) {
+          closeQuickNoteModal();
+        } else {
+          openQuickNoteModal();
+        }
+        return;
+      }
+
+      // Shift+Alt+Up - Add Fear
+      if (e.shiftKey && e.altKey && !e.ctrlKey && e.key === 'ArrowUp') {
+        e.preventDefault();
+        adjustFear(1);
+        return;
+      }
+
+      // Shift+Alt+Down - Spend Fear
+      if (e.shiftKey && e.altKey && !e.ctrlKey && e.key === 'ArrowDown') {
+        e.preventDefault();
+        adjustFear(-1);
+        return;
+      }
+
+      // Escape - Close Quick Note Modal
+      if (e.key === 'Escape') {
+        const quickNoteModal = document.getElementById('quickNoteModal');
+        if (quickNoteModal?.classList.contains('visible')) {
+          e.preventDefault();
+          closeQuickNoteModal();
+          return;
+        }
+      }
+
+      // Ctrl+Enter - Save note when in quick note modal
+      if (e.ctrlKey && e.key === 'Enter') {
+        const quickNoteModal = document.getElementById('quickNoteModal');
+        if (quickNoteModal?.classList.contains('visible')) {
+          e.preventDefault();
+          saveQuickNoteModal();
+          return;
+        }
+      }
+    });
 
     // ========== Character Management ==========
     function addNewCharacter() {
