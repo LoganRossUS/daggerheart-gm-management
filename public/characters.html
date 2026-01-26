@@ -983,12 +983,23 @@
         return updates;
       }
 
-      // Experiences
+      // Experiences - handle both string and number modifiers
       if (field.startsWith('experiences')) {
-        const experiences = character.experiences.map(exp => ({
-          description: exp.name,
-          modifier: parseInt(exp.modifier?.replace('+', '')) || 2
-        }));
+        const experiences = (character.experiences || []).map(exp => {
+          let mod = exp.modifier;
+          // Handle both string ("+2") and number (2) formats
+          if (typeof mod === 'string') {
+            mod = parseInt(mod.replace('+', '')) || 2;
+          } else if (typeof mod === 'number') {
+            mod = mod;
+          } else {
+            mod = 2;
+          }
+          return {
+            description: exp.name || '',
+            modifier: mod
+          };
+        });
         updates['experiences'] = experiences;
         return updates;
       }
