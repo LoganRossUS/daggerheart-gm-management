@@ -1,7 +1,14 @@
 /**
- * Daggerheart Character Sheet - Form-Based Design
+ * Daggerheart Character Sheet - Complete Rewrite CSS
  * Matches official paper character sheet layout
  * Mobile-first responsive design with print support
+ *
+ * Fixes:
+ * - Fixed dimensions to prevent UI jumping
+ * - Gold counter odometer styling
+ * - Better checkbox styling
+ * - Improved mobile responsiveness
+ * - Better print support
  */
 
 /* ============================================
@@ -9,6 +16,7 @@
    ============================================ */
 
 :root {
+  /* Class Colors */
   --color-bard: #8B2942;
   --color-druid: #2D5A3D;
   --color-guardian: #3D5A80;
@@ -19,14 +27,21 @@
   --color-warrior: #8B0000;
   --color-wizard: #1E3A5F;
 
+  /* Light Mode (Default) */
   --sheet-bg: #f4f1e9;
   --sheet-border: #2c2c2c;
   --sheet-text: #1a1a1a;
   --sheet-muted: #666;
   --sheet-accent: #8B4513;
-  --input-bg: rgba(255, 255, 255, 0.8);
+  --input-bg: rgba(255, 255, 255, 0.9);
   --input-border: #999;
   --section-bg: rgba(255, 255, 255, 0.5);
+  --section-header-bg: rgba(0, 0, 0, 0.1);
+
+  /* Touch Target Sizes */
+  --touch-target-min: 44px;
+  --checkbox-size: 32px;
+  --checkbox-size-mobile: 40px;
 }
 
 /* ============================================
@@ -41,12 +56,19 @@
   font-family: 'Cinzel', Georgia, serif;
   font-size: 14px;
   line-height: 1.4;
+  min-height: 100vh;
 }
 
-/* Dark mode override for app container */
 .character-sheet-form,
 .character-sheet-form * {
   box-sizing: border-box;
+}
+
+/* Prevent any unexpected layout shifts */
+.character-sheet-form input,
+.character-sheet-form textarea,
+.character-sheet-form button {
+  font-family: inherit;
 }
 
 /* ============================================
@@ -59,10 +81,12 @@
   padding: 1rem 1.25rem;
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 0.5rem;
-  align-items: start;
+  gap: 1rem;
+  align-items: center;
+  min-height: 120px;
 }
 
+/* Class-specific colors */
 .class-banner.bard { --class-color: var(--color-bard); }
 .class-banner.druid { --class-color: var(--color-druid); }
 .class-banner.guardian { --class-color: var(--color-guardian); }
@@ -80,6 +104,10 @@
   align-items: center;
 }
 
+/* ============================================
+   PORTRAIT
+   ============================================ */
+
 .portrait-section {
   flex-shrink: 0;
 }
@@ -93,12 +121,16 @@
   position: relative;
   background: rgba(0, 0, 0, 0.3);
   cursor: pointer;
+  /* Fixed size to prevent jumping */
+  min-width: 80px;
+  min-height: 80px;
 }
 
 .portrait-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .portrait-placeholder {
@@ -129,29 +161,16 @@
   transition: opacity 0.2s ease;
 }
 
-.portrait-container:hover .portrait-overlay {
+.portrait-container:hover .portrait-overlay,
+.portrait-container:focus .portrait-overlay {
   opacity: 1;
 }
 
-.portrait-edit-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+.portrait-edit-label {
   color: #fff;
-  padding: 0.3rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.65rem;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.portrait-edit-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.class-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 /* Portrait Modal */
@@ -219,6 +238,7 @@
   cursor: pointer;
   font-family: inherit;
   font-size: 0.9rem;
+  min-height: var(--touch-target-min);
 }
 
 .btn-portrait-upload:hover {
@@ -237,6 +257,7 @@
   border-radius: 4px;
   font-family: inherit;
   font-size: 0.85rem;
+  min-height: var(--touch-target-min);
 }
 
 .btn-portrait-apply {
@@ -247,6 +268,7 @@
   border-radius: 4px;
   cursor: pointer;
   font-family: inherit;
+  min-height: var(--touch-target-min);
 }
 
 .btn-portrait-remove {
@@ -258,6 +280,7 @@
   cursor: pointer;
   font-family: inherit;
   font-size: 0.85rem;
+  min-height: var(--touch-target-min);
 }
 
 .btn-portrait-close {
@@ -269,10 +292,21 @@
   cursor: pointer;
   font-family: inherit;
   font-size: 0.85rem;
+  min-height: var(--touch-target-min);
 }
 
 .btn-portrait-close:hover {
   background: rgba(0, 0, 0, 0.05);
+}
+
+/* ============================================
+   CLASS INFO & HEADER FIELDS
+   ============================================ */
+
+.class-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .class-banner-title {
@@ -291,19 +325,24 @@
 .class-banner-right {
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.header-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
-  text-align: right;
 }
 
 .header-field {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .header-field label {
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 1px;
   opacity: 0.9;
@@ -317,7 +356,8 @@
   border-radius: 4px;
   font-family: inherit;
   font-size: 0.9rem;
-  width: 140px;
+  width: 130px;
+  min-height: 32px;
 }
 
 .header-field input::placeholder {
@@ -330,11 +370,13 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* Level Display */
 .level-display {
   background: rgba(0, 0, 0, 0.3);
   padding: 0.5rem 1rem;
   border-radius: 6px;
   text-align: center;
+  min-width: 60px;
 }
 
 .level-number {
@@ -347,6 +389,30 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   opacity: 0.8;
+}
+
+/* Print Button */
+.print-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--touch-target-min);
+}
+
+.print-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.print-icon {
+  font-size: 1rem;
 }
 
 /* ============================================
@@ -391,11 +457,13 @@
   border: 1px solid var(--sheet-border);
   border-radius: 4px;
   overflow: hidden;
+  /* Fixed min-height to prevent jumping */
+  min-height: 50px;
 }
 
 .section-header {
-  background: rgba(0, 0, 0, 0.1);
-  padding: 0.5rem 0.75rem;
+  background: var(--section-header-bg);
+  padding: 0.6rem 0.75rem;
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -404,10 +472,50 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-height: 40px;
 }
 
 .section-content {
   padding: 0.75rem;
+}
+
+/* ============================================
+   COLLAPSIBLE SECTIONS
+   ============================================ */
+
+.collapsible-trigger {
+  cursor: pointer;
+  user-select: none;
+}
+
+.collapse-icon::after {
+  content: '\25BC'; /* Down arrow */
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+
+.collapsible-section.collapsed .collapse-icon::after {
+  transform: rotate(-90deg);
+}
+
+.collapsible-section.collapsed .section-content {
+  display: none;
+}
+
+/* On desktop, always show content */
+@media (min-width: 768px) {
+  .collapsible-section .section-content {
+    display: block !important;
+  }
+
+  .collapse-icon {
+    display: none;
+  }
+
+  .collapsible-trigger {
+    cursor: default;
+  }
 }
 
 /* ============================================
@@ -426,6 +534,10 @@
   border: 1px solid var(--sheet-border);
   border-radius: 4px;
   padding: 0.5rem;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .combat-stat-label {
@@ -436,12 +548,7 @@
   margin-bottom: 0.25rem;
 }
 
-.combat-stat-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.combat-stat input {
+.combat-stat-input {
   width: 100%;
   text-align: center;
   font-size: 1.5rem;
@@ -450,11 +557,46 @@
   background: transparent;
   font-family: inherit;
   padding: 0;
+  min-height: 36px;
 }
 
-.combat-stat input:focus {
+.combat-stat-input:focus {
   outline: none;
   background: rgba(139, 69, 19, 0.1);
+  border-radius: 4px;
+}
+
+.combat-stat-hint {
+  font-size: 0.6rem;
+  color: var(--sheet-muted);
+  margin-top: 0.25rem;
+}
+
+/* ============================================
+   PROFICIENCY DOTS
+   ============================================ */
+
+.proficiency-display {
+  display: flex;
+  justify-content: center;
+  padding: 0.25rem 0;
+}
+
+.proficiency-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.proficiency-dot {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--sheet-border);
+  border-radius: 50%;
+  background: #fff;
+}
+
+.proficiency-dot.filled {
+  background: var(--sheet-border);
 }
 
 /* ============================================
@@ -474,6 +616,7 @@
   padding: 0.5rem;
   text-align: center;
   position: relative;
+  min-height: 100px;
 }
 
 .trait-box.spellcast {
@@ -509,7 +652,7 @@
 }
 
 .trait-skills {
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   color: var(--sheet-muted);
   line-height: 1.3;
 }
@@ -520,7 +663,7 @@
   right: -6px;
   background: var(--sheet-accent);
   color: #fff;
-  font-size: 0.5rem;
+  font-size: 0.45rem;
   padding: 2px 4px;
   border-radius: 3px;
   text-transform: uppercase;
@@ -528,25 +671,39 @@
 }
 
 /* ============================================
-   DAMAGE THRESHOLDS
+   DAMAGE THRESHOLDS - CORRECTED
    ============================================ */
+
+.damage-info-text {
+  font-size: 0.75rem;
+  color: var(--sheet-muted);
+  text-align: center;
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
 
 .damage-thresholds {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
   text-align: center;
+  margin-bottom: 1rem;
 }
 
 .threshold-item {
   background: var(--input-bg);
-  border: 1px solid var(--sheet-border);
+  border: 2px solid var(--sheet-border);
   border-radius: 4px;
   padding: 0.5rem;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.threshold-item.minor {
+.threshold-item.minor-info {
   border-color: #4caf50;
+  background: rgba(76, 175, 80, 0.1);
 }
 
 .threshold-item.major {
@@ -558,10 +715,23 @@
 }
 
 .threshold-label {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 0.25rem;
+}
+
+.threshold-description {
+  font-size: 0.65rem;
+  color: var(--sheet-muted);
+  margin-bottom: 0.25rem;
+}
+
+.threshold-note {
+  font-size: 0.6rem;
+  color: var(--sheet-muted);
+  font-style: italic;
 }
 
 .threshold-input {
@@ -573,31 +743,34 @@
   border-radius: 3px;
   padding: 0.25rem;
   font-family: inherit;
+  margin: 0.25rem auto;
+  display: block;
 }
 
-.threshold-hint {
-  font-size: 0.55rem;
-  color: var(--sheet-muted);
-  margin-top: 0.25rem;
+.threshold-calculated {
+  font-size: 0.65rem;
+  color: var(--sheet-accent);
+  font-weight: 600;
 }
 
 /* ============================================
-   CHECKBOX ROWS (HP, STRESS, HOPE, ARMOR)
+   RESOURCE ROWS (HP, STRESS, HOPE, ARMOR)
    ============================================ */
 
-.checkbox-row {
+.resource-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  min-height: 44px;
 }
 
-.checkbox-row-label {
+.resource-label {
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
-  min-width: 60px;
+  min-width: 55px;
 }
 
 .checkbox-slots {
@@ -606,9 +779,20 @@
   flex-wrap: wrap;
 }
 
+.resource-count {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sheet-muted);
+  min-width: 35px;
+}
+
+/* ============================================
+   CHECKBOX SLOTS - FIXED: Touch-friendly, no fill-all
+   ============================================ */
+
 .checkbox-slot {
-  width: 28px;
-  height: 28px;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
   border: 2px solid var(--sheet-border);
   border-radius: 4px;
   cursor: pointer;
@@ -617,10 +801,18 @@
   align-items: center;
   justify-content: center;
   background: #fff;
+  padding: 0;
+  /* Touch-friendly */
+  min-width: var(--checkbox-size);
+  min-height: var(--checkbox-size);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-.checkbox-slot:hover {
+.checkbox-slot:hover,
+.checkbox-slot:focus {
   border-color: var(--sheet-accent);
+  outline: none;
 }
 
 .checkbox-slot.checked {
@@ -628,7 +820,7 @@
 }
 
 .checkbox-slot.checked::after {
-  content: 'X';
+  content: '\2717'; /* X mark */
   color: #fff;
   font-weight: 700;
   font-size: 0.9rem;
@@ -652,10 +844,15 @@
   background: #7c4dff;
 }
 
-/* Hope specific styling */
+/* Hope specific styling - Diamond shape */
 .checkbox-slot.hope {
   border-color: #ffd700;
-  border-radius: 50%;
+  border-radius: 0;
+  transform: rotate(45deg);
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
 }
 
 .checkbox-slot.hope.checked {
@@ -681,30 +878,107 @@
 }
 
 /* ============================================
-   PROFICIENCY DOTS
+   HOPE SECTION
    ============================================ */
 
-.proficiency-row {
+.hope-slots {
+  gap: 8px;
+}
+
+.hope-feature-section {
+  margin-top: 0.75rem;
+}
+
+.field-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.hope-feature-text {
+  min-height: 80px;
+  font-style: italic;
+}
+
+/* ============================================
+   EXPERIENCES
+   ============================================ */
+
+.experiences-list {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.5rem;
 }
 
-.proficiency-dots {
+.experience-row {
   display: flex;
-  gap: 4px;
+  gap: 0.5rem;
+  align-items: center;
 }
 
-.proficiency-dot {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--sheet-border);
-  border-radius: 50%;
+.experience-name {
+  flex: 1;
+  border: 1px solid var(--input-border);
+  border-radius: 3px;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  min-height: var(--touch-target-min);
+}
+
+.experience-modifier {
+  width: 50px;
+  text-align: center;
+  border: 1px solid var(--input-border);
+  border-radius: 3px;
+  padding: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
   background: #fff;
+  min-height: var(--touch-target-min);
 }
 
-.proficiency-dot.filled {
-  background: var(--sheet-border);
+.experience-remove {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #f44336;
+  border-radius: 50%;
+  background: transparent;
+  color: #f44336;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  min-width: 36px;
+}
+
+.experience-remove:hover {
+  background: #f44336;
+  color: #fff;
+}
+
+.add-btn {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px dashed #4caf50;
+  color: #4caf50;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 0.5rem;
+  min-height: var(--touch-target-min);
+  width: 100%;
+}
+
+.add-btn:hover {
+  background: rgba(76, 175, 80, 0.2);
 }
 
 /* ============================================
@@ -774,6 +1048,7 @@
   font-size: 0.85rem;
   font-family: inherit;
   background: #fff;
+  min-height: 32px;
 }
 
 .weapon-field input:focus {
@@ -783,6 +1058,19 @@
 
 .weapon-field.full-width {
   grid-column: span 2;
+}
+
+.inventory-weapons-section {
+  margin-top: 1rem;
+}
+
+.subsection-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+  color: var(--sheet-muted);
 }
 
 /* ============================================
@@ -798,93 +1086,47 @@
 
 .armor-fields {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
 }
 
-.armor-fields .full-width {
-  grid-column: span 3;
-}
-
-/* ============================================
-   EXPERIENCES
-   ============================================ */
-
-.experiences-list {
+.armor-field {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.2rem;
 }
 
-.experience-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
+.armor-field label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sheet-muted);
 }
 
-.experience-name {
-  flex: 1;
+.armor-field input {
   border: 1px solid var(--input-border);
   border-radius: 3px;
-  padding: 0.4rem 0.5rem;
-  font-size: 0.9rem;
-  font-family: inherit;
-}
-
-.experience-modifier {
-  width: 50px;
-  text-align: center;
-  border: 1px solid var(--input-border);
-  border-radius: 3px;
-  padding: 0.4rem;
-  font-size: 0.9rem;
-  font-weight: 600;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
   font-family: inherit;
   background: #fff;
+  min-height: 32px;
 }
 
-.experience-remove {
-  width: 28px;
-  height: 28px;
-  border: 1px solid #f44336;
-  border-radius: 50%;
-  background: transparent;
-  color: #f44336;
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.armor-field input:focus {
+  outline: none;
+  border-color: var(--sheet-accent);
 }
 
-.experience-remove:hover {
-  background: #f44336;
-  color: #fff;
-}
-
-.add-experience-btn {
-  background: rgba(76, 175, 80, 0.1);
-  border: 1px dashed #4caf50;
-  color: #4caf50;
-  padding: 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.85rem;
-  text-align: center;
-  margin-top: 0.25rem;
-}
-
-.add-experience-btn:hover {
-  background: rgba(76, 175, 80, 0.2);
+.armor-field.full-width {
+  grid-column: span 2;
 }
 
 /* ============================================
-   GOLD TRACKER
+   GOLD COUNTER - ODOMETER STYLE
    ============================================ */
 
-.gold-section {
+.gold-counter {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -893,46 +1135,70 @@
 .gold-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
 }
 
 .gold-label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  min-width: 65px;
+  min-width: 70px;
   color: var(--sheet-muted);
 }
 
-.gold-slots {
+.gold-controls {
   display: flex;
-  gap: 3px;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-.gold-slot {
-  width: 22px;
-  height: 22px;
+.gold-btn {
+  width: 36px;
+  height: 36px;
   border: 2px solid #d4a574;
-  border-radius: 3px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #ffecd2, #fcb69f);
+  color: #8B4513;
+  font-size: 1.25rem;
+  font-weight: 700;
   cursor: pointer;
-  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  min-width: 36px;
   transition: all 0.15s ease;
 }
 
-.gold-slot:hover {
-  border-color: #8B4513;
-}
-
-.gold-slot.checked {
+.gold-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #ffd700, #d4a574);
   border-color: #8B4513;
 }
 
-.gold-count {
-  font-size: 0.85rem;
-  font-weight: 600;
-  min-width: 25px;
+.gold-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gold-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  min-width: 40px;
   text-align: center;
+  background: #fff;
+  border: 2px solid #d4a574;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  color: #8B4513;
+}
+
+.gold-conversion-note {
+  font-size: 0.65rem;
+  color: var(--sheet-muted);
+  text-align: center;
+  margin-top: 0.5rem;
+  font-style: italic;
 }
 
 /* ============================================
@@ -961,37 +1227,8 @@
   min-height: 150px;
 }
 
-/* ============================================
-   COLLAPSIBLE SECTIONS (MOBILE)
-   ============================================ */
-
-.collapsible-trigger {
-  cursor: pointer;
-  user-select: none;
-}
-
-.collapsible-trigger::after {
-  content: '▼';
-  font-size: 0.7rem;
-  transition: transform 0.2s ease;
-}
-
-.collapsible-section.collapsed .collapsible-trigger::after {
-  transform: rotate(-90deg);
-}
-
-.collapsible-section.collapsed .section-content {
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .collapsible-section .section-content {
-    display: block !important;
-  }
-
-  .collapsible-trigger::after {
-    display: none;
-  }
+.class-features-text {
+  white-space: pre-wrap;
 }
 
 /* ============================================
@@ -999,8 +1236,28 @@
    ============================================ */
 
 .sheet-full-width {
-  grid-column: 1 / -1;
   padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .sheet-full-width {
+    padding: 1rem 2rem;
+  }
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+
+.sheet-footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.7rem;
+  color: var(--sheet-muted);
+  border-top: 1px solid var(--sheet-border);
 }
 
 /* ============================================
@@ -1019,32 +1276,139 @@
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .sheet-sync-indicator.visible {
   opacity: 1;
 }
 
-/* ============================================
-   PRINT BUTTON
-   ============================================ */
-
-.print-btn {
-  background: var(--sheet-border);
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 0.8rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.sync-icon {
+  font-size: 1rem;
 }
 
-.print-btn:hover {
-  background: #1a1a1a;
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 767px) {
+  .class-banner {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .class-banner-left {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .class-banner-right {
+    align-items: center;
+    margin-top: 0.75rem;
+  }
+
+  .header-fields-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .header-field input {
+    width: 100%;
+  }
+
+  .traits-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .combat-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .combat-stats-row .combat-stat:nth-child(3) {
+    grid-column: span 2;
+  }
+
+  .damage-thresholds {
+    grid-template-columns: 1fr;
+  }
+
+  .weapon-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .weapon-field.full-width {
+    grid-column: span 1;
+  }
+
+  .armor-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .armor-field.full-width {
+    grid-column: span 1;
+  }
+
+  /* Larger touch targets on mobile */
+  .checkbox-slot {
+    width: var(--checkbox-size-mobile);
+    height: var(--checkbox-size-mobile);
+    min-width: var(--checkbox-size-mobile);
+    min-height: var(--checkbox-size-mobile);
+  }
+
+  .checkbox-slot.hope {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  .gold-btn {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+.character-sheet-form.dark-mode {
+  --sheet-bg: #1a1a2e;
+  --sheet-border: #3d3d5c;
+  --sheet-text: #e0e0e0;
+  --sheet-muted: #999;
+  --input-bg: rgba(255, 255, 255, 0.08);
+  --input-border: #4a4a6a;
+  --section-bg: rgba(255, 255, 255, 0.05);
+  --section-header-bg: rgba(255, 255, 255, 0.05);
+}
+
+.character-sheet-form.dark-mode input,
+.character-sheet-form.dark-mode textarea {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+}
+
+.character-sheet-form.dark-mode input::placeholder,
+.character-sheet-form.dark-mode textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.character-sheet-form.dark-mode .checkbox-slot {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.character-sheet-form.dark-mode .gold-value {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.character-sheet-form.dark-mode .gold-btn {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(212, 165, 116, 0.3));
 }
 
 /* ============================================
@@ -1052,17 +1416,14 @@
    ============================================ */
 
 @media print {
-  /* Hide non-essential UI */
-  .header,
-  .wizard-nav,
+  /* Hide UI chrome */
   .print-btn,
   .sheet-sync-indicator,
-  .back-btn,
-  .edit-mode-btn,
-  .add-experience-btn,
+  .collapse-icon,
+  .add-btn,
   .experience-remove,
-  .add-weapon-btn,
-  button:not(.checkbox-slot):not(.gold-slot) {
+  .portrait-overlay,
+  .portrait-modal {
     display: none !important;
   }
 
@@ -1078,6 +1439,7 @@
     margin: 0 !important;
     box-shadow: none !important;
     background: #fff !important;
+    font-size: 10pt;
   }
 
   /* Force two-column layout */
@@ -1102,10 +1464,18 @@
     page-break-inside: avoid;
   }
 
+  /* Class banner colors */
+  .class-banner {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   /* Checkbox styling for print */
   .checkbox-slot {
-    border: 1px solid #000 !important;
+    border: 1.5pt solid #000 !important;
     background: #fff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .checkbox-slot.checked {
@@ -1117,140 +1487,25 @@
   }
 
   /* Input styling for print */
-  input, textarea {
+  input,
+  textarea {
     border: none !important;
     border-bottom: 1px solid #999 !important;
     background: transparent !important;
+    padding: 2pt !important;
   }
 
-  /* Class banner for print */
-  .class-banner {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+  /* Gold display for print */
+  .gold-btn {
+    display: none !important;
+  }
+
+  .gold-value {
+    border: 1pt solid #000 !important;
   }
 
   /* Footer */
-  .character-sheet-form::after {
-    content: 'Daggerheart Character Sheet';
-    display: block;
-    text-align: center;
-    font-size: 0.7rem;
-    color: #999;
+  .sheet-footer {
     margin-top: 1rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #ccc;
   }
-}
-
-/* ============================================
-   RESPONSIVE ADJUSTMENTS
-   ============================================ */
-
-@media (max-width: 767px) {
-  .class-banner {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-
-  .class-banner-right {
-    text-align: center;
-    margin-top: 0.75rem;
-  }
-
-  .header-field {
-    justify-content: center;
-  }
-
-  .traits-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .combat-stats-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .damage-thresholds {
-    grid-template-columns: 1fr;
-  }
-
-  .weapon-fields {
-    grid-template-columns: 1fr;
-  }
-
-  .weapon-field.full-width {
-    grid-column: span 1;
-  }
-
-  .armor-fields {
-    grid-template-columns: 1fr;
-  }
-
-  .armor-fields .full-width {
-    grid-column: span 1;
-  }
-
-  .checkbox-slot {
-    width: 32px;
-    height: 32px;
-  }
-
-  .gold-slot {
-    width: 26px;
-    height: 26px;
-  }
-}
-
-/* ============================================
-   DARK MODE (APP DEFAULT)
-   ============================================ */
-
-@media (prefers-color-scheme: dark) {
-  .character-sheet-form.use-dark-mode {
-    --sheet-bg: #1a1a2e;
-    --sheet-border: #3d3d5c;
-    --sheet-text: #e0e0e0;
-    --sheet-muted: #999;
-    --input-bg: rgba(255, 255, 255, 0.08);
-    --input-border: #4a4a6a;
-    --section-bg: rgba(255, 255, 255, 0.05);
-  }
-
-  .character-sheet-form.use-dark-mode input,
-  .character-sheet-form.use-dark-mode textarea {
-    background: rgba(255, 255, 255, 0.1);
-    color: #e0e0e0;
-  }
-
-  .character-sheet-form.use-dark-mode .checkbox-slot {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  .character-sheet-form.use-dark-mode .gold-slot {
-    background: rgba(255, 255, 255, 0.1);
-  }
-}
-
-/* Dark mode toggle class */
-.character-sheet-form.dark-mode {
-  --sheet-bg: #1a1a2e;
-  --sheet-border: #3d3d5c;
-  --sheet-text: #e0e0e0;
-  --sheet-muted: #999;
-  --input-bg: rgba(255, 255, 255, 0.08);
-  --input-border: #4a4a6a;
-  --section-bg: rgba(255, 255, 255, 0.05);
-}
-
-.character-sheet-form.dark-mode input,
-.character-sheet-form.dark-mode textarea {
-  background: rgba(255, 255, 255, 0.1);
-  color: #e0e0e0;
-}
-
-.character-sheet-form.dark-mode .checkbox-slot {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.character-sheet-form.dark-mode .gold-slot {
-  background: rgba(255, 255, 255, 0.1);
 }

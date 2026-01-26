@@ -630,12 +630,15 @@
         }
       }
 
-      // Gold
+      // Gold - Now uses numeric format (odometer style)
       if (char.gold) {
-        newChar.gold_handfuls = Array(8).fill(false).map((_, i) => i < (char.gold.handfuls || 0));
-        newChar.gold_bags = Array(8).fill(false).map((_, i) => i < (char.gold.bags || 0));
-        newChar.gold_chests = Array(Math.max(1, char.gold.chests || 0)).fill(false)
-          .map((_, i) => i < (char.gold.chests || 0));
+        newChar.gold_handfuls = char.gold.handfuls || 0;
+        newChar.gold_bags = char.gold.bags || 0;
+        newChar.gold_chests = char.gold.chests || 0;
+      } else {
+        newChar.gold_handfuls = 0;
+        newChar.gold_bags = 0;
+        newChar.gold_chests = 0;
       }
 
       // Populate class features if we have class data

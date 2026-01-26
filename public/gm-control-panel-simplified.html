@@ -13893,11 +13893,11 @@
         }
       }
 
+      // Gold - Now uses numeric format (odometer style)
       const gold = char.gold || {};
-      newChar.gold_handfuls = Array(8).fill(false).map((_, i) => i < (gold.handfuls || 0));
-      newChar.gold_bags = Array(8).fill(false).map((_, i) => i < (gold.bags || 0));
-      const chestCount = gold.chests || 0;
-      newChar.gold_chests = Array(Math.max(1, chestCount)).fill(false).map((_, i) => i < chestCount);
+      newChar.gold_handfuls = gold.handfuls || 0;
+      newChar.gold_bags = gold.bags || 0;
+      newChar.gold_chests = gold.chests || 0;
 
       if (newChar.class_name && CLASS_DATA[newChar.class_name]) {
         const classData = CLASS_DATA[newChar.class_name];

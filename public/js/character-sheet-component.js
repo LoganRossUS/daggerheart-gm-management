@@ -1,12 +1,23 @@
 /**
- * Daggerheart Character Sheet Component
- * Form-based character sheet matching official paper layout
- * Supports real-time sync and both dark/light modes
+ * Daggerheart Character Sheet Component - Complete Rewrite
+ *
+ * Fixes implemented:
+ * 1. Form input reset - Uses local state with blur/debounce sync
+ * 2. Checkbox multi-select - Simple toggle, one click = one toggle
+ * 3. UI jumping - Fixed dimensions, stable layouts
+ * 4. Image persistence - Proper state handling
+ * 5. Mobile functionality - Touch-friendly, all features work
+ * 6. Campaign-independent - Works with or without campaign
+ *
+ * Correct Daggerheart mechanics:
+ * - Damage thresholds: Only Major and Severe (Minor is implicit)
+ * - Gold: Odometer style with +/- buttons (not checkboxes)
+ * - Class-specific content auto-populated
  */
 
 import { CLASS_DATA, CLASS_COLORS, TRAIT_SKILLS, getProficiency, getTier } from './class-data.js';
 
-// Debounce function for real-time sync
+// Debounce helper - longer delay for text inputs
 function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
@@ -21,15 +32,15 @@ function debounce(func, wait) {
 
 // Escape HTML to prevent XSS
 function escapeHtml(text) {
-  if (!text) return '';
+  if (text === null || text === undefined) return '';
   const div = document.createElement('div');
-  div.textContent = text;
+  div.textContent = String(text);
   return div.innerHTML;
 }
 
 /**
  * CharacterSheetComponent Class
- * Manages the form-based character sheet rendering and updates
+ * Manages the form-based character sheet with proper state handling
  */
 export class CharacterSheetComponent {
   constructor(container, options = {}) {
@@ -41,27 +52,61 @@ export class CharacterSheetComponent {
       darkMode: true,
       readOnly: false,
       onUpdate: null,
-      debounceMs: 300,
+      debounceMs: 500, // Increased for better typing experience
       ...options
     };
 
     this.character = null;
     this.syncIndicator = null;
 
-    // Debounced update function
-    this.debouncedUpdate = debounce((field, value) => {
+    // Track which field is currently being edited to prevent sync overwrite
+    this.activeEditField = null;
+
+    // Track collapsed sections (persisted to localStorage)
+    this.collapsedSections = this.loadCollapsedSections();
+
+    // Debounced sync function - only syncs after typing stops
+    this.debouncedSync = debounce((field, value) => {
       if (this.options.onUpdate) {
         this.options.onUpdate(field, value, this.character);
-        this.showSyncIndicator();
+        this.showSyncIndicator('Saved');
       }
     }, this.options.debounceMs);
+  }
+
+  /**
+   * Load collapsed sections from localStorage
+   */
+  loadCollapsedSections() {
+    try {
+      const stored = localStorage.getItem('daggerheart_collapsed_sections');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  /**
+   * Save collapsed sections to localStorage
+   */
+  saveCollapsedSections() {
+    try {
+      localStorage.setItem('daggerheart_collapsed_sections', JSON.stringify(this.collapsedSections));
+    } catch {
+      // Ignore localStorage errors
+    }
   }
 
   /**
    * Load and render a character
    */
   render(character) {
-    this.character = character;
+    if (!character) {
+      console.error('CharacterSheetComponent: No character provided');
+      return;
+    }
+
+    this.character = { ...character };
 
     if (!this.container) {
       console.error('CharacterSheetComponent: Container not found');
@@ -72,7 +117,7 @@ export class CharacterSheetComponent {
     const darkModeClass = this.options.darkMode ? 'dark-mode' : '';
 
     this.container.innerHTML = `
-      <div class="character-sheet-form ${darkModeClass}">
+      <div class="character-sheet-form ${darkModeClass}" data-class="${classLower}">
         ${this.renderClassBanner(character)}
 
         <div class="sheet-body">
@@ -100,7 +145,14 @@ export class CharacterSheetComponent {
           ${this.renderNotes(character)}
         </div>
 
-        <div class="sheet-sync-indicator" id="sheetSyncIndicator">Saved</div>
+        <div class="sheet-footer">
+          Daggerheart &copy; Darrington Press 2025
+        </div>
+
+        <div class="sheet-sync-indicator" id="sheetSyncIndicator">
+          <span class="sync-icon">&#10003;</span>
+          <span class="sync-text">Saved</span>
+        </div>
       </div>
     `;
 
@@ -115,84 +167,85 @@ export class CharacterSheetComponent {
     const classData = CLASS_DATA[char.class_name] || {};
     const classLower = (char.class_name || '').toLowerCase();
     const portraitUrl = char.portrait || '';
+    const startingEvasion = classData.base_evasion || 10;
 
     return `
       <div class="class-banner ${classLower}">
         <div class="class-banner-left">
           <div class="portrait-section">
-            <div class="portrait-container" id="portraitContainer">
+            <div class="portrait-container" id="portraitContainer" data-action="open-portrait-modal">
               ${portraitUrl
                 ? `<img src="${escapeHtml(portraitUrl)}" alt="Character portrait" class="portrait-image" id="portraitImage">`
                 : `<div class="portrait-placeholder">
-                    <span class="portrait-placeholder-icon">👤</span>
+                    <span class="portrait-placeholder-icon">&#128100;</span>
                   </div>`
               }
               ${!this.options.readOnly ? `
               <div class="portrait-overlay">
-                <button type="button" class="portrait-edit-btn" data-action="edit-portrait">
-                  ${portraitUrl ? 'Change' : 'Add Photo'}
-                </button>
+                <span class="portrait-edit-label">${portraitUrl ? 'Change' : 'Add'}</span>
               </div>
               ` : ''}
             </div>
             <input type="file" id="portraitFileInput" accept="image/*" style="display: none;">
           </div>
           <div class="class-info">
-            <div class="class-banner-title">${escapeHtml(char.class_name) || 'Character'}</div>
+            <div class="class-banner-title">${escapeHtml(char.class_name) || 'CHARACTER'}</div>
             <div class="class-banner-domains">${escapeHtml(classData.domains || '')}</div>
           </div>
         </div>
         <div class="class-banner-right">
-          <div class="header-field">
-            <label>Name</label>
-            <input type="text"
-                   data-field="name"
-                   value="${escapeHtml(char.name)}"
-                   placeholder="Character Name"
-                   ${this.options.readOnly ? 'readonly' : ''}>
-          </div>
-          <div class="header-field">
-            <label>Pronouns</label>
-            <input type="text"
-                   data-field="pronouns"
-                   value="${escapeHtml(char.pronouns || '')}"
-                   placeholder="they/them"
-                   ${this.options.readOnly ? 'readonly' : ''}>
-          </div>
-          <div class="header-field">
-            <label>Heritage</label>
-            <input type="text"
-                   data-field="heritage"
-                   value="${escapeHtml(char.heritage || '')}"
-                   placeholder="Ancestry"
-                   ${this.options.readOnly ? 'readonly' : ''}>
-          </div>
-          <div class="header-field">
-            <label>Subclass</label>
-            <input type="text"
-                   data-field="subclass"
-                   value="${escapeHtml(char.subclass || '')}"
-                   placeholder="Subclass"
-                   ${this.options.readOnly ? 'readonly' : ''}>
+          <div class="header-fields-grid">
+            <div class="header-field">
+              <label>Name</label>
+              <input type="text"
+                     data-field="name"
+                     value="${escapeHtml(char.name)}"
+                     placeholder="Character Name"
+                     ${this.options.readOnly ? 'readonly' : ''}>
+            </div>
+            <div class="header-field">
+              <label>Pronouns</label>
+              <input type="text"
+                     data-field="pronouns"
+                     value="${escapeHtml(char.pronouns || '')}"
+                     placeholder="they/them"
+                     ${this.options.readOnly ? 'readonly' : ''}>
+            </div>
+            <div class="header-field">
+              <label>Heritage</label>
+              <input type="text"
+                     data-field="heritage"
+                     value="${escapeHtml(char.heritage || '')}"
+                     placeholder="Ancestry"
+                     ${this.options.readOnly ? 'readonly' : ''}>
+            </div>
+            <div class="header-field">
+              <label>Subclass</label>
+              <input type="text"
+                     data-field="subclass"
+                     value="${escapeHtml(char.subclass || '')}"
+                     placeholder="Subclass"
+                     ${this.options.readOnly ? 'readonly' : ''}>
+            </div>
           </div>
           <div class="level-display">
             <div class="level-number">${char.level || 1}</div>
             <div class="level-label">Level</div>
           </div>
-          <button class="print-btn" onclick="window.print()">
-            Print Sheet
+          <button type="button" class="print-btn" data-action="print">
+            <span class="print-icon">&#128424;</span> Print
           </button>
         </div>
       </div>
 
-      <!-- Portrait URL Modal -->
+      <!-- Portrait Modal -->
       <div class="portrait-modal" id="portraitModal">
         <div class="portrait-modal-content">
           <h3>Character Portrait</h3>
           <div class="portrait-modal-preview" id="portraitModalPreview">
             ${portraitUrl
               ? `<img src="${escapeHtml(portraitUrl)}" alt="Preview">`
-              : `<div class="portrait-placeholder"><span class="portrait-placeholder-icon">👤</span></div>`
+              : `<div class="portrait-placeholder"><span class="portrait-placeholder-icon">&#128100;</span></div>`
             }
           </div>
           <div class="portrait-modal-options">
@@ -219,30 +272,37 @@ export class CharacterSheetComponent {
    * Render Combat Stats Section
    */
   renderCombatStats(char) {
+    const classData = CLASS_DATA[char.class_name] || {};
     const proficiency = char.proficiency || getProficiency(char.level || 1);
+    const startingEvasion = classData.base_evasion;
 
     return `
-      <div class="sheet-section">
+      <div class="sheet-section" data-section="combat-stats">
         <div class="section-header">Combat Stats</div>
         <div class="section-content">
           <div class="combat-stats-row">
             <div class="combat-stat">
               <div class="combat-stat-label">Evasion</div>
               <input type="number"
+                     class="combat-stat-input"
                      data-field="evasion"
                      value="${char.evasion || 10}"
+                     min="0"
                      ${this.options.readOnly ? 'readonly' : ''}>
+              ${startingEvasion ? `<div class="combat-stat-hint">Start at ${startingEvasion}</div>` : ''}
             </div>
             <div class="combat-stat">
-              <div class="combat-stat-label">Armor</div>
+              <div class="combat-stat-label">Armor Score</div>
               <input type="number"
+                     class="combat-stat-input"
                      data-field="armor"
                      value="${char.armor || 0}"
+                     min="0"
                      ${this.options.readOnly ? 'readonly' : ''}>
             </div>
             <div class="combat-stat">
               <div class="combat-stat-label">Proficiency</div>
-              <div class="proficiency-row">
+              <div class="proficiency-display">
                 ${this.renderProficiencyDots(proficiency)}
               </div>
             </div>
@@ -253,12 +313,13 @@ export class CharacterSheetComponent {
   }
 
   /**
-   * Render Proficiency Dots
+   * Render Proficiency Dots (read-only display)
    */
   renderProficiencyDots(proficiency) {
     let dots = '';
     for (let i = 1; i <= 6; i++) {
-      dots += `<div class="proficiency-dot ${i <= proficiency ? 'filled' : ''}"></div>`;
+      const filled = i <= proficiency;
+      dots += `<div class="proficiency-dot ${filled ? 'filled' : ''}" title="+${proficiency}"></div>`;
     }
     return `<div class="proficiency-dots">${dots}</div>`;
   }
@@ -269,11 +330,13 @@ export class CharacterSheetComponent {
   renderTraits(char) {
     const traits = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
     const spellcastTrait = this.getSpellcastTrait(char);
+    const isCollapsed = this.collapsedSections['traits'];
 
     const traitBoxes = traits.map(trait => {
       const value = char[trait] || 0;
       const skills = TRAIT_SKILLS[trait] || [];
       const isSpellcast = trait === spellcastTrait;
+      const displayValue = value >= 0 ? `+${value}` : `${value}`;
 
       return `
         <div class="trait-box ${isSpellcast ? 'spellcast' : ''}">
@@ -282,7 +345,8 @@ export class CharacterSheetComponent {
           <input type="text"
                  class="trait-value-input"
                  data-field="${trait}"
-                 value="${value >= 0 ? '+' + value : value}"
+                 data-type="trait"
+                 value="${displayValue}"
                  ${this.options.readOnly ? 'readonly' : ''}>
           <div class="trait-skills">${skills.join(', ')}</div>
         </div>
@@ -290,8 +354,11 @@ export class CharacterSheetComponent {
     }).join('');
 
     return `
-      <div class="sheet-section collapsible-section">
-        <div class="section-header collapsible-trigger">Traits</div>
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="traits">
+        <div class="section-header collapsible-trigger" data-toggle="traits">
+          <span>Traits</span>
+          <span class="collapse-icon"></span>
+        </div>
         <div class="section-content">
           <div class="traits-grid">
             ${traitBoxes}
@@ -319,69 +386,88 @@ export class CharacterSheetComponent {
 
   /**
    * Render Damage & Health Section
+   * FIXED: Only Major and Severe thresholds (Minor is implicit - below Major)
    */
   renderDamageHealth(char) {
     const hpSlots = char.hp_slots || Array(6).fill(false);
     const stressSlots = char.stress_slots || Array(6).fill(false);
     const armorSlots = char.armor_slots || [];
+    const isCollapsed = this.collapsedSections['damage-health'];
+
+    // Calculate thresholds with level
+    const level = char.level || 1;
+    const majorBase = char.major_threshold || 0;
+    const severeBase = char.severe_threshold || 0;
 
     return `
-      <div class="sheet-section collapsible-section">
-        <div class="section-header collapsible-trigger">Damage & Health</div>
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="damage-health">
+        <div class="section-header collapsible-trigger" data-toggle="damage-health">
+          <span>Damage &amp; Health</span>
+          <span class="collapse-icon"></span>
+        </div>
         <div class="section-content">
-          <!-- Damage Thresholds -->
+          <!-- Damage Thresholds - CORRECTED: Only Major and Severe -->
+          <div class="damage-info-text">
+            Add your current level (+${level}) to your damage thresholds.
+          </div>
           <div class="damage-thresholds">
-            <div class="threshold-item minor">
+            <div class="threshold-item minor-info">
               <div class="threshold-label">Minor</div>
-              <input type="text"
-                     class="threshold-input"
-                     data-field="minor_damage"
-                     value="${escapeHtml(char.minor_damage || '0')}"
-                     ${this.options.readOnly ? 'readonly' : ''}>
+              <div class="threshold-description">Mark 1 HP</div>
+              <div class="threshold-note">Below Major</div>
             </div>
             <div class="threshold-item major">
               <div class="threshold-label">Major</div>
-              <input type="text"
+              <div class="threshold-description">Mark 2 HP</div>
+              <input type="number"
                      class="threshold-input"
-                     data-field="major_damage"
-                     value="${escapeHtml(char.major_damage || '0')}"
+                     data-field="major_threshold"
+                     value="${majorBase}"
+                     placeholder="5"
+                     min="0"
                      ${this.options.readOnly ? 'readonly' : ''}>
-              <div class="threshold-hint">+Level</div>
+              <div class="threshold-calculated">Total: ${majorBase + level}</div>
             </div>
             <div class="threshold-item severe">
               <div class="threshold-label">Severe</div>
-              <input type="text"
+              <div class="threshold-description">Mark 3 HP</div>
+              <input type="number"
                      class="threshold-input"
-                     data-field="severe_damage"
-                     value="${escapeHtml(char.severe_damage || '0')}"
+                     data-field="severe_threshold"
+                     value="${severeBase}"
+                     placeholder="11"
+                     min="0"
                      ${this.options.readOnly ? 'readonly' : ''}>
-              <div class="threshold-hint">+Level</div>
+              <div class="threshold-calculated">Total: ${severeBase + level}</div>
             </div>
           </div>
 
           <!-- HP Slots -->
-          <div class="checkbox-row" style="margin-top: 1rem;">
-            <span class="checkbox-row-label">HP</span>
+          <div class="resource-row">
+            <span class="resource-label">HP</span>
             <div class="checkbox-slots" data-slots="hp_slots">
               ${this.renderCheckboxSlots(hpSlots, 'hp')}
             </div>
+            <span class="resource-count">${this.countChecked(hpSlots)}/${hpSlots.length}</span>
           </div>
 
           <!-- Stress Slots -->
-          <div class="checkbox-row">
-            <span class="checkbox-row-label">Stress</span>
+          <div class="resource-row">
+            <span class="resource-label">Stress</span>
             <div class="checkbox-slots" data-slots="stress_slots">
               ${this.renderCheckboxSlots(stressSlots, 'stress')}
             </div>
+            <span class="resource-count">${this.countChecked(stressSlots)}/${stressSlots.length}</span>
           </div>
 
-          <!-- Armor Slots -->
+          <!-- Armor Slots (if any) -->
           ${armorSlots.length > 0 ? `
-          <div class="checkbox-row">
-            <span class="checkbox-row-label">Armor</span>
+          <div class="resource-row">
+            <span class="resource-label">Armor</span>
             <div class="checkbox-slots" data-slots="armor_slots">
               ${this.renderCheckboxSlots(armorSlots, 'armor')}
             </div>
+            <span class="resource-count">${this.countChecked(armorSlots)}/${armorSlots.length}</span>
           </div>
           ` : ''}
         </div>
@@ -394,25 +480,30 @@ export class CharacterSheetComponent {
    */
   renderHopeSection(char) {
     const hopeSlots = char.hope_slots || Array(6).fill(false);
+    const classData = CLASS_DATA[char.class_name] || {};
+    const hopeFeature = char.hope_feature || classData.hope_feature || '';
+    const isCollapsed = this.collapsedSections['hope'];
 
     return `
-      <div class="sheet-section collapsible-section">
-        <div class="section-header collapsible-trigger">Hope</div>
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="hope">
+        <div class="section-header collapsible-trigger" data-toggle="hope">
+          <span>Hope</span>
+          <span class="collapse-icon"></span>
+        </div>
         <div class="section-content">
-          <div class="checkbox-row">
-            <span class="checkbox-row-label">Hope</span>
-            <div class="checkbox-slots" data-slots="hope_slots">
+          <div class="resource-row">
+            <span class="resource-label">Hope</span>
+            <div class="checkbox-slots hope-slots" data-slots="hope_slots">
               ${this.renderCheckboxSlots(hopeSlots, 'hope')}
             </div>
+            <span class="resource-count">${this.countChecked(hopeSlots)}/${hopeSlots.length}</span>
           </div>
-          <div style="margin-top: 0.75rem;">
-            <label style="font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">
-              Hope Feature
-            </label>
-            <textarea class="text-area-field"
+          <div class="hope-feature-section">
+            <label class="field-label">Hope Feature (Spend 3 Hope)</label>
+            <textarea class="text-area-field hope-feature-text"
                       data-field="hope_feature"
-                      placeholder="Your class Hope feature..."
-                      ${this.options.readOnly ? 'readonly' : ''}>${escapeHtml(char.hope_feature || '')}</textarea>
+                      placeholder="${escapeHtml(classData.hope_feature || 'Your class Hope feature...')}"
+                      ${this.options.readOnly ? 'readonly' : ''}>${escapeHtml(hopeFeature)}</textarea>
           </div>
         </div>
       </div>
@@ -420,14 +511,18 @@ export class CharacterSheetComponent {
   }
 
   /**
-   * Render Checkbox Slots
+   * Render Checkbox Slots - FIXED: Simple toggle, one click = one toggle
    */
   renderCheckboxSlots(slots, type) {
     return slots.map((checked, index) => `
-      <div class="checkbox-slot ${type} ${checked ? 'checked' : ''}"
-           data-index="${index}"
-           data-type="${type}">
-      </div>
+      <button type="button"
+              class="checkbox-slot ${type} ${checked ? 'checked' : ''}"
+              data-index="${index}"
+              data-type="${type}"
+              data-action="toggle-checkbox"
+              aria-pressed="${checked}"
+              aria-label="${type} slot ${index + 1}">
+      </button>
     `).join('');
   }
 
@@ -439,6 +534,7 @@ export class CharacterSheetComponent {
       { name: '', modifier: '+2' },
       { name: '', modifier: '+2' }
     ];
+    const isCollapsed = this.collapsedSections['experiences'];
 
     const experienceRows = experiences.map((exp, index) => `
       <div class="experience-row" data-index="${index}">
@@ -454,20 +550,25 @@ export class CharacterSheetComponent {
                value="${escapeHtml(exp.modifier || '+2')}"
                ${this.options.readOnly ? 'readonly' : ''}>
         ${!this.options.readOnly ? `
-        <button class="experience-remove" data-action="remove-experience" data-index="${index}">×</button>
+        <button type="button" class="experience-remove" data-action="remove-experience" data-index="${index}" aria-label="Remove experience">
+          <span aria-hidden="true">&times;</span>
+        </button>
         ` : ''}
       </div>
     `).join('');
 
     return `
-      <div class="sheet-section collapsible-section">
-        <div class="section-header collapsible-trigger">Experiences</div>
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="experiences">
+        <div class="section-header collapsible-trigger" data-toggle="experiences">
+          <span>Experiences</span>
+          <span class="collapse-icon"></span>
+        </div>
         <div class="section-content">
-          <div class="experiences-list">
+          <div class="experiences-list" id="experiencesList">
             ${experienceRows}
           </div>
           ${!this.options.readOnly ? `
-          <button class="add-experience-btn" data-action="add-experience">+ Add Experience</button>
+          <button type="button" class="add-btn" data-action="add-experience">+ Add Experience</button>
           ` : ''}
         </div>
       </div>
@@ -479,27 +580,36 @@ export class CharacterSheetComponent {
    */
   renderWeapons(char) {
     const weapons = char.weapons || [];
+    const isCollapsed = this.collapsedSections['weapons'];
 
-    const primaryWeapon = weapons.find(w => w.is_primary);
-    const secondaryWeapon = weapons.find(w => w.is_secondary);
-    const inventoryWeapons = weapons.filter(w => !w.is_primary && !w.is_secondary && w.is_active);
+    const primaryWeapon = weapons.find(w => w.is_primary) || null;
+    const secondaryWeapon = weapons.find(w => w.is_secondary) || null;
+    const inventoryWeapons = weapons.filter(w => !w.is_primary && !w.is_secondary);
+
+    // Find indices
+    const primaryIndex = weapons.findIndex(w => w.is_primary);
+    const secondaryIndex = weapons.findIndex(w => w.is_secondary);
 
     return `
-      <div class="sheet-section collapsible-section expanded">
-        <div class="section-header collapsible-trigger">Active Weapons</div>
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="weapons">
+        <div class="section-header collapsible-trigger" data-toggle="weapons">
+          <span>Active Weapons</span>
+          <span class="collapse-icon"></span>
+        </div>
         <div class="section-content">
           <div class="weapons-section">
-            ${this.renderWeaponBlock(primaryWeapon, 'Primary', 0)}
-            ${this.renderWeaponBlock(secondaryWeapon, 'Secondary', 1)}
+            ${this.renderWeaponBlock(primaryWeapon, 'Primary', primaryIndex >= 0 ? primaryIndex : 0)}
+            ${this.renderWeaponBlock(secondaryWeapon, 'Secondary', secondaryIndex >= 0 ? secondaryIndex : 1)}
           </div>
 
           ${inventoryWeapons.length > 0 ? `
-          <div style="margin-top: 1rem;">
-            <div style="font-size: 0.75rem; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">
-              Inventory Weapons
-            </div>
+          <div class="inventory-weapons-section">
+            <div class="subsection-label">Inventory Weapons</div>
             <div class="weapons-section">
-              ${inventoryWeapons.map((w, i) => this.renderWeaponBlock(w, 'Inventory', i + 2)).join('')}
+              ${inventoryWeapons.map((w, i) => {
+                const actualIndex = weapons.indexOf(w);
+                return this.renderWeaponBlock(w, 'Inventory', actualIndex);
+              }).join('')}
             </div>
           </div>
           ` : ''}
@@ -512,8 +622,6 @@ export class CharacterSheetComponent {
    * Render a single weapon block
    */
   renderWeaponBlock(weapon, type, index) {
-    if (!weapon && type !== 'Primary' && type !== 'Secondary') return '';
-
     const w = weapon || { name: '', trait_and_range: '', damage: '', feature: '' };
     const typeClass = type.toLowerCase();
 
@@ -565,14 +673,18 @@ export class CharacterSheetComponent {
    */
   renderArmor(char) {
     const armor = char.active_armor || { name: '', base_thresholds: '', base_score: '', feature: '' };
+    const isCollapsed = this.collapsedSections['armor'];
 
     return `
-      <div class="sheet-section collapsible-section">
-        <div class="section-header collapsible-trigger">Active Armor</div>
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="armor">
+        <div class="section-header collapsible-trigger" data-toggle="armor">
+          <span>Active Armor</span>
+          <span class="collapse-icon"></span>
+        </div>
         <div class="section-content">
           <div class="armor-block">
             <div class="armor-fields">
-              <div class="weapon-field full-width">
+              <div class="armor-field full-width">
                 <label>Name</label>
                 <input type="text"
                        data-field="active_armor.name"
@@ -580,7 +692,7 @@ export class CharacterSheetComponent {
                        placeholder="Armor name"
                        ${this.options.readOnly ? 'readonly' : ''}>
               </div>
-              <div class="weapon-field">
+              <div class="armor-field">
                 <label>Base Thresholds</label>
                 <input type="text"
                        data-field="active_armor.base_thresholds"
@@ -588,7 +700,7 @@ export class CharacterSheetComponent {
                        placeholder="5/11"
                        ${this.options.readOnly ? 'readonly' : ''}>
               </div>
-              <div class="weapon-field">
+              <div class="armor-field">
                 <label>Armor Score</label>
                 <input type="text"
                        data-field="active_armor.base_score"
@@ -596,7 +708,7 @@ export class CharacterSheetComponent {
                        placeholder="3"
                        ${this.options.readOnly ? 'readonly' : ''}>
               </div>
-              <div class="weapon-field">
+              <div class="armor-field full-width">
                 <label>Feature</label>
                 <input type="text"
                        data-field="active_armor.feature"
@@ -615,9 +727,14 @@ export class CharacterSheetComponent {
    * Render Inventory Section
    */
   renderInventory(char) {
+    const isCollapsed = this.collapsedSections['inventory'];
+
     return `
-      <div class="sheet-section collapsible-section">
-        <div class="section-header collapsible-trigger">Inventory</div>
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="inventory">
+        <div class="section-header collapsible-trigger" data-toggle="inventory">
+          <span>Inventory</span>
+          <span class="collapse-icon"></span>
+        </div>
         <div class="section-content">
           <textarea class="text-area-field large"
                     data-field="inventory"
@@ -629,79 +746,68 @@ export class CharacterSheetComponent {
   }
 
   /**
-   * Render Gold Section
+   * Render Gold Section - FIXED: Odometer style with +/- buttons (not checkboxes)
    */
   renderGold(char) {
-    const handfuls = char.gold_handfuls || Array(8).fill(false);
-    const bags = char.gold_bags || Array(8).fill(false);
-    const chests = char.gold_chests || [false];
+    const handfuls = char.gold_handfuls || 0;
+    const bags = char.gold_bags || 0;
+    const chests = char.gold_chests || 0;
+    const isCollapsed = this.collapsedSections['gold'];
 
     return `
-      <div class="sheet-section collapsible-section">
-        <div class="section-header collapsible-trigger">Gold</div>
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="gold">
+        <div class="section-header collapsible-trigger" data-toggle="gold">
+          <span>Gold</span>
+          <span class="collapse-icon"></span>
+        </div>
         <div class="section-content">
-          <div class="gold-section">
+          <div class="gold-counter">
             <div class="gold-row">
               <span class="gold-label">Handfuls</span>
-              <div class="gold-slots" data-slots="gold_handfuls">
-                ${this.renderGoldSlots(handfuls, 'gold_handfuls')}
+              <div class="gold-controls">
+                <button type="button" class="gold-btn decrement" data-action="gold-decrement" data-tier="handfuls" ${this.options.readOnly ? 'disabled' : ''}>-</button>
+                <span class="gold-value" id="goldHandfuls">${handfuls}</span>
+                <button type="button" class="gold-btn increment" data-action="gold-increment" data-tier="handfuls" ${this.options.readOnly ? 'disabled' : ''}>+</button>
               </div>
-              <span class="gold-count">${this.countChecked(handfuls)}</span>
             </div>
             <div class="gold-row">
               <span class="gold-label">Bags</span>
-              <div class="gold-slots" data-slots="gold_bags">
-                ${this.renderGoldSlots(bags, 'gold_bags')}
+              <div class="gold-controls">
+                <button type="button" class="gold-btn decrement" data-action="gold-decrement" data-tier="bags" ${this.options.readOnly ? 'disabled' : ''}>-</button>
+                <span class="gold-value" id="goldBags">${bags}</span>
+                <button type="button" class="gold-btn increment" data-action="gold-increment" data-tier="bags" ${this.options.readOnly ? 'disabled' : ''}>+</button>
               </div>
-              <span class="gold-count">${this.countChecked(bags)}</span>
             </div>
             <div class="gold-row">
               <span class="gold-label">Chests</span>
-              <div class="gold-slots" data-slots="gold_chests">
-                ${this.renderGoldSlots(chests, 'gold_chests')}
+              <div class="gold-controls">
+                <button type="button" class="gold-btn decrement" data-action="gold-decrement" data-tier="chests" ${this.options.readOnly ? 'disabled' : ''}>-</button>
+                <span class="gold-value" id="goldChests">${chests}</span>
+                <button type="button" class="gold-btn increment" data-action="gold-increment" data-tier="chests" ${this.options.readOnly ? 'disabled' : ''}>+</button>
               </div>
-              <span class="gold-count">${this.countChecked(chests)}</span>
             </div>
           </div>
-          <p style="font-size: 0.7rem; color: var(--sheet-muted); margin-top: 0.5rem; text-align: center;">
-            10 handfuls = 1 bag, 10 bags = 1 chest
-          </p>
+          <p class="gold-conversion-note">10 handfuls = 1 bag, 10 bags = 1 chest</p>
         </div>
       </div>
     `;
   }
 
   /**
-   * Render Gold Slots
-   */
-  renderGoldSlots(slots, field) {
-    return slots.map((checked, index) => `
-      <div class="gold-slot ${checked ? 'checked' : ''}"
-           data-index="${index}"
-           data-field="${field}">
-      </div>
-    `).join('');
-  }
-
-  /**
-   * Count checked slots
-   */
-  countChecked(slots) {
-    return (slots || []).filter(Boolean).length;
-  }
-
-  /**
    * Render Class Features Section
    */
   renderClassFeatures(char) {
+    const classData = CLASS_DATA[char.class_name] || {};
+    const classFeatures = char.class_features || classData.class_features || '';
+
     return `
-      <div class="sheet-section">
+      <div class="sheet-section" data-section="class-features">
         <div class="section-header">Class Features</div>
         <div class="section-content">
-          <textarea class="text-area-field large"
+          <textarea class="text-area-field large class-features-text"
                     data-field="class_features"
-                    placeholder="Your class features and abilities..."
-                    ${this.options.readOnly ? 'readonly' : ''}>${escapeHtml(char.class_features || '')}</textarea>
+                    placeholder="${escapeHtml(classData.class_features || 'Your class features and abilities...')}"
+                    ${this.options.readOnly ? 'readonly' : ''}>${escapeHtml(classFeatures)}</textarea>
         </div>
       </div>
     `;
@@ -712,7 +818,7 @@ export class CharacterSheetComponent {
    */
   renderNotes(char) {
     return `
-      <div class="sheet-section">
+      <div class="sheet-section" data-section="notes">
         <div class="section-header">Notes</div>
         <div class="section-content">
           <textarea class="text-area-field large"
@@ -725,126 +831,488 @@ export class CharacterSheetComponent {
   }
 
   /**
-   * Attach event listeners
+   * Count checked slots
    */
-  attachEventListeners() {
-    if (this.options.readOnly) return;
-
-    // Input change listeners
-    this.container.querySelectorAll('input, textarea').forEach(input => {
-      input.addEventListener('input', (e) => {
-        const field = e.target.dataset.field;
-        if (field) {
-          let value = e.target.value;
-
-          // Handle trait inputs - convert "+2" to 2, "-1" to -1
-          if (['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'].includes(field)) {
-            value = parseInt(value.replace(/[^-\d]/g, '')) || 0;
-          }
-
-          this.updateField(field, value);
-        }
-      });
-    });
-
-    // Checkbox slot click listeners
-    this.container.querySelectorAll('.checkbox-slot').forEach(slot => {
-      slot.addEventListener('click', (e) => {
-        const index = parseInt(e.target.dataset.index);
-        const type = e.target.dataset.type;
-        this.toggleCheckboxSlot(type + '_slots', index);
-      });
-    });
-
-    // Gold slot click listeners
-    this.container.querySelectorAll('.gold-slot').forEach(slot => {
-      slot.addEventListener('click', (e) => {
-        const index = parseInt(e.target.dataset.index);
-        const field = e.target.dataset.field;
-        this.toggleGoldSlot(field, index);
-      });
-    });
-
-    // Collapsible section click listeners
-    this.container.querySelectorAll('.collapsible-trigger').forEach(trigger => {
-      trigger.addEventListener('click', () => {
-        const section = trigger.closest('.collapsible-section');
-        section.classList.toggle('collapsed');
-      });
-    });
-
-    // Add experience button
-    const addExpBtn = this.container.querySelector('[data-action="add-experience"]');
-    if (addExpBtn) {
-      addExpBtn.addEventListener('click', () => this.addExperience());
+  countChecked(slots) {
+    if (Array.isArray(slots)) {
+      return slots.filter(Boolean).length;
     }
-
-    // Remove experience buttons
-    this.container.querySelectorAll('[data-action="remove-experience"]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const index = parseInt(e.target.dataset.index);
-        this.removeExperience(index);
-      });
-    });
-
-    // Portrait handling
-    this.attachPortraitListeners();
+    // Handle numeric gold values
+    return slots || 0;
   }
 
   /**
-   * Attach portrait-related event listeners
+   * Attach all event listeners
    */
-  attachPortraitListeners() {
-    // Edit portrait button
-    const editPortraitBtn = this.container.querySelector('[data-action="edit-portrait"]');
-    if (editPortraitBtn) {
-      editPortraitBtn.addEventListener('click', () => this.openPortraitModal());
-    }
+  attachEventListeners() {
+    if (!this.container) return;
 
-    // Close modal button
-    const closeModalBtn = this.container.querySelector('[data-action="close-portrait-modal"]');
-    if (closeModalBtn) {
-      closeModalBtn.addEventListener('click', () => this.closePortraitModal());
-    }
+    // Use event delegation for better performance and to handle dynamic content
+    this.container.addEventListener('click', this.handleClick.bind(this));
+    this.container.addEventListener('input', this.handleInput.bind(this));
+    this.container.addEventListener('change', this.handleChange.bind(this));
+    this.container.addEventListener('blur', this.handleBlur.bind(this), true);
+    this.container.addEventListener('focus', this.handleFocus.bind(this), true);
 
-    // Upload portrait button
-    const uploadBtn = this.container.querySelector('[data-action="upload-portrait"]');
-    if (uploadBtn) {
-      uploadBtn.addEventListener('click', () => {
-        const fileInput = this.container.querySelector('#portraitFileInput');
-        if (fileInput) fileInput.click();
-      });
-    }
-
-    // File input change
+    // File input for portrait
     const fileInput = this.container.querySelector('#portraitFileInput');
     if (fileInput) {
       fileInput.addEventListener('change', (e) => this.handlePortraitFileUpload(e));
     }
+  }
 
-    // Apply URL button
-    const applyUrlBtn = this.container.querySelector('[data-action="apply-portrait-url"]');
-    if (applyUrlBtn) {
-      applyUrlBtn.addEventListener('click', () => this.applyPortraitUrl());
+  /**
+   * Handle click events (delegated)
+   */
+  handleClick(e) {
+    const target = e.target.closest('[data-action]');
+    if (!target) return;
+
+    const action = target.dataset.action;
+    e.preventDefault();
+    e.stopPropagation();
+
+    switch (action) {
+      case 'toggle-checkbox':
+        this.handleCheckboxToggle(target);
+        break;
+      case 'gold-increment':
+        this.handleGoldChange(target.dataset.tier, 1);
+        break;
+      case 'gold-decrement':
+        this.handleGoldChange(target.dataset.tier, -1);
+        break;
+      case 'add-experience':
+        this.addExperience();
+        break;
+      case 'remove-experience':
+        this.removeExperience(parseInt(target.dataset.index));
+        break;
+      case 'open-portrait-modal':
+        this.openPortraitModal();
+        break;
+      case 'close-portrait-modal':
+        this.closePortraitModal();
+        break;
+      case 'upload-portrait':
+        this.container.querySelector('#portraitFileInput')?.click();
+        break;
+      case 'apply-portrait-url':
+        this.applyPortraitUrl();
+        break;
+      case 'remove-portrait':
+        this.removePortrait();
+        break;
+      case 'print':
+        window.print();
+        break;
     }
 
-    // Remove portrait button
-    const removeBtn = this.container.querySelector('[data-action="remove-portrait"]');
-    if (removeBtn) {
-      removeBtn.addEventListener('click', () => this.removePortrait());
-    }
-
-    // Close modal when clicking outside
-    const modal = this.container.querySelector('#portraitModal');
-    if (modal) {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) this.closePortraitModal();
-      });
+    // Handle collapsible section toggle
+    const collapseTrigger = e.target.closest('.collapsible-trigger');
+    if (collapseTrigger) {
+      const sectionId = collapseTrigger.dataset.toggle;
+      this.toggleSection(sectionId);
     }
   }
 
   /**
-   * Open portrait modal
+   * Handle input events (for text fields - update local state only)
+   */
+  handleInput(e) {
+    const target = e.target;
+    if (!target.dataset.field) return;
+
+    const field = target.dataset.field;
+    let value = target.value;
+
+    // Mark this field as actively being edited
+    this.activeEditField = field;
+
+    // Handle trait inputs - convert "+2" to 2, "-1" to -1
+    if (target.dataset.type === 'trait') {
+      const parsed = parseInt(value.replace(/[^-\d]/g, '')) || 0;
+      // Don't update input value while typing, just store the parsed value
+      this.updateFieldLocal(field, parsed);
+    } else if (target.type === 'number') {
+      this.updateFieldLocal(field, parseInt(value) || 0);
+    } else {
+      this.updateFieldLocal(field, value);
+    }
+
+    // Show saving indicator
+    this.showSyncIndicator('Saving...');
+  }
+
+  /**
+   * Handle change events (for selects, checkboxes)
+   */
+  handleChange(e) {
+    const target = e.target;
+    if (!target.dataset.field) return;
+
+    const field = target.dataset.field;
+    let value;
+
+    if (target.type === 'checkbox') {
+      value = target.checked;
+    } else if (target.type === 'number') {
+      value = parseInt(target.value) || 0;
+    } else {
+      value = target.value;
+    }
+
+    this.updateFieldAndSync(field, value);
+  }
+
+  /**
+   * Handle focus events - track active field
+   */
+  handleFocus(e) {
+    const target = e.target;
+    if (target.dataset.field) {
+      this.activeEditField = target.dataset.field;
+    }
+  }
+
+  /**
+   * Handle blur events - sync on blur for text fields
+   */
+  handleBlur(e) {
+    const target = e.target;
+    if (!target.dataset.field) return;
+
+    const field = target.dataset.field;
+
+    // Clear active edit field
+    if (this.activeEditField === field) {
+      this.activeEditField = null;
+    }
+
+    // Format trait display on blur
+    if (target.dataset.type === 'trait') {
+      const value = this.getFieldValue(field) || 0;
+      target.value = value >= 0 ? `+${value}` : `${value}`;
+    }
+
+    // Sync to database on blur
+    const value = this.getFieldValue(field);
+    if (this.options.onUpdate) {
+      this.options.onUpdate(field, value, this.character);
+      this.showSyncIndicator('Saved');
+    }
+  }
+
+  /**
+   * Handle checkbox toggle - FIXED: Simple toggle, one click = one toggle
+   */
+  handleCheckboxToggle(target) {
+    if (this.options.readOnly) return;
+
+    const index = parseInt(target.dataset.index);
+    const type = target.dataset.type;
+    const slotsField = `${type}_slots`;
+
+    // Ensure slots array exists
+    if (!this.character[slotsField]) {
+      this.character[slotsField] = Array(6).fill(false);
+    }
+
+    const slots = [...this.character[slotsField]];
+
+    // FIXED: Simple toggle - just flip the clicked slot
+    slots[index] = !slots[index];
+
+    // Update character data
+    this.character[slotsField] = slots;
+    this.character.updated_at = new Date().toISOString();
+
+    // Update UI immediately
+    target.classList.toggle('checked', slots[index]);
+    target.setAttribute('aria-pressed', slots[index]);
+
+    // Update count display
+    const container = target.closest('.resource-row') || target.closest('.checkbox-row');
+    if (container) {
+      const countEl = container.querySelector('.resource-count');
+      if (countEl) {
+        countEl.textContent = `${this.countChecked(slots)}/${slots.length}`;
+      }
+    }
+
+    // Sync immediately for checkboxes
+    if (this.options.onUpdate) {
+      this.options.onUpdate(slotsField, slots, this.character);
+      this.showSyncIndicator('Saved');
+    }
+  }
+
+  /**
+   * Handle gold counter change - Odometer style with overflow
+   */
+  handleGoldChange(tier, delta) {
+    if (this.options.readOnly) return;
+
+    let handfuls = this.character.gold_handfuls || 0;
+    let bags = this.character.gold_bags || 0;
+    let chests = this.character.gold_chests || 0;
+
+    // Convert from old boolean array format if needed
+    if (Array.isArray(handfuls)) {
+      handfuls = handfuls.filter(Boolean).length;
+      this.character.gold_handfuls = handfuls;
+    }
+    if (Array.isArray(bags)) {
+      bags = bags.filter(Boolean).length;
+      this.character.gold_bags = bags;
+    }
+    if (Array.isArray(chests)) {
+      chests = chests.filter(Boolean).length;
+      this.character.gold_chests = chests;
+    }
+
+    switch (tier) {
+      case 'handfuls':
+        handfuls += delta;
+        // Handle overflow/underflow
+        if (handfuls > 9) {
+          handfuls = 0;
+          bags += 1;
+          if (bags > 9) {
+            bags = 0;
+            chests += 1;
+          }
+        } else if (handfuls < 0) {
+          if (bags > 0 || chests > 0) {
+            handfuls = 9;
+            bags -= 1;
+            if (bags < 0) {
+              bags = 9;
+              chests -= 1;
+            }
+          } else {
+            handfuls = 0;
+          }
+        }
+        break;
+
+      case 'bags':
+        bags += delta;
+        if (bags > 9) {
+          bags = 0;
+          chests += 1;
+        } else if (bags < 0) {
+          if (chests > 0) {
+            bags = 9;
+            chests -= 1;
+          } else {
+            bags = 0;
+          }
+        }
+        break;
+
+      case 'chests':
+        chests += delta;
+        if (chests < 0) chests = 0;
+        break;
+    }
+
+    // Update character
+    this.character.gold_handfuls = handfuls;
+    this.character.gold_bags = bags;
+    this.character.gold_chests = chests;
+    this.character.updated_at = new Date().toISOString();
+
+    // Update UI
+    const handfulsEl = this.container.querySelector('#goldHandfuls');
+    const bagsEl = this.container.querySelector('#goldBags');
+    const chestsEl = this.container.querySelector('#goldChests');
+
+    if (handfulsEl) handfulsEl.textContent = handfuls;
+    if (bagsEl) bagsEl.textContent = bags;
+    if (chestsEl) chestsEl.textContent = chests;
+
+    // Sync immediately
+    if (this.options.onUpdate) {
+      this.options.onUpdate('gold', {
+        handfuls: handfuls,
+        bags: bags,
+        chests: chests
+      }, this.character);
+      this.showSyncIndicator('Saved');
+    }
+  }
+
+  /**
+   * Toggle collapsible section
+   */
+  toggleSection(sectionId) {
+    const section = this.container.querySelector(`[data-section="${sectionId}"]`);
+    if (!section) return;
+
+    const isCollapsed = section.classList.toggle('collapsed');
+    this.collapsedSections[sectionId] = isCollapsed;
+    this.saveCollapsedSections();
+  }
+
+  /**
+   * Update field in local state only (no sync)
+   */
+  updateFieldLocal(field, value) {
+    this.setNestedValue(this.character, field, value);
+    this.character.updated_at = new Date().toISOString();
+
+    // Debounced sync
+    this.debouncedSync(field, value);
+  }
+
+  /**
+   * Update field and sync immediately
+   */
+  updateFieldAndSync(field, value) {
+    this.setNestedValue(this.character, field, value);
+    this.character.updated_at = new Date().toISOString();
+
+    if (this.options.onUpdate) {
+      this.options.onUpdate(field, value, this.character);
+      this.showSyncIndicator('Saved');
+    }
+  }
+
+  /**
+   * Get field value from character
+   */
+  getFieldValue(field) {
+    return this.getNestedValue(this.character, field);
+  }
+
+  /**
+   * Set nested value in object using dot notation
+   */
+  setNestedValue(obj, path, value) {
+    const parts = path.split('.');
+    let current = obj;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      const part = parts[i];
+      const nextPart = parts[i + 1];
+
+      // Handle array indices
+      if (!isNaN(parseInt(nextPart))) {
+        if (!current[part]) current[part] = [];
+        current = current[part];
+        // Ensure array element exists
+        if (!current[parseInt(nextPart)]) {
+          current[parseInt(nextPart)] = {};
+        }
+      } else {
+        if (!current[part]) current[part] = {};
+        current = current[part];
+      }
+    }
+
+    const lastPart = parts[parts.length - 1];
+    current[lastPart] = value;
+  }
+
+  /**
+   * Get nested value from object using dot notation
+   */
+  getNestedValue(obj, path) {
+    const parts = path.split('.');
+    let current = obj;
+
+    for (const part of parts) {
+      if (current === null || current === undefined) return undefined;
+      current = current[part];
+    }
+
+    return current;
+  }
+
+  /**
+   * Add a new experience
+   */
+  addExperience() {
+    if (!this.character.experiences) {
+      this.character.experiences = [];
+    }
+
+    const newExp = { name: '', modifier: '+2' };
+    this.character.experiences.push(newExp);
+    this.character.updated_at = new Date().toISOString();
+
+    // Instead of full re-render, just add the new row
+    const list = this.container.querySelector('#experiencesList');
+    if (list) {
+      const index = this.character.experiences.length - 1;
+      const row = document.createElement('div');
+      row.className = 'experience-row';
+      row.dataset.index = index;
+      row.innerHTML = `
+        <input type="text"
+               class="experience-name"
+               data-field="experiences.${index}.name"
+               value=""
+               placeholder="Experience description">
+        <input type="text"
+               class="experience-modifier"
+               data-field="experiences.${index}.modifier"
+               value="+2">
+        <button type="button" class="experience-remove" data-action="remove-experience" data-index="${index}" aria-label="Remove experience">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      `;
+      list.appendChild(row);
+
+      // Focus the new input
+      row.querySelector('.experience-name')?.focus();
+    }
+
+    // Sync
+    if (this.options.onUpdate) {
+      this.options.onUpdate('experiences', this.character.experiences, this.character);
+    }
+  }
+
+  /**
+   * Remove an experience
+   */
+  removeExperience(index) {
+    if (!this.character.experiences || index < 0 || index >= this.character.experiences.length) {
+      return;
+    }
+
+    this.character.experiences.splice(index, 1);
+    this.character.updated_at = new Date().toISOString();
+
+    // Remove from DOM and update indices
+    const list = this.container.querySelector('#experiencesList');
+    if (list) {
+      const row = list.querySelector(`[data-index="${index}"]`);
+      if (row) {
+        row.remove();
+      }
+
+      // Update indices for remaining rows
+      list.querySelectorAll('.experience-row').forEach((row, i) => {
+        row.dataset.index = i;
+        row.querySelector('.experience-name').dataset.field = `experiences.${i}.name`;
+        row.querySelector('.experience-modifier').dataset.field = `experiences.${i}.modifier`;
+        const removeBtn = row.querySelector('[data-action="remove-experience"]');
+        if (removeBtn) removeBtn.dataset.index = i;
+      });
+    }
+
+    // Sync
+    if (this.options.onUpdate) {
+      this.options.onUpdate('experiences', this.character.experiences, this.character);
+      this.showSyncIndicator('Saved');
+    }
+  }
+
+  /**
+   * Portrait modal handling
    */
   openPortraitModal() {
     const modal = this.container.querySelector('#portraitModal');
@@ -853,9 +1321,6 @@ export class CharacterSheetComponent {
     }
   }
 
-  /**
-   * Close portrait modal
-   */
   closePortraitModal() {
     const modal = this.container.querySelector('#portraitModal');
     if (modal) {
@@ -883,6 +1348,9 @@ export class CharacterSheetComponent {
     }
 
     try {
+      // Show loading state
+      this.showSyncIndicator('Uploading...');
+
       // Convert to data URL
       const dataUrl = await this.fileToDataUrl(file);
 
@@ -927,7 +1395,6 @@ export class CharacterSheetComponent {
       return;
     }
 
-    // Update character and UI
     this.updatePortrait(url);
   }
 
@@ -948,31 +1415,33 @@ export class CharacterSheetComponent {
     // Update the main portrait display
     const portraitContainer = this.container.querySelector('#portraitContainer');
     if (portraitContainer) {
+      const img = portraitContainer.querySelector('.portrait-image');
+      const placeholder = portraitContainer.querySelector('.portrait-placeholder');
+
       if (portraitUrl) {
-        const existingImg = portraitContainer.querySelector('.portrait-image');
-        if (existingImg) {
-          existingImg.src = portraitUrl;
-        } else {
-          // Replace placeholder with image
-          const placeholder = portraitContainer.querySelector('.portrait-placeholder');
-          if (placeholder) {
-            const img = document.createElement('img');
-            img.src = portraitUrl;
-            img.alt = 'Character portrait';
-            img.className = 'portrait-image';
-            img.id = 'portraitImage';
-            placeholder.replaceWith(img);
-          }
+        if (img) {
+          img.src = portraitUrl;
+        } else if (placeholder) {
+          const newImg = document.createElement('img');
+          newImg.src = portraitUrl;
+          newImg.alt = 'Character portrait';
+          newImg.className = 'portrait-image';
+          newImg.id = 'portraitImage';
+          placeholder.replaceWith(newImg);
         }
       } else {
-        // Replace image with placeholder
-        const existingImg = portraitContainer.querySelector('.portrait-image');
-        if (existingImg) {
-          const placeholder = document.createElement('div');
-          placeholder.className = 'portrait-placeholder';
-          placeholder.innerHTML = '<span class="portrait-placeholder-icon">👤</span>';
-          existingImg.replaceWith(placeholder);
+        if (img) {
+          const newPlaceholder = document.createElement('div');
+          newPlaceholder.className = 'portrait-placeholder';
+          newPlaceholder.innerHTML = '<span class="portrait-placeholder-icon">&#128100;</span>';
+          img.replaceWith(newPlaceholder);
         }
+      }
+
+      // Update edit label
+      const editLabel = portraitContainer.querySelector('.portrait-edit-label');
+      if (editLabel) {
+        editLabel.textContent = portraitUrl ? 'Change' : 'Add';
       }
     }
 
@@ -982,7 +1451,7 @@ export class CharacterSheetComponent {
       if (portraitUrl) {
         modalPreview.innerHTML = `<img src="${escapeHtml(portraitUrl)}" alt="Preview">`;
       } else {
-        modalPreview.innerHTML = '<div class="portrait-placeholder"><span class="portrait-placeholder-icon">👤</span></div>';
+        modalPreview.innerHTML = '<div class="portrait-placeholder"><span class="portrait-placeholder-icon">&#128100;</span></div>';
       }
     }
 
@@ -995,253 +1464,33 @@ export class CharacterSheetComponent {
     // Close modal
     this.closePortraitModal();
 
-    // Trigger update
-    this.debouncedUpdate('portrait', portraitUrl);
-  }
-
-  /**
-   * Get portrait URL for use as battle token
-   */
-  getPortraitUrl() {
-    return this.character?.portrait || null;
-  }
-
-  /**
-   * Update a field value
-   */
-  updateField(field, value) {
-    // Handle nested fields like "weapons.0.name" or "active_armor.name"
-    const parts = field.split('.');
-    let obj = this.character;
-
-    for (let i = 0; i < parts.length - 1; i++) {
-      const part = parts[i];
-      const nextPart = parts[i + 1];
-
-      // Handle array indices
-      if (!isNaN(parseInt(nextPart))) {
-        if (!obj[part]) obj[part] = [];
-        obj = obj[part];
-      } else {
-        if (!obj[part]) obj[part] = {};
-        obj = obj[part];
-      }
-    }
-
-    const lastPart = parts[parts.length - 1];
-    obj[lastPart] = value;
-
-    // Update timestamp
-    this.character.updated_at = new Date().toISOString();
-
-    // Trigger debounced update
-    this.debouncedUpdate(field, value);
-  }
-
-  /**
-   * Toggle checkbox slot
-   */
-  toggleCheckboxSlot(slotsField, index) {
-    if (!this.character[slotsField]) {
-      this.character[slotsField] = Array(6).fill(false);
-    }
-
-    const slots = this.character[slotsField];
-    const currentlyChecked = slots[index];
-
-    // If clicking on a checked slot, uncheck it and all after it
-    // If clicking on unchecked slot, check it and all before it
-    if (currentlyChecked) {
-      for (let i = index; i < slots.length; i++) {
-        slots[i] = false;
-      }
-    } else {
-      for (let i = 0; i <= index; i++) {
-        slots[i] = true;
-      }
-    }
-
-    // Re-render the slots
-    const container = this.container.querySelector(`[data-slots="${slotsField}"]`);
-    if (container) {
-      const type = slotsField.replace('_slots', '');
-      container.innerHTML = this.renderCheckboxSlots(slots, type);
-
-      // Re-attach listeners
-      container.querySelectorAll('.checkbox-slot').forEach(slot => {
-        slot.addEventListener('click', (e) => {
-          const idx = parseInt(e.target.dataset.index);
-          this.toggleCheckboxSlot(slotsField, idx);
-        });
-      });
-    }
-
-    this.character.updated_at = new Date().toISOString();
-    this.debouncedUpdate(slotsField, slots);
-  }
-
-  /**
-   * Toggle gold slot
-   */
-  toggleGoldSlot(field, index) {
-    if (!this.character[field]) {
-      const defaultLength = field === 'gold_chests' ? 1 : 8;
-      this.character[field] = Array(defaultLength).fill(false);
-    }
-
-    const slots = this.character[field];
-    const currentlyChecked = slots[index];
-
-    if (currentlyChecked) {
-      for (let i = index; i < slots.length; i++) {
-        slots[i] = false;
-      }
-    } else {
-      for (let i = 0; i <= index; i++) {
-        slots[i] = true;
-      }
-    }
-
-    // Handle overflow conversions
-    this.handleGoldOverflow();
-
-    // Re-render gold section
-    this.refreshGoldDisplay();
-
-    this.character.updated_at = new Date().toISOString();
-    this.debouncedUpdate('gold', {
-      handfuls: this.character.gold_handfuls,
-      bags: this.character.gold_bags,
-      chests: this.character.gold_chests
-    });
-  }
-
-  /**
-   * Handle gold overflow (10 handfuls = 1 bag, etc.)
-   */
-  handleGoldOverflow() {
-    const handfulsCount = this.countChecked(this.character.gold_handfuls);
-    const bagsCount = this.countChecked(this.character.gold_bags);
-
-    // Convert handfuls to bags
-    if (handfulsCount >= 10) {
-      const newBags = Math.floor(handfulsCount / 10);
-      const remainingHandfuls = handfulsCount % 10;
-
-      this.character.gold_handfuls = Array(8).fill(false);
-      for (let i = 0; i < remainingHandfuls && i < 8; i++) {
-        this.character.gold_handfuls[i] = true;
-      }
-
-      const totalBags = bagsCount + newBags;
-      for (let i = 0; i < totalBags && i < 8; i++) {
-        this.character.gold_bags[i] = true;
-      }
-    }
-
-    // Convert bags to chests
-    const newBagsCount = this.countChecked(this.character.gold_bags);
-    if (newBagsCount >= 10) {
-      const newChests = Math.floor(newBagsCount / 10);
-      const remainingBags = newBagsCount % 10;
-
-      this.character.gold_bags = Array(8).fill(false);
-      for (let i = 0; i < remainingBags && i < 8; i++) {
-        this.character.gold_bags[i] = true;
-      }
-
-      if (!this.character.gold_chests) {
-        this.character.gold_chests = [false];
-      }
-
-      const chestsCount = this.countChecked(this.character.gold_chests);
-      const totalChests = chestsCount + newChests;
-
-      // Expand chests array if needed
-      while (this.character.gold_chests.length < totalChests) {
-        this.character.gold_chests.push(false);
-      }
-
-      for (let i = 0; i < totalChests; i++) {
-        this.character.gold_chests[i] = true;
-      }
-    }
-  }
-
-  /**
-   * Refresh gold display after changes
-   */
-  refreshGoldDisplay() {
-    const goldFields = ['gold_handfuls', 'gold_bags', 'gold_chests'];
-
-    goldFields.forEach(field => {
-      const container = this.container.querySelector(`[data-slots="${field}"]`);
-      if (container) {
-        const slots = this.character[field] || (field === 'gold_chests' ? [false] : Array(8).fill(false));
-        container.innerHTML = this.renderGoldSlots(slots, field);
-
-        // Update count
-        const countEl = container.nextElementSibling;
-        if (countEl && countEl.classList.contains('gold-count')) {
-          countEl.textContent = this.countChecked(slots);
-        }
-
-        // Re-attach listeners
-        container.querySelectorAll('.gold-slot').forEach(slot => {
-          slot.addEventListener('click', (e) => {
-            const idx = parseInt(e.target.dataset.index);
-            this.toggleGoldSlot(field, idx);
-          });
-        });
-      }
-    });
-  }
-
-  /**
-   * Add a new experience
-   */
-  addExperience() {
-    if (!this.character.experiences) {
-      this.character.experiences = [];
-    }
-
-    this.character.experiences.push({ name: '', modifier: '+2' });
-    this.character.updated_at = new Date().toISOString();
-
-    // Re-render experiences section
-    this.render(this.character);
-
+    // Sync immediately for portrait changes
     if (this.options.onUpdate) {
-      this.options.onUpdate('experiences', this.character.experiences, this.character);
-    }
-  }
-
-  /**
-   * Remove an experience
-   */
-  removeExperience(index) {
-    if (this.character.experiences && this.character.experiences.length > index) {
-      this.character.experiences.splice(index, 1);
-      this.character.updated_at = new Date().toISOString();
-
-      // Re-render experiences section
-      this.render(this.character);
-
-      if (this.options.onUpdate) {
-        this.options.onUpdate('experiences', this.character.experiences, this.character);
-      }
+      this.options.onUpdate('portrait', portraitUrl, this.character);
+      this.showSyncIndicator('Saved');
     }
   }
 
   /**
    * Show sync indicator
    */
-  showSyncIndicator() {
+  showSyncIndicator(text = 'Saved') {
     if (this.syncIndicator) {
+      const textEl = this.syncIndicator.querySelector('.sync-text');
+      const iconEl = this.syncIndicator.querySelector('.sync-icon');
+
+      if (textEl) textEl.textContent = text;
+      if (iconEl) {
+        iconEl.innerHTML = text === 'Saving...' ? '&#8987;' : '&#10003;';
+      }
+
       this.syncIndicator.classList.add('visible');
-      setTimeout(() => {
+
+      // Auto-hide after delay
+      clearTimeout(this.syncIndicatorTimeout);
+      this.syncIndicatorTimeout = setTimeout(() => {
         this.syncIndicator.classList.remove('visible');
-      }, 1500);
+      }, 2000);
     }
   }
 
@@ -1253,11 +1502,47 @@ export class CharacterSheetComponent {
   }
 
   /**
-   * Update character externally (e.g., from Firebase)
+   * Update character from external source (e.g., Firebase sync)
+   * Only updates fields that aren't currently being edited
+   */
+  updateFromExternal(updates) {
+    if (!this.character) return;
+
+    for (const [field, value] of Object.entries(updates)) {
+      // Don't overwrite the field being actively edited
+      if (field === this.activeEditField) continue;
+
+      // Update local state
+      if (field.includes('.')) {
+        this.setNestedValue(this.character, field, value);
+      } else {
+        this.character[field] = value;
+      }
+
+      // Update DOM for simple fields
+      const input = this.container.querySelector(`[data-field="${field}"]`);
+      if (input) {
+        if (input.type === 'checkbox') {
+          input.checked = value;
+        } else {
+          input.value = value;
+        }
+      }
+    }
+  }
+
+  /**
+   * Set character (full replace) - use for initial load
    */
   setCharacter(character) {
-    this.character = character;
     this.render(character);
+  }
+
+  /**
+   * Get portrait URL for use as battle token
+   */
+  getPortraitUrl() {
+    return this.character?.portrait || null;
   }
 }
 
