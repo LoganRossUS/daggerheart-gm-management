@@ -6829,12 +6829,14 @@
     <div class="tab-panel" id="referenceTab">
       <div class="reference-container">
         <div class="reference-subtabs">
-          <button class="reference-subtab active" onclick="switchReferenceSubtab('srd')">SRD Reference</button>
-          <button class="reference-subtab" onclick="switchReferenceSubtab('notes')">Campaign Notes</button>
+          <button class="reference-subtab active" onclick="switchReferenceSubtab('notes')">Campaign Notes</button>
+          <button class="reference-subtab" onclick="switchReferenceSubtab('srd')">SRD Reference</button>
+          <button class="reference-subtab" onclick="switchReferenceSubtab('cards')">Cards</button>
+          <button class="reference-subtab" onclick="switchReferenceSubtab('quickref')">Quick Reference</button>
         </div>
 
         <!-- SRD Sub-panel -->
-        <div class="reference-subpanel active" id="srdSubpanel">
+        <div class="reference-subpanel" id="srdSubpanel">
           <div class="reference-header">
             <h3>Daggerheart SRD Reference</h3>
             <div class="reference-controls">
@@ -6856,7 +6858,7 @@
         </div>
 
         <!-- Campaign Notes Sub-panel -->
-        <div class="reference-subpanel" id="notesSubpanel">
+        <div class="reference-subpanel active" id="notesSubpanel">
           <div class="campaign-notes-container" id="notes-panel">
             <div class="notes-sidebar">
               <div class="notes-categories">
@@ -6896,6 +6898,50 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Cards Sub-panel -->
+        <div class="reference-subpanel" id="cardsSubpanel">
+          <div class="reference-header">
+            <h3>Daggerheart Cards Reference</h3>
+            <div class="reference-controls">
+              <a href="https://www.daggerheart.com/wp-content/uploads/2025/09/All-Cards-Printer-Friendly-9-09-25.pdf"
+                 target="_blank"
+                 class="reference-btn">
+                Open in New Tab
+              </a>
+            </div>
+          </div>
+          <div class="reference-pdf-wrapper">
+            <iframe
+              id="cardsPdfViewer"
+              src="https://www.daggerheart.com/wp-content/uploads/2025/09/All-Cards-Printer-Friendly-9-09-25.pdf"
+              class="reference-pdf-frame"
+              title="Daggerheart Cards PDF">
+            </iframe>
+          </div>
+        </div>
+
+        <!-- Quick Reference Sub-panel -->
+        <div class="reference-subpanel" id="quickrefSubpanel">
+          <div class="reference-header">
+            <h3>Daggerheart Quick Reference</h3>
+            <div class="reference-controls">
+              <a href="https://www.daggerheart.com/wp-content/uploads/2025/05/Additional-Sheets-Daggerheart-May212025.pdf"
+                 target="_blank"
+                 class="reference-btn">
+                Open in New Tab
+              </a>
+            </div>
+          </div>
+          <div class="reference-pdf-wrapper">
+            <iframe
+              id="quickrefPdfViewer"
+              src="https://www.daggerheart.com/wp-content/uploads/2025/05/Additional-Sheets-Daggerheart-May212025.pdf"
+              class="reference-pdf-frame"
+              title="Daggerheart Quick Reference PDF">
+            </iframe>
           </div>
         </div>
       </div>
