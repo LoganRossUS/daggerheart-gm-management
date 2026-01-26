@@ -361,6 +361,8 @@
     let currentCharacterId = null;
     let sheetComponent = null;
     let darkMode = true;
+    let pendingSave = false; // Track when we're saving to prevent re-render loops
+    let lastSaveTimestamp = 0; // Debounce external updates
 
     // DOM Elements
     const roomJoinScreen = document.getElementById('roomJoinScreen');
@@ -413,10 +415,18 @@
           characters = snapshot.val() || {};
           renderCharacterGrid();
 
-          // If viewing a character, update it
+          // If viewing a character, update it - BUT don't re-render if we just saved
+          // This prevents the race condition that causes multi-select checkbox bugs
           if (currentCharacterId && characters[currentCharacterId]) {
             if (sheetComponent) {
-              sheetComponent.setCharacter(convertCharacterFormat(characters[currentCharacterId]));
+              const now = Date.now();
+              // Skip if we recently saved (within 1 second) to avoid re-render loop
+              if (pendingSave || (now - lastSaveTimestamp < 1000)) {
+                pendingSave = false;
+                return;
+              }
+              // Don't do full re-render, use external update that respects active edits
+              sheetComponent.updateFromExternal(convertCharacterFormat(characters[currentCharacterId]));
             }
           }
         });
@@ -659,6 +669,10 @@
       if (!currentCharacterId || !charactersRef) return;
 
       try {
+        // Mark that we're saving - prevents re-render loop from Firebase callback
+        pendingSave = true;
+        lastSaveTimestamp = Date.now();
+
         // Convert back to old format for storage (to maintain compatibility)
         const updates = convertToStorageFormat(field, value, character);
 
@@ -667,6 +681,7 @@
         }
       } catch (error) {
         console.error('Error updating character:', error);
+        pendingSave = false;
       }
     }
 
@@ -742,11 +757,22 @@
 
       // Experiences
       if (field.startsWith('experiences')) {
-        // Rebuild experiences array
-        const experiences = character.experiences.map(exp => ({
-          description: exp.name,
-          modifier: parseInt(exp.modifier?.replace('+', '')) || 2
-        }));
+        // Rebuild experiences array - handle both string and number modifiers
+        const experiences = (character.experiences || []).map(exp => {
+          let mod = exp.modifier;
+          // Handle both string ("+2") and number (2) formats
+          if (typeof mod === 'string') {
+            mod = parseInt(mod.replace('+', '')) || 2;
+          } else if (typeof mod === 'number') {
+            mod = mod;
+          } else {
+            mod = 2;
+          }
+          return {
+            description: exp.name || '',
+            modifier: mod
+          };
+        });
         updates['experiences'] = experiences;
         return updates;
       }
@@ -801,6 +827,29 @@
       roomCodeInput.value = roomParam.toUpperCase();
       joinRoom();
     }
+
+    // Prevent browser shortcuts (like Ctrl+F/Cmd+F) from triggering when typing in form inputs
+    // This fixes the "find dialog appearing when typing in pronouns" bug
+    document.addEventListener('keydown', (e) => {
+      const target = e.target;
+      const isFormElement = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+
+      if (!isFormElement) return;
+
+      // List of keys to allow with Ctrl/Cmd (copy, paste, cut, undo, redo, select all)
+      const allowedShortcuts = ['c', 'v', 'x', 'z', 'y', 'a'];
+
+      // If Ctrl/Cmd is pressed with a key that's not in allowlist, prevent browser action
+      if ((e.ctrlKey || e.metaKey) && !allowedShortcuts.includes(e.key.toLowerCase())) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      // Prevent '/' from opening quick find in Firefox
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+        e.stopPropagation();
+      }
+    }, true); // Use capture phase to catch it early
   </script>
 </body>
 </html>

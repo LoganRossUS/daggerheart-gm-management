@@ -384,6 +384,8 @@
     let currentCharacterId = null;
     let editMode = false;
     let sheetComponent = null; // New form-based character sheet component
+    let pendingSave = false; // Track when we're saving to prevent re-render loops
+    let lastSaveTimestamp = 0; // Debounce external updates
 
     // Wizard State
     const wizardState = {
@@ -528,9 +530,17 @@
           characters = snapshot.val() || {};
           renderCharacterList();
 
-          // If we're viewing a character sheet, update it
+          // If we're viewing a character sheet, update it - BUT don't re-render if we just saved
+          // This prevents the race condition that causes multi-select checkbox bugs
           if (currentCharacterId && characters[currentCharacterId] && sheetComponent) {
-            sheetComponent.setCharacter(convertToNewFormat(characters[currentCharacterId]));
+            const now = Date.now();
+            // Skip if we recently saved (within 1 second) to avoid re-render loop
+            if (pendingSave || (now - lastSaveTimestamp < 1000)) {
+              pendingSave = false;
+              return;
+            }
+            // Don't do full re-render, use external update that respects active edits
+            sheetComponent.updateFromExternal(convertToNewFormat(characters[currentCharacterId]));
           }
         });
 
@@ -713,9 +723,17 @@
         const updatedChar = snapshot.val();
         if (updatedChar) {
           characters[id] = updatedChar;
-          // Update the component with new data
+          // Update the component with new data - BUT don't re-render if we just saved
+          // This prevents the race condition that causes multi-select checkbox bugs
           if (sheetComponent) {
-            sheetComponent.setCharacter(convertToNewFormat(updatedChar));
+            const now = Date.now();
+            // Skip if we recently saved (within 1 second) to avoid re-render loop
+            if (pendingSave || (now - lastSaveTimestamp < 1000)) {
+              pendingSave = false;
+              return;
+            }
+            // Don't do full re-render, use external update that respects active edits
+            sheetComponent.updateFromExternal(convertToNewFormat(updatedChar));
           }
         }
       });
@@ -866,6 +884,10 @@
       if (!currentCharacterId || !charactersRef) return;
 
       try {
+        // Mark that we're saving - prevents re-render loop from Firebase callback
+        pendingSave = true;
+        lastSaveTimestamp = Date.now();
+
         // Convert the field update back to old format for storage
         const updates = convertToOldFormat(field, value, character);
 
@@ -876,6 +898,7 @@
         showSyncIndicator();
       } catch (error) {
         console.error('Error updating character:', error);
+        pendingSave = false;
       }
     }
 
@@ -983,12 +1006,23 @@
         return updates;
       }
 
-      // Experiences
+      // Experiences - handle both string and number modifiers
       if (field.startsWith('experiences')) {
-        const experiences = character.experiences.map(exp => ({
-          description: exp.name,
-          modifier: parseInt(exp.modifier?.replace('+', '')) || 2
-        }));
+        const experiences = (character.experiences || []).map(exp => {
+          let mod = exp.modifier;
+          // Handle both string ("+2") and number (2) formats
+          if (typeof mod === 'string') {
+            mod = parseInt(mod.replace('+', '')) || 2;
+          } else if (typeof mod === 'number') {
+            mod = mod;
+          } else {
+            mod = 2;
+          }
+          return {
+            description: exp.name || '',
+            modifier: mod
+          };
+        });
         updates['experiences'] = experiences;
         return updates;
       }
@@ -3404,6 +3438,29 @@
 
     // Note: Old edit mode code removed - the new CharacterSheetComponent handles editing directly
     // All editing is now done inline through the form-based character sheet
+
+    // Prevent browser shortcuts (like Ctrl+F/Cmd+F) from triggering when typing in form inputs
+    // This fixes the "find dialog appearing when typing in pronouns" bug
+    document.addEventListener('keydown', (e) => {
+      const target = e.target;
+      const isFormElement = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+
+      if (!isFormElement) return;
+
+      // List of keys to allow with Ctrl/Cmd (copy, paste, cut, undo, redo, select all)
+      const allowedShortcuts = ['c', 'v', 'x', 'z', 'y', 'a'];
+
+      // If Ctrl/Cmd is pressed with a key that's not in allowlist, prevent browser action
+      if ((e.ctrlKey || e.metaKey) && !allowedShortcuts.includes(e.key.toLowerCase())) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      // Prevent '/' from opening quick find in Firefox
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+        e.stopPropagation();
+      }
+    }, true); // Use capture phase to catch it early
 
     // Initialize
     showScreen(roomJoinScreen);
