@@ -1,0 +1,1256 @@
+/**
+ * Daggerheart Character Sheet - Form-Based Design
+ * Matches official paper character sheet layout
+ * Mobile-first responsive design with print support
+ */
+
+/* ============================================
+   CSS VARIABLES & CLASS COLORS
+   ============================================ */
+
+:root {
+  --color-bard: #8B2942;
+  --color-druid: #2D5A3D;
+  --color-guardian: #3D5A80;
+  --color-ranger: #6B4423;
+  --color-rogue: #4A3B5C;
+  --color-seraph: #B8860B;
+  --color-sorcerer: #5B2C6F;
+  --color-warrior: #8B0000;
+  --color-wizard: #1E3A5F;
+
+  --sheet-bg: #f4f1e9;
+  --sheet-border: #2c2c2c;
+  --sheet-text: #1a1a1a;
+  --sheet-muted: #666;
+  --sheet-accent: #8B4513;
+  --input-bg: rgba(255, 255, 255, 0.8);
+  --input-border: #999;
+  --section-bg: rgba(255, 255, 255, 0.5);
+}
+
+/* ============================================
+   CHARACTER SHEET CONTAINER
+   ============================================ */
+
+.character-sheet-form {
+  background: var(--sheet-bg);
+  color: var(--sheet-text);
+  max-width: 1000px;
+  margin: 0 auto;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Dark mode override for app container */
+.character-sheet-form,
+.character-sheet-form * {
+  box-sizing: border-box;
+}
+
+/* ============================================
+   CLASS BANNER
+   ============================================ */
+
+.class-banner {
+  background: linear-gradient(135deg, var(--class-color, #3D5A80), rgba(0, 0, 0, 0.3));
+  color: #fff;
+  padding: 1rem 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.class-banner.bard { --class-color: var(--color-bard); }
+.class-banner.druid { --class-color: var(--color-druid); }
+.class-banner.guardian { --class-color: var(--color-guardian); }
+.class-banner.ranger { --class-color: var(--color-ranger); }
+.class-banner.rogue { --class-color: var(--color-rogue); }
+.class-banner.seraph { --class-color: var(--color-seraph); }
+.class-banner.sorcerer { --class-color: var(--color-sorcerer); }
+.class-banner.warrior { --class-color: var(--color-warrior); }
+.class-banner.wizard { --class-color: var(--color-wizard); }
+
+.class-banner-left {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+}
+
+.portrait-section {
+  flex-shrink: 0;
+}
+
+.portrait-container {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.portrait-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portrait-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.portrait-placeholder-icon {
+  font-size: 2rem;
+  opacity: 0.5;
+}
+
+.portrait-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.portrait-container:hover .portrait-overlay {
+  opacity: 1;
+}
+
+.portrait-edit-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.portrait-edit-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.class-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Portrait Modal */
+.portrait-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.portrait-modal.visible {
+  display: flex;
+}
+
+.portrait-modal-content {
+  background: var(--sheet-bg);
+  color: var(--sheet-text);
+  padding: 1.5rem;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.portrait-modal-content h3 {
+  margin: 0 0 1rem;
+  font-size: 1.2rem;
+}
+
+.portrait-modal-preview {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  overflow: hidden;
+  border: 3px solid var(--sheet-border);
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.portrait-modal-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portrait-modal-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.btn-portrait-upload {
+  background: var(--sheet-accent);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.btn-portrait-upload:hover {
+  opacity: 0.9;
+}
+
+.portrait-url-input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.portrait-url-input-group input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.btn-portrait-apply {
+  background: #4caf50;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-portrait-remove {
+  background: #f44336;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.btn-portrait-close {
+  background: transparent;
+  color: var(--sheet-muted);
+  border: 1px solid var(--sheet-muted);
+  padding: 0.5rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.btn-portrait-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.class-banner-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.class-banner-domains {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+.class-banner-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: right;
+}
+
+.header-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.header-field label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.9;
+}
+
+.header-field input {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  width: 140px;
+}
+
+.header-field input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.header-field input:focus {
+  outline: none;
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.level-display {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.level-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.level-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+/* ============================================
+   MAIN LAYOUT - TWO COLUMN
+   ============================================ */
+
+.sheet-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+@media (min-width: 768px) {
+  .sheet-body {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.sheet-column {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sheet-column-left {
+  border-right: none;
+}
+
+@media (min-width: 768px) {
+  .sheet-column-left {
+    border-right: 1px solid var(--sheet-border);
+  }
+}
+
+/* ============================================
+   SECTION STYLING
+   ============================================ */
+
+.sheet-section {
+  background: var(--section-bg);
+  border: 1px solid var(--sheet-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.section-header {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--sheet-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-content {
+  padding: 0.75rem;
+}
+
+/* ============================================
+   COMBAT STATS ROW
+   ============================================ */
+
+.combat-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.combat-stat {
+  background: var(--input-bg);
+  border: 1px solid var(--sheet-border);
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.combat-stat-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--sheet-muted);
+  margin-bottom: 0.25rem;
+}
+
+.combat-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.combat-stat input {
+  width: 100%;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  padding: 0;
+}
+
+.combat-stat input:focus {
+  outline: none;
+  background: rgba(139, 69, 19, 0.1);
+}
+
+/* ============================================
+   TRAIT BOXES - 2x3 GRID
+   ============================================ */
+
+.traits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.trait-box {
+  background: var(--input-bg);
+  border: 2px solid var(--sheet-border);
+  border-radius: 6px;
+  padding: 0.5rem;
+  text-align: center;
+  position: relative;
+}
+
+.trait-box.spellcast {
+  border-color: var(--sheet-accent);
+  box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.2);
+}
+
+.trait-name {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.25rem;
+}
+
+.trait-value-input {
+  width: 50px;
+  height: 36px;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background: #fff;
+  font-family: inherit;
+  margin: 0 auto 0.25rem;
+  display: block;
+}
+
+.trait-value-input:focus {
+  outline: none;
+  border-color: var(--sheet-accent);
+}
+
+.trait-skills {
+  font-size: 0.6rem;
+  color: var(--sheet-muted);
+  line-height: 1.3;
+}
+
+.spellcast-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--sheet-accent);
+  color: #fff;
+  font-size: 0.5rem;
+  padding: 2px 4px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================
+   DAMAGE THRESHOLDS
+   ============================================ */
+
+.damage-thresholds {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.threshold-item {
+  background: var(--input-bg);
+  border: 1px solid var(--sheet-border);
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.threshold-item.minor {
+  border-color: #4caf50;
+}
+
+.threshold-item.major {
+  border-color: #ff9800;
+}
+
+.threshold-item.severe {
+  border-color: #f44336;
+}
+
+.threshold-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.25rem;
+}
+
+.threshold-input {
+  width: 60px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: 1px solid var(--input-border);
+  border-radius: 3px;
+  padding: 0.25rem;
+  font-family: inherit;
+}
+
+.threshold-hint {
+  font-size: 0.55rem;
+  color: var(--sheet-muted);
+  margin-top: 0.25rem;
+}
+
+/* ============================================
+   CHECKBOX ROWS (HP, STRESS, HOPE, ARMOR)
+   ============================================ */
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.checkbox-row-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  min-width: 60px;
+}
+
+.checkbox-slots {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.checkbox-slot {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--sheet-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.checkbox-slot:hover {
+  border-color: var(--sheet-accent);
+}
+
+.checkbox-slot.checked {
+  background: var(--sheet-border);
+}
+
+.checkbox-slot.checked::after {
+  content: 'X';
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* HP specific styling */
+.checkbox-slot.hp {
+  border-color: #c62828;
+}
+
+.checkbox-slot.hp.checked {
+  background: #c62828;
+}
+
+/* Stress specific styling */
+.checkbox-slot.stress {
+  border-color: #7c4dff;
+}
+
+.checkbox-slot.stress.checked {
+  background: #7c4dff;
+}
+
+/* Hope specific styling */
+.checkbox-slot.hope {
+  border-color: #ffd700;
+  border-radius: 50%;
+}
+
+.checkbox-slot.hope.checked {
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+}
+
+.checkbox-slot.hope.checked::after {
+  content: '';
+}
+
+/* Armor specific styling */
+.checkbox-slot.armor {
+  border-color: #607d8b;
+  border-radius: 50%;
+}
+
+.checkbox-slot.armor.checked {
+  background: #607d8b;
+}
+
+.checkbox-slot.armor.checked::after {
+  content: '';
+}
+
+/* ============================================
+   PROFICIENCY DOTS
+   ============================================ */
+
+.proficiency-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.proficiency-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.proficiency-dot {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--sheet-border);
+  border-radius: 50%;
+  background: #fff;
+}
+
+.proficiency-dot.filled {
+  background: var(--sheet-border);
+}
+
+/* ============================================
+   WEAPON BLOCKS
+   ============================================ */
+
+.weapons-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.weapon-block {
+  background: var(--input-bg);
+  border: 1px solid var(--sheet-border);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.weapon-block.primary {
+  border-left: 4px solid var(--sheet-accent);
+}
+
+.weapon-block.secondary {
+  border-left: 4px solid #607d8b;
+}
+
+.weapon-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.weapon-type-badge {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.weapon-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.weapon-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.weapon-field label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sheet-muted);
+}
+
+.weapon-field input {
+  border: 1px solid var(--input-border);
+  border-radius: 3px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background: #fff;
+}
+
+.weapon-field input:focus {
+  outline: none;
+  border-color: var(--sheet-accent);
+}
+
+.weapon-field.full-width {
+  grid-column: span 2;
+}
+
+/* ============================================
+   ARMOR BLOCK
+   ============================================ */
+
+.armor-block {
+  background: var(--input-bg);
+  border: 1px solid var(--sheet-border);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.armor-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.armor-fields .full-width {
+  grid-column: span 3;
+}
+
+/* ============================================
+   EXPERIENCES
+   ============================================ */
+
+.experiences-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.experience-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.experience-name {
+  flex: 1;
+  border: 1px solid var(--input-border);
+  border-radius: 3px;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.experience-modifier {
+  width: 50px;
+  text-align: center;
+  border: 1px solid var(--input-border);
+  border-radius: 3px;
+  padding: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  background: #fff;
+}
+
+.experience-remove {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #f44336;
+  border-radius: 50%;
+  background: transparent;
+  color: #f44336;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.experience-remove:hover {
+  background: #f44336;
+  color: #fff;
+}
+
+.add-experience-btn {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px dashed #4caf50;
+  color: #4caf50;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 0.25rem;
+}
+
+.add-experience-btn:hover {
+  background: rgba(76, 175, 80, 0.2);
+}
+
+/* ============================================
+   GOLD TRACKER
+   ============================================ */
+
+.gold-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.gold-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gold-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  min-width: 65px;
+  color: var(--sheet-muted);
+}
+
+.gold-slots {
+  display: flex;
+  gap: 3px;
+}
+
+.gold-slot {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #d4a574;
+  border-radius: 3px;
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.15s ease;
+}
+
+.gold-slot:hover {
+  border-color: #8B4513;
+}
+
+.gold-slot.checked {
+  background: linear-gradient(135deg, #ffd700, #d4a574);
+  border-color: #8B4513;
+}
+
+.gold-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-width: 25px;
+  text-align: center;
+}
+
+/* ============================================
+   TEXT AREAS (CLASS FEATURES, NOTES, INVENTORY)
+   ============================================ */
+
+.text-area-field {
+  width: 100%;
+  min-height: 100px;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  resize: vertical;
+  background: #fff;
+}
+
+.text-area-field:focus {
+  outline: none;
+  border-color: var(--sheet-accent);
+}
+
+.text-area-field.large {
+  min-height: 150px;
+}
+
+/* ============================================
+   COLLAPSIBLE SECTIONS (MOBILE)
+   ============================================ */
+
+.collapsible-trigger {
+  cursor: pointer;
+  user-select: none;
+}
+
+.collapsible-trigger::after {
+  content: '▼';
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.collapsible-section.collapsed .collapsible-trigger::after {
+  transform: rotate(-90deg);
+}
+
+.collapsible-section.collapsed .section-content {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .collapsible-section .section-content {
+    display: block !important;
+  }
+
+  .collapsible-trigger::after {
+    display: none;
+  }
+}
+
+/* ============================================
+   FULL WIDTH SECTION
+   ============================================ */
+
+.sheet-full-width {
+  grid-column: 1 / -1;
+  padding: 1rem;
+}
+
+/* ============================================
+   SYNC INDICATOR
+   ============================================ */
+
+.sheet-sync-indicator {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: rgba(76, 175, 80, 0.95);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 100;
+}
+
+.sheet-sync-indicator.visible {
+  opacity: 1;
+}
+
+/* ============================================
+   PRINT BUTTON
+   ============================================ */
+
+.print-btn {
+  background: var(--sheet-border);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.print-btn:hover {
+  background: #1a1a1a;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  /* Hide non-essential UI */
+  .header,
+  .wizard-nav,
+  .print-btn,
+  .sheet-sync-indicator,
+  .back-btn,
+  .edit-mode-btn,
+  .add-experience-btn,
+  .experience-remove,
+  .add-weapon-btn,
+  button:not(.checkbox-slot):not(.gold-slot) {
+    display: none !important;
+  }
+
+  /* Reset page */
+  body {
+    background: #fff !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  .character-sheet-form {
+    max-width: 100% !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  /* Force two-column layout */
+  .sheet-body {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Show all collapsible sections */
+  .collapsible-section .section-content {
+    display: block !important;
+  }
+
+  /* Page settings */
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
+
+  /* Prevent page breaks inside sections */
+  .sheet-section {
+    page-break-inside: avoid;
+  }
+
+  /* Checkbox styling for print */
+  .checkbox-slot {
+    border: 1px solid #000 !important;
+    background: #fff !important;
+  }
+
+  .checkbox-slot.checked {
+    background: #000 !important;
+  }
+
+  .checkbox-slot.checked::after {
+    color: #fff !important;
+  }
+
+  /* Input styling for print */
+  input, textarea {
+    border: none !important;
+    border-bottom: 1px solid #999 !important;
+    background: transparent !important;
+  }
+
+  /* Class banner for print */
+  .class-banner {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Footer */
+  .character-sheet-form::after {
+    content: 'Daggerheart Character Sheet';
+    display: block;
+    text-align: center;
+    font-size: 0.7rem;
+    color: #999;
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #ccc;
+  }
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 767px) {
+  .class-banner {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .class-banner-right {
+    text-align: center;
+    margin-top: 0.75rem;
+  }
+
+  .header-field {
+    justify-content: center;
+  }
+
+  .traits-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .combat-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .damage-thresholds {
+    grid-template-columns: 1fr;
+  }
+
+  .weapon-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .weapon-field.full-width {
+    grid-column: span 1;
+  }
+
+  .armor-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .armor-fields .full-width {
+    grid-column: span 1;
+  }
+
+  .checkbox-slot {
+    width: 32px;
+    height: 32px;
+  }
+
+  .gold-slot {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* ============================================
+   DARK MODE (APP DEFAULT)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .character-sheet-form.use-dark-mode {
+    --sheet-bg: #1a1a2e;
+    --sheet-border: #3d3d5c;
+    --sheet-text: #e0e0e0;
+    --sheet-muted: #999;
+    --input-bg: rgba(255, 255, 255, 0.08);
+    --input-border: #4a4a6a;
+    --section-bg: rgba(255, 255, 255, 0.05);
+  }
+
+  .character-sheet-form.use-dark-mode input,
+  .character-sheet-form.use-dark-mode textarea {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+  }
+
+  .character-sheet-form.use-dark-mode .checkbox-slot {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .character-sheet-form.use-dark-mode .gold-slot {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Dark mode toggle class */
+.character-sheet-form.dark-mode {
+  --sheet-bg: #1a1a2e;
+  --sheet-border: #3d3d5c;
+  --sheet-text: #e0e0e0;
+  --sheet-muted: #999;
+  --input-bg: rgba(255, 255, 255, 0.08);
+  --input-border: #4a4a6a;
+  --section-bg: rgba(255, 255, 255, 0.05);
+}
+
+.character-sheet-form.dark-mode input,
+.character-sheet-form.dark-mode textarea {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+}
+
+.character-sheet-form.dark-mode .checkbox-slot {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.character-sheet-form.dark-mode .gold-slot {
+  background: rgba(255, 255, 255, 0.1);
+}

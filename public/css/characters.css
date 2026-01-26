@@ -57,7 +57,8 @@ h4 { font-size: 1.1rem; }
   color: #ffd700;
 }
 
-.room-code-display {
+.room-code-display,
+.room-code-badge {
   background: rgba(179, 136, 255, 0.2);
   padding: 0.5rem 1rem;
   border-radius: 8px;

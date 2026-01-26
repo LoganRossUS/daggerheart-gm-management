@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Character Sheet | Daggerheart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/character-sheet-form.css">
+  <style>
+    /* Page wrapper styles */
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Cinzel', serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* Header */
+    .page-header {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .page-title {
+      font-size: 1.25rem;
+      color: #ffd700;
+    }
+
+    .back-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .room-code-display {
+      background: rgba(179, 136, 255, 0.2);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #b388ff;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+    }
+
+    .mode-toggle {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+    }
+
+    .mode-toggle:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Main content area */
+    .sheet-container {
+      padding: 1rem;
+      padding-bottom: 100px;
+    }
+
+    /* Room join screen */
+    .room-join-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .room-join-screen h1 {
+      color: #ffd700;
+      margin-bottom: 2rem;
+    }
+
+    .room-code-input {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(179, 136, 255, 0.5);
+      color: #fff;
+      padding: 1rem 1.5rem;
+      font-size: 1.5rem;
+      text-transform: uppercase;
+      text-align: center;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 300px;
+      font-family: inherit;
+      letter-spacing: 2px;
+      transition: all 0.2s ease;
+    }
+
+    .room-code-input:focus {
+      outline: none;
+      border-color: #b388ff;
+      box-shadow: 0 0 20px rgba(179, 136, 255, 0.3);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #7c4dff, #4a0e4e);
+      color: #fff;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(124, 77, 255, 0.4);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #1a1a2e;
+    }
+
+    .room-error {
+      color: #f44336;
+      margin-top: 1rem;
+    }
+
+    /* Character selection */
+    .character-select-screen {
+      padding: 1rem;
+    }
+
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .character-card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 215, 0, 0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .character-card:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 215, 0, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .character-card-name {
+      font-size: 1.2rem;
+      color: #ffd700;
+      margin-bottom: 0.25rem;
+    }
+
+    .character-card-class {
+      color: #b388ff;
+      font-size: 0.9rem;
+    }
+
+    .character-card-level {
+      background: linear-gradient(135deg, #7c4dff, #4a0e4e);
+      color: #fff;
+      padding: 0.2rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      display: inline-block;
+      margin-top: 0.5rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #b388ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Print adjustments */
+    @media print {
+      .page-header {
+        display: none !important;
+      }
+
+      body {
+        background: #fff !important;
+      }
+
+      .sheet-container {
+        padding: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Room Join Screen -->
+  <div id="roomJoinScreen" class="room-join-screen">
+    <h1>Daggerheart Character Sheet</h1>
+    <p style="color: rgba(255,255,255,0.7); margin-bottom: 2rem;">Enter your room code to view your character</p>
+    <input
+      type="text"
+      id="roomCodeInput"
+      class="room-code-input"
+      placeholder="Room Code"
+      maxlength="20"
+      autocomplete="off"
+      autocapitalize="characters"
+    >
+    <button id="joinRoomBtn" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%; max-width: 300px;">
+      Join Room
+    </button>
+    <p id="roomError" class="room-error hidden"></p>
+    <p style="color: rgba(255,255,255,0.5); margin-top: 2rem; font-size: 0.9rem;">
+      <a href="/characters.html" style="color: #b388ff;">Return to Character Portal</a>
+    </p>
+  </div>
+
+  <!-- Character Selection Screen -->
+  <div id="characterSelectScreen" class="hidden">
+    <header class="page-header">
+      <a href="#" id="backToJoinBtn" class="back-btn">← Leave</a>
+      <span class="page-title">Select Character</span>
+      <span id="roomCodeDisplay" class="room-code-display"></span>
+    </header>
+    <div class="character-select-screen">
+      <div id="characterGrid" class="character-grid">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          Loading characters...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Character Sheet Screen -->
+  <div id="characterSheetScreen" class="hidden">
+    <header class="page-header">
+      <a href="#" id="backToSelectBtn" class="back-btn">← Back</a>
+      <span id="sheetTitle" class="page-title">Character Sheet</span>
+      <div class="header-actions">
+        <button id="darkModeToggle" class="mode-toggle">Light Mode</button>
+        <span id="sheetRoomCode" class="room-code-display"></span>
+      </div>
+    </header>
+    <div class="sheet-container">
+      <div id="characterSheetContainer"></div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+
+  <script type="module">
+    import { CharacterSheetComponent } from '/js/character-sheet-component.js';
+    import { CLASS_DATA, createDefaultCharacter, populateFromClass } from '/js/class-data.js';
+
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyA6GYyYWlW1ybQ07-K13u4YUaNFcV66Zj0",
+      authDomain: "daggerheart-8bdc1.firebaseapp.com",
+      databaseURL: "https://daggerheart-8bdc1-default-rtdb.firebaseio.com",
+      projectId: "daggerheart-8bdc1",
+      storageBucket: "daggerheart-8bdc1.firebasestorage.app",
+      messagingSenderId: "885297626381",
+      appId: "1:885297626381:web:9caf2af85fb793f819c444"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // App State
+    let currentRoomCode = null;
+    let roomRef = null;
+    let charactersRef = null;
+    let currentCharacterRef = null;
+    let characters = {};
+    let currentCharacterId = null;
+    let sheetComponent = null;
+    let darkMode = true;
+
+    // DOM Elements
+    const roomJoinScreen = document.getElementById('roomJoinScreen');
+    const characterSelectScreen = document.getElementById('characterSelectScreen');
+    const characterSheetScreen = document.getElementById('characterSheetScreen');
+    const roomCodeInput = document.getElementById('roomCodeInput');
+    const joinRoomBtn = document.getElementById('joinRoomBtn');
+    const roomError = document.getElementById('roomError');
+    const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+    const characterGrid = document.getElementById('characterGrid');
+    const backToJoinBtn = document.getElementById('backToJoinBtn');
+    const backToSelectBtn = document.getElementById('backToSelectBtn');
+    const sheetTitle = document.getElementById('sheetTitle');
+    const sheetRoomCode = document.getElementById('sheetRoomCode');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const characterSheetContainer = document.getElementById('characterSheetContainer');
+
+    // Screen navigation
+    function showScreen(screen) {
+      roomJoinScreen.classList.add('hidden');
+      characterSelectScreen.classList.add('hidden');
+      characterSheetScreen.classList.add('hidden');
+      screen.classList.remove('hidden');
+    }
+
+    // Join room
+    async function joinRoom() {
+      const code = roomCodeInput.value.trim().toUpperCase();
+      if (!code) {
+        showError('Please enter a room code');
+        return;
+      }
+
+      try {
+        roomRef = database.ref('rooms/' + code);
+        const snapshot = await roomRef.once('value');
+
+        if (!snapshot.exists()) {
+          showError('Room not found');
+          return;
+        }
+
+        currentRoomCode = code;
+        roomCodeDisplay.textContent = code;
+        sheetRoomCode.textContent = code;
+
+        // Set up characters listener
+        charactersRef = database.ref('rooms/' + code + '/characters');
+        charactersRef.on('value', (snapshot) => {
+          characters = snapshot.val() || {};
+          renderCharacterGrid();
+
+          // If viewing a character, update it
+          if (currentCharacterId && characters[currentCharacterId]) {
+            if (sheetComponent) {
+              sheetComponent.setCharacter(convertCharacterFormat(characters[currentCharacterId]));
+            }
+          }
+        });
+
+        hideError();
+        showScreen(characterSelectScreen);
+      } catch (error) {
+        console.error('Error joining room:', error);
+        showError('Failed to join room');
+      }
+    }
+
+    // Leave room
+    function leaveRoom() {
+      if (charactersRef) charactersRef.off();
+      if (currentCharacterRef) currentCharacterRef.off();
+      currentRoomCode = null;
+      roomRef = null;
+      charactersRef = null;
+      currentCharacterRef = null;
+      characters = {};
+      currentCharacterId = null;
+      roomCodeInput.value = '';
+      showScreen(roomJoinScreen);
+    }
+
+    // Show error
+    function showError(message) {
+      roomError.textContent = message;
+      roomError.classList.remove('hidden');
+    }
+
+    // Hide error
+    function hideError() {
+      roomError.classList.add('hidden');
+    }
+
+    // Render character grid
+    function renderCharacterGrid() {
+      const ids = Object.keys(characters);
+
+      if (ids.length === 0) {
+        characterGrid.innerHTML = `
+          <div class="empty-state">
+            <p>No characters in this room yet.</p>
+            <p><a href="/characters.html" style="color: #b388ff;">Create one in the Character Portal</a></p>
+          </div>
+        `;
+        return;
+      }
+
+      characterGrid.innerHTML = ids.map(id => {
+        const char = characters[id];
+        return `
+          <div class="character-card" onclick="selectCharacter('${id}')">
+            <div class="character-card-name">${escapeHtml(char.name || 'Unnamed')}</div>
+            <div class="character-card-class">${escapeHtml(char.class || char.class_name || 'Unknown Class')}</div>
+            <div class="character-card-level">Level ${char.level || 1}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Select character
+    window.selectCharacter = function(id) {
+      currentCharacterId = id;
+      const char = characters[id];
+
+      if (!char) return;
+
+      sheetTitle.textContent = char.name || 'Character Sheet';
+
+      // Convert existing character format to new format if needed
+      const newFormatChar = convertCharacterFormat(char);
+
+      // Create or update sheet component
+      if (!sheetComponent) {
+        sheetComponent = new CharacterSheetComponent('#characterSheetContainer', {
+          darkMode: darkMode,
+          onUpdate: handleCharacterUpdate
+        });
+      }
+
+      sheetComponent.options.darkMode = darkMode;
+      sheetComponent.render(newFormatChar);
+
+      // Set up real-time listener for this character
+      if (currentCharacterRef) currentCharacterRef.off();
+      currentCharacterRef = charactersRef.child(id);
+      currentCharacterRef.on('value', (snapshot) => {
+        const updated = snapshot.val();
+        if (updated && sheetComponent) {
+          characters[id] = updated;
+          // Only update if not currently editing (to prevent conflicts)
+          // sheetComponent.setCharacter(convertCharacterFormat(updated));
+        }
+      });
+
+      showScreen(characterSheetScreen);
+    };
+
+    // Convert old character format to new format
+    function convertCharacterFormat(char) {
+      // If already in new format, return as is
+      if (char.hp_slots !== undefined) {
+        return char;
+      }
+
+      // Convert from old format
+      const newChar = createDefaultCharacter();
+
+      // Copy basic fields
+      newChar.id = char.id || crypto.randomUUID();
+      newChar.name = char.name || '';
+      newChar.class_name = char.class || char.characterClass || '';
+      newChar.subclass = char.subclass || '';
+      newChar.heritage = char.ancestry || char.heritage || '';
+      newChar.level = char.level || 1;
+
+      // Traits
+      if (char.traits) {
+        newChar.agility = char.traits.agility || 0;
+        newChar.strength = char.traits.strength || 0;
+        newChar.finesse = char.traits.finesse || 0;
+        newChar.instinct = char.traits.instinct || 0;
+        newChar.presence = char.traits.presence || 0;
+        newChar.knowledge = char.traits.knowledge || 0;
+      }
+
+      // Combat stats
+      newChar.evasion = char.evasion || 10;
+      newChar.armor = char.armorSlots?.total || char.armor || 0;
+
+      // HP slots (convert from current/max to boolean array)
+      if (char.hp) {
+        const hpMarked = char.hp.max - char.hp.current;
+        newChar.hp_slots = Array(6).fill(false).map((_, i) => i < hpMarked);
+      }
+
+      // Stress slots
+      if (char.stress) {
+        newChar.stress_slots = Array(6).fill(false).map((_, i) => i < char.stress.current);
+      }
+
+      // Hope (convert number to slots)
+      if (typeof char.hope === 'number') {
+        newChar.hope_slots = Array(6).fill(false).map((_, i) => i < char.hope);
+      }
+
+      // Armor slots
+      if (char.armorSlots) {
+        newChar.armor_slots = Array(char.armorSlots.total || 0).fill(false)
+          .map((_, i) => i < (char.armorSlots.marked || 0));
+      }
+
+      // Damage thresholds
+      if (char.damageThresholds) {
+        newChar.minor_damage = String(char.damageThresholds.minor || 0);
+        newChar.major_damage = String(char.damageThresholds.major || 0);
+        newChar.severe_damage = String(char.damageThresholds.severe || 0);
+      }
+
+      // Experiences
+      if (char.experiences && Array.isArray(char.experiences)) {
+        newChar.experiences = char.experiences.map(exp => {
+          if (typeof exp === 'string') {
+            return { name: exp, modifier: '+2' };
+          }
+          return { name: exp.description || exp.name || '', modifier: exp.modifier || '+2' };
+        });
+      }
+
+      // Equipment
+      if (char.equipment) {
+        newChar.weapons = [];
+
+        if (char.equipment.primaryWeapon) {
+          const w = char.equipment.primaryWeapon;
+          newChar.weapons.push({
+            name: w.name || '',
+            trait_and_range: `${w.trait || ''} ${w.range || ''}`.trim(),
+            damage: `${w.damage || ''} ${w.damageType?.substring(0, 3) || ''}`.trim(),
+            feature: w.feature || '',
+            is_primary: true,
+            is_secondary: false,
+            is_active: true
+          });
+        }
+
+        if (char.equipment.secondaryWeapon) {
+          const w = char.equipment.secondaryWeapon;
+          newChar.weapons.push({
+            name: w.name || '',
+            trait_and_range: `${w.trait || ''} ${w.range || ''}`.trim(),
+            damage: `${w.damage || ''} ${w.damageType?.substring(0, 3) || ''}`.trim(),
+            feature: w.feature || '',
+            is_primary: false,
+            is_secondary: true,
+            is_active: true
+          });
+        }
+
+        if (char.equipment.armor) {
+          const a = char.equipment.armor;
+          newChar.active_armor = {
+            name: a.name || '',
+            base_thresholds: a.baseThresholds ? `${a.baseThresholds.major}/${a.baseThresholds.severe}` : '',
+            base_score: String(a.baseScore || 0),
+            feature: a.feature || ''
+          };
+        }
+      }
+
+      // Gold
+      if (char.gold) {
+        newChar.gold_handfuls = Array(8).fill(false).map((_, i) => i < (char.gold.handfuls || 0));
+        newChar.gold_bags = Array(8).fill(false).map((_, i) => i < (char.gold.bags || 0));
+        newChar.gold_chests = Array(Math.max(1, char.gold.chests || 0)).fill(false)
+          .map((_, i) => i < (char.gold.chests || 0));
+      }
+
+      // Populate class features if we have class data
+      if (newChar.class_name && CLASS_DATA[newChar.class_name]) {
+        const classData = CLASS_DATA[newChar.class_name];
+        newChar.class_features = classData.class_features || '';
+        newChar.hope_feature = classData.hope_feature || '';
+      }
+
+      // Notes
+      newChar.notes = char.background || char.notes || '';
+
+      return newChar;
+    }
+
+    // Handle character updates from the sheet component
+    async function handleCharacterUpdate(field, value, character) {
+      if (!currentCharacterId || !charactersRef) return;
+
+      try {
+        // Convert back to old format for storage (to maintain compatibility)
+        const updates = convertToStorageFormat(field, value, character);
+
+        for (const [path, val] of Object.entries(updates)) {
+          await charactersRef.child(currentCharacterId).child(path).set(val);
+        }
+      } catch (error) {
+        console.error('Error updating character:', error);
+      }
+    }
+
+    // Convert new format fields back to storage format
+    function convertToStorageFormat(field, value, character) {
+      const updates = {};
+
+      // Direct field mappings
+      const directFields = ['name', 'level', 'evasion', 'notes'];
+      if (directFields.includes(field)) {
+        updates[field] = value;
+        return updates;
+      }
+
+      // Class name mapping
+      if (field === 'class_name') {
+        updates['class'] = value;
+        return updates;
+      }
+
+      // Heritage/ancestry
+      if (field === 'heritage') {
+        updates['ancestry'] = value;
+        return updates;
+      }
+
+      // Traits
+      const traits = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
+      if (traits.includes(field)) {
+        updates[`traits/${field}`] = value;
+        return updates;
+      }
+
+      // HP slots -> hp.current
+      if (field === 'hp_slots') {
+        const marked = value.filter(Boolean).length;
+        updates['hp/current'] = 6 - marked; // Assuming 6 max HP slots
+        return updates;
+      }
+
+      // Stress slots -> stress.current
+      if (field === 'stress_slots') {
+        updates['stress/current'] = value.filter(Boolean).length;
+        return updates;
+      }
+
+      // Hope slots -> hope
+      if (field === 'hope_slots') {
+        updates['hope'] = value.filter(Boolean).length;
+        return updates;
+      }
+
+      // Armor slots
+      if (field === 'armor_slots') {
+        updates['armorSlots/marked'] = value.filter(Boolean).length;
+        return updates;
+      }
+
+      // Gold
+      if (field === 'gold') {
+        updates['gold/handfuls'] = value.handfuls?.filter(Boolean).length || 0;
+        updates['gold/bags'] = value.bags?.filter(Boolean).length || 0;
+        updates['gold/chests'] = value.chests?.filter(Boolean).length || 0;
+        return updates;
+      }
+
+      // Damage thresholds
+      if (field.startsWith('minor_damage') || field.startsWith('major_damage') || field.startsWith('severe_damage')) {
+        const type = field.replace('_damage', '');
+        updates[`damageThresholds/${type}`] = parseInt(value) || 0;
+        return updates;
+      }
+
+      // Experiences
+      if (field.startsWith('experiences')) {
+        // Rebuild experiences array
+        const experiences = character.experiences.map(exp => ({
+          description: exp.name,
+          modifier: parseInt(exp.modifier?.replace('+', '')) || 2
+        }));
+        updates['experiences'] = experiences;
+        return updates;
+      }
+
+      // For other fields, store in the new format location
+      updates[field] = value;
+      return updates;
+    }
+
+    // Escape HTML
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Dark mode toggle
+    darkModeToggle.addEventListener('click', () => {
+      darkMode = !darkMode;
+      darkModeToggle.textContent = darkMode ? 'Light Mode' : 'Dark Mode';
+
+      if (sheetComponent) {
+        sheetComponent.options.darkMode = darkMode;
+        const sheetForm = characterSheetContainer.querySelector('.character-sheet-form');
+        if (sheetForm) {
+          sheetForm.classList.toggle('dark-mode', darkMode);
+        }
+      }
+    });
+
+    // Event listeners
+    joinRoomBtn.addEventListener('click', joinRoom);
+    roomCodeInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') joinRoom();
+    });
+    backToJoinBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      leaveRoom();
+    });
+    backToSelectBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentCharacterRef) currentCharacterRef.off();
+      currentCharacterId = null;
+      showScreen(characterSelectScreen);
+    });
+
+    // Check for room code in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get('room');
+    if (roomParam) {
+      roomCodeInput.value = roomParam.toUpperCase();
+      joinRoom();
+    }
+  </script>
+</body>
+</html>

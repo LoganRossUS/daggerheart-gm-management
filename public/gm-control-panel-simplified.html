@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GM Control Panel - Streamlined</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/character-sheet-form.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -6319,6 +6320,7 @@
                 </div>
                 <input type="file" id="characterImageInput" accept="image/*" style="display: none;" onchange="handleCharacterImageUpload(event)">
                 <button class="portrait-upload-btn" onclick="showCharacterImageDialog()">Upload Portrait</button>
+                <button class="portrait-upload-btn" onclick="openFullCharacterSheet()" style="margin-top: 4px; background: linear-gradient(135deg, #7c4dff, #4a0e4e);">View Full Sheet</button>
               </div>
               <div class="character-basic-info">
                 <div class="form-group">
@@ -7391,6 +7393,12 @@
     let selectedCharacterId = null;
     let selectedCharacterSource = 'cloud'; // Track if selected char is 'cloud' or 'room'
     let currentCharacterExperiences = [];
+
+    // Expose character state to window for the full character sheet modal
+    Object.defineProperty(window, 'playerCharacters', { get: () => playerCharacters });
+    Object.defineProperty(window, 'roomCharacters', { get: () => roomCharacters });
+    Object.defineProperty(window, 'selectedCharacterId', { get: () => selectedCharacterId });
+    Object.defineProperty(window, 'selectedCharacterSource', { get: () => selectedCharacterSource });
 
     // ========== Notes State ==========
     let campaignNotes = [];
@@ -13725,6 +13733,243 @@
       </div>
     </div>
   </div>
+
+  <!-- Full Character Sheet Modal -->
+  <div id="fullCharacterSheetModal" class="full-sheet-modal" style="display: none;">
+    <div class="full-sheet-modal-content">
+      <div class="full-sheet-modal-header">
+        <h3>Character Sheet</h3>
+        <button onclick="closeFullCharacterSheet()" class="full-sheet-close-btn">Close</button>
+      </div>
+      <div class="full-sheet-container" id="fullSheetContainer">
+        <!-- CharacterSheetComponent will render here -->
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .full-sheet-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 10000;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .full-sheet-modal-content {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: #1a1a2e;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .full-sheet-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(179, 136, 255, 0.3);
+    }
+    .full-sheet-modal-header h3 {
+      color: #ffd700;
+      margin: 0;
+    }
+    .full-sheet-close-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .full-sheet-close-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .full-sheet-container {
+      padding: 0;
+    }
+  </style>
+
+  <!-- Character Sheet Component Module -->
+  <script type="module">
+    import { CharacterSheetComponent } from '/js/character-sheet-component.js';
+    import { CLASS_DATA, createDefaultCharacter } from '/js/class-data.js';
+
+    let gmSheetComponent = null;
+
+    // Convert old character format to new format
+    function convertToNewFormat(char) {
+      if (char.hp_slots !== undefined) return char;
+
+      const newChar = createDefaultCharacter();
+
+      newChar.id = char.id || crypto.randomUUID();
+      newChar.name = char.name || '';
+      newChar.class_name = char.class || char.characterClass || '';
+      newChar.subclass = char.subclass || '';
+      newChar.heritage = char.ancestry || char.heritage || '';
+      newChar.level = char.level || 1;
+      newChar.portrait = char.portrait || char.image || null;
+
+      if (char.traits) {
+        newChar.agility = char.traits.agility || 0;
+        newChar.strength = char.traits.strength || 0;
+        newChar.finesse = char.traits.finesse || 0;
+        newChar.instinct = char.traits.instinct || 0;
+        newChar.presence = char.traits.presence || 0;
+        newChar.knowledge = char.traits.knowledge || 0;
+      }
+
+      newChar.evasion = char.evasion || 10;
+      newChar.armor = char.armorSlots?.total || char.armor || char.armorScore || 0;
+
+      const hp = char.hp || {};
+      if (hp.max) {
+        const hpMarked = hp.max - (hp.current || 0);
+        newChar.hp_slots = Array(6).fill(false).map((_, i) => i < hpMarked);
+      }
+
+      const stress = char.stress || {};
+      if (stress.max) {
+        newChar.stress_slots = Array(6).fill(false).map((_, i) => i < (stress.current || 0));
+      }
+
+      if (typeof char.hope === 'number') {
+        newChar.hope_slots = Array(6).fill(false).map((_, i) => i < char.hope);
+      }
+
+      if (char.armorSlots) {
+        newChar.armor_slots = Array(char.armorSlots.total || 0).fill(false)
+          .map((_, i) => i < (char.armorSlots.marked || 0));
+      }
+
+      const thresholds = char.damageThresholds || {};
+      newChar.minor_damage = String(thresholds.minor || char.minorThreshold || 0);
+      newChar.major_damage = String(thresholds.major || char.majorThreshold || 0);
+      newChar.severe_damage = String(thresholds.severe || char.severeThreshold || 0);
+
+      if (char.experiences && Array.isArray(char.experiences)) {
+        newChar.experiences = char.experiences.map(exp => {
+          if (typeof exp === 'string') return { name: exp, modifier: '+2' };
+          return { name: exp.description || exp.name || '', modifier: '+' + (exp.modifier || 2) };
+        });
+      }
+
+      if (char.equipment) {
+        newChar.weapons = [];
+        if (char.equipment.primaryWeapon) {
+          const w = char.equipment.primaryWeapon;
+          newChar.weapons.push({
+            name: w.name || '',
+            trait_and_range: `${w.trait || ''} ${w.range || ''}`.trim(),
+            damage: `${w.damage || ''} ${w.damageType?.substring(0, 3) || ''}`.trim(),
+            feature: w.feature || '',
+            is_primary: true, is_secondary: false, is_active: true
+          });
+        }
+        if (char.equipment.secondaryWeapon) {
+          const w = char.equipment.secondaryWeapon;
+          newChar.weapons.push({
+            name: w.name || '',
+            trait_and_range: `${w.trait || ''} ${w.range || ''}`.trim(),
+            damage: `${w.damage || ''} ${w.damageType?.substring(0, 3) || ''}`.trim(),
+            feature: w.feature || '',
+            is_primary: false, is_secondary: true, is_active: true
+          });
+        }
+        if (char.equipment.armor) {
+          const a = char.equipment.armor;
+          newChar.active_armor = {
+            name: a.name || '',
+            base_thresholds: a.baseThresholds ? `${a.baseThresholds.major}/${a.baseThresholds.severe}` : '',
+            base_score: String(a.baseScore || 0),
+            feature: a.feature || ''
+          };
+        }
+      }
+
+      const gold = char.gold || {};
+      newChar.gold_handfuls = Array(8).fill(false).map((_, i) => i < (gold.handfuls || 0));
+      newChar.gold_bags = Array(8).fill(false).map((_, i) => i < (gold.bags || 0));
+      const chestCount = gold.chests || 0;
+      newChar.gold_chests = Array(Math.max(1, chestCount)).fill(false).map((_, i) => i < chestCount);
+
+      if (newChar.class_name && CLASS_DATA[newChar.class_name]) {
+        const classData = CLASS_DATA[newChar.class_name];
+        newChar.class_features = classData.class_features || '';
+        newChar.hope_feature = classData.hope_feature || '';
+      }
+
+      newChar.notes = char.background || char.notes || '';
+
+      return newChar;
+    }
+
+    // Handle character updates from the sheet component
+    async function handleGMCharacterUpdate(field, value, character) {
+      // Get selected character and update it
+      if (window.selectedCharacterId && window.updateCharacterField) {
+        window.updateCharacterField(field, value);
+      }
+    }
+
+    // Open full character sheet modal
+    window.openFullCharacterSheet = function() {
+      const charId = window.selectedCharacterId;
+      if (!charId) {
+        alert('Please select a character first');
+        return;
+      }
+
+      // Get character from either cloud or room characters
+      let char;
+      if (window.selectedCharacterSource === 'room') {
+        char = window.roomCharacters?.find(c => c.id === charId);
+      } else {
+        char = window.playerCharacters?.find(c => c.id === charId);
+      }
+
+      if (!char) {
+        alert('Character not found');
+        return;
+      }
+
+      const modal = document.getElementById('fullCharacterSheetModal');
+      const container = document.getElementById('fullSheetContainer');
+
+      if (!gmSheetComponent) {
+        gmSheetComponent = new CharacterSheetComponent(container, {
+          darkMode: true,
+          onUpdate: handleGMCharacterUpdate
+        });
+      }
+
+      const newFormatChar = convertToNewFormat(char);
+      gmSheetComponent.render(newFormatChar);
+
+      modal.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    };
+
+    // Close full character sheet modal
+    window.closeFullCharacterSheet = function() {
+      const modal = document.getElementById('fullCharacterSheetModal');
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    };
+
+    // Close modal when clicking outside
+    document.getElementById('fullCharacterSheetModal')?.addEventListener('click', function(e) {
+      if (e.target === this) {
+        window.closeFullCharacterSheet();
+      }
+    });
+  </script>
 
   <!-- Cloud Features Module (optional - graceful degradation if unavailable) -->
   <script type="module">
