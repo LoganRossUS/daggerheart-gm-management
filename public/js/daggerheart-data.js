@@ -663,8 +663,14 @@ export function getDomainsForClass(classId) {
 
 // Helper function to calculate damage thresholds
 export function calculateDamageThresholds(armor, level) {
-  if (!armor) return { major: level, severe: level * 2 };
+  // Unarmored: Major = level, Severe = 2 × level
+  // Check for no armor OR the "None (Unarmored)" option (baseScore of 0)
+  if (!armor || armor.baseScore === 0) {
+    return { minor: 0, major: level, severe: level * 2 };
+  }
+  // Armored: Add level to base thresholds
   return {
+    minor: 0,
     major: armor.baseThresholds.major + level,
     severe: armor.baseThresholds.severe + level
   };
