@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/characters.css">
+  <link rel="stylesheet" href="/css/character-sheet-form.css">
 </head>
 <body>
 
@@ -285,13 +286,11 @@
         ←
       </button>
       <span id="sheetCharacterName" class="header-title"></span>
-      <button id="editModeBtn" class="edit-mode-btn" aria-label="Toggle edit mode">
-        ✎
-      </button>
+      <span id="roomCodeInSheet" class="room-code-badge"></span>
     </header>
 
     <div class="character-sheet" id="characterSheet">
-      <!-- Character sheet content rendered by JS -->
+      <!-- Character sheet content rendered by new CharacterSheetComponent -->
     </div>
 
     <div class="sync-indicator" id="syncIndicator">Saved</div>
@@ -357,6 +356,10 @@
       calculateArmorScore
     } from '/js/daggerheart-data.js';
 
+    // Import new character sheet component
+    import { CharacterSheetComponent } from '/js/character-sheet-component.js';
+    import { CLASS_DATA, createDefaultCharacter } from '/js/class-data.js';
+
     // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyA6GYyYWlW1ybQ07-K13u4YUaNFcV66Zj0",
@@ -380,6 +383,7 @@
     let characters = {};
     let currentCharacterId = null;
     let editMode = false;
+    let sheetComponent = null; // New form-based character sheet component
 
     // Wizard State
     const wizardState = {
@@ -422,7 +426,7 @@
     const progressFill = document.getElementById('progressFill');
     const progressText = document.getElementById('progressText');
     const sheetBackBtn = document.getElementById('sheetBackBtn');
-    const editModeBtn = document.getElementById('editModeBtn');
+    const roomCodeInSheet = document.getElementById('roomCodeInSheet');
     const syncIndicator = document.getElementById('syncIndicator');
     const deleteModal = document.getElementById('deleteModal');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
@@ -525,8 +529,8 @@
           renderCharacterList();
 
           // If we're viewing a character sheet, update it
-          if (currentCharacterId && characters[currentCharacterId]) {
-            updateCharacterSheetDisplay(characters[currentCharacterId]);
+          if (currentCharacterId && characters[currentCharacterId] && sheetComponent) {
+            sheetComponent.setCharacter(convertToNewFormat(characters[currentCharacterId]));
           }
         });
 
@@ -680,7 +684,25 @@
       if (!char) return;
 
       document.getElementById('sheetCharacterName').textContent = char.name;
-      renderCharacterSheet(char);
+
+      // Show room code in header
+      if (roomCodeInSheet) {
+        roomCodeInSheet.textContent = currentRoomCode || '';
+      }
+
+      // Convert to new format and render with the new component
+      const newFormatChar = convertToNewFormat(char);
+
+      // Create or update sheet component
+      const sheetContainer = document.getElementById('characterSheet');
+      if (!sheetComponent) {
+        sheetComponent = new CharacterSheetComponent(sheetContainer, {
+          darkMode: true,
+          onUpdate: handleCharacterUpdate
+        });
+      }
+
+      sheetComponent.render(newFormatChar);
 
       // Set up real-time listener for this specific character
       if (currentCharacterRef) {
@@ -691,7 +713,10 @@
         const updatedChar = snapshot.val();
         if (updatedChar) {
           characters[id] = updatedChar;
-          updateCharacterSheetDisplay(updatedChar);
+          // Update the component with new data
+          if (sheetComponent) {
+            sheetComponent.setCharacter(convertToNewFormat(updatedChar));
+          }
         }
       });
 
@@ -699,6 +724,268 @@
     }
 
     window.openCharacterSheet = openCharacterSheet;
+
+    // Convert old character format to new format for the component
+    function convertToNewFormat(char) {
+      // If already in new format, return as is
+      if (char.hp_slots !== undefined) {
+        return char;
+      }
+
+      const newChar = createDefaultCharacter();
+
+      // Copy basic fields
+      newChar.id = char.id || crypto.randomUUID();
+      newChar.name = char.name || '';
+      newChar.class_name = char.class || char.characterClass || '';
+      newChar.subclass = char.subclass || '';
+      newChar.heritage = char.ancestry || char.heritage || '';
+      newChar.level = char.level || 1;
+      newChar.portrait = char.portrait || null;
+
+      // Traits
+      if (char.traits) {
+        newChar.agility = char.traits.agility || 0;
+        newChar.strength = char.traits.strength || 0;
+        newChar.finesse = char.traits.finesse || 0;
+        newChar.instinct = char.traits.instinct || 0;
+        newChar.presence = char.traits.presence || 0;
+        newChar.knowledge = char.traits.knowledge || 0;
+      }
+
+      // Combat stats
+      newChar.evasion = char.evasion || 10;
+      newChar.armor = char.armorSlots?.total || char.armor || 0;
+
+      // HP slots (convert from current/max to boolean array)
+      if (char.hp) {
+        const hpMarked = char.hp.max - char.hp.current;
+        newChar.hp_slots = Array(6).fill(false).map((_, i) => i < hpMarked);
+      }
+
+      // Stress slots
+      if (char.stress) {
+        newChar.stress_slots = Array(6).fill(false).map((_, i) => i < char.stress.current);
+      }
+
+      // Hope (convert number to slots)
+      if (typeof char.hope === 'number') {
+        newChar.hope_slots = Array(6).fill(false).map((_, i) => i < char.hope);
+      }
+
+      // Armor slots
+      if (char.armorSlots) {
+        newChar.armor_slots = Array(char.armorSlots.total || 0).fill(false)
+          .map((_, i) => i < (char.armorSlots.marked || 0));
+      }
+
+      // Damage thresholds
+      if (char.damageThresholds) {
+        newChar.minor_damage = String(char.damageThresholds.minor || 0);
+        newChar.major_damage = String(char.damageThresholds.major || 0);
+        newChar.severe_damage = String(char.damageThresholds.severe || 0);
+      }
+
+      // Experiences
+      if (char.experiences && Array.isArray(char.experiences)) {
+        newChar.experiences = char.experiences.map(exp => {
+          if (typeof exp === 'string') {
+            return { name: exp, modifier: '+2' };
+          }
+          return { name: exp.description || exp.name || '', modifier: '+' + (exp.modifier || 2) };
+        });
+      }
+
+      // Equipment
+      if (char.equipment) {
+        newChar.weapons = [];
+
+        if (char.equipment.primaryWeapon) {
+          const w = char.equipment.primaryWeapon;
+          newChar.weapons.push({
+            name: w.name || '',
+            trait_and_range: `${w.trait || ''} ${w.range || ''}`.trim(),
+            damage: `${w.damage || ''} ${w.damageType?.substring(0, 3) || ''}`.trim(),
+            feature: w.feature || '',
+            is_primary: true,
+            is_secondary: false,
+            is_active: true
+          });
+        }
+
+        if (char.equipment.secondaryWeapon) {
+          const w = char.equipment.secondaryWeapon;
+          newChar.weapons.push({
+            name: w.name || '',
+            trait_and_range: `${w.trait || ''} ${w.range || ''}`.trim(),
+            damage: `${w.damage || ''} ${w.damageType?.substring(0, 3) || ''}`.trim(),
+            feature: w.feature || '',
+            is_primary: false,
+            is_secondary: true,
+            is_active: true
+          });
+        }
+
+        if (char.equipment.armor) {
+          const a = char.equipment.armor;
+          newChar.active_armor = {
+            name: a.name || '',
+            base_thresholds: a.baseThresholds ? `${a.baseThresholds.major}/${a.baseThresholds.severe}` : '',
+            base_score: String(a.baseScore || 0),
+            feature: a.feature || ''
+          };
+        }
+      }
+
+      // Gold
+      if (char.gold) {
+        newChar.gold_handfuls = Array(8).fill(false).map((_, i) => i < (char.gold.handfuls || 0));
+        newChar.gold_bags = Array(8).fill(false).map((_, i) => i < (char.gold.bags || 0));
+        const chestCount = char.gold.chests || 0;
+        newChar.gold_chests = Array(Math.max(1, chestCount)).fill(false).map((_, i) => i < chestCount);
+      }
+
+      // Populate class features if we have class data
+      if (newChar.class_name && CLASS_DATA[newChar.class_name]) {
+        const classData = CLASS_DATA[newChar.class_name];
+        newChar.class_features = classData.class_features || '';
+        newChar.hope_feature = classData.hope_feature || '';
+      }
+
+      // Notes/Background
+      newChar.notes = char.background || char.notes || '';
+
+      return newChar;
+    }
+
+    // Handle updates from the new character sheet component
+    async function handleCharacterUpdate(field, value, character) {
+      if (!currentCharacterId || !charactersRef) return;
+
+      try {
+        // Convert the field update back to old format for storage
+        const updates = convertToOldFormat(field, value, character);
+
+        for (const [path, val] of Object.entries(updates)) {
+          await charactersRef.child(currentCharacterId).child(path).set(val);
+        }
+
+        showSyncIndicator();
+      } catch (error) {
+        console.error('Error updating character:', error);
+      }
+    }
+
+    // Convert new format fields back to old format for storage
+    function convertToOldFormat(field, value, character) {
+      const updates = {};
+
+      // Direct field mappings
+      if (field === 'name') {
+        updates['name'] = value;
+        return updates;
+      }
+
+      if (field === 'level') {
+        updates['level'] = value;
+        return updates;
+      }
+
+      if (field === 'evasion') {
+        updates['evasion'] = value;
+        return updates;
+      }
+
+      if (field === 'portrait') {
+        updates['portrait'] = value;
+        return updates;
+      }
+
+      if (field === 'notes') {
+        updates['background'] = value;
+        return updates;
+      }
+
+      // Class name mapping
+      if (field === 'class_name') {
+        updates['class'] = value;
+        return updates;
+      }
+
+      // Heritage/ancestry
+      if (field === 'heritage') {
+        updates['ancestry'] = value;
+        return updates;
+      }
+
+      // Traits
+      const traits = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
+      if (traits.includes(field)) {
+        updates[`traits/${field}`] = value;
+        return updates;
+      }
+
+      // HP slots -> hp.current
+      if (field === 'hp_slots') {
+        const marked = value.filter(Boolean).length;
+        updates['hp/current'] = 6 - marked;
+        return updates;
+      }
+
+      // Stress slots -> stress.current
+      if (field === 'stress_slots') {
+        updates['stress/current'] = value.filter(Boolean).length;
+        return updates;
+      }
+
+      // Hope slots -> hope
+      if (field === 'hope_slots') {
+        updates['hope'] = value.filter(Boolean).length;
+        return updates;
+      }
+
+      // Armor slots
+      if (field === 'armor_slots') {
+        updates['armorSlots/marked'] = value.filter(Boolean).length;
+        return updates;
+      }
+
+      // Gold
+      if (field === 'gold' || field.startsWith('gold_')) {
+        updates['gold/handfuls'] = (character.gold_handfuls || []).filter(Boolean).length;
+        updates['gold/bags'] = (character.gold_bags || []).filter(Boolean).length;
+        updates['gold/chests'] = (character.gold_chests || []).filter(Boolean).length;
+        return updates;
+      }
+
+      // Damage thresholds
+      if (field === 'minor_damage') {
+        updates['damageThresholds/minor'] = parseInt(value) || 0;
+        return updates;
+      }
+      if (field === 'major_damage') {
+        updates['damageThresholds/major'] = parseInt(value) || 0;
+        return updates;
+      }
+      if (field === 'severe_damage') {
+        updates['damageThresholds/severe'] = parseInt(value) || 0;
+        return updates;
+      }
+
+      // Experiences
+      if (field.startsWith('experiences')) {
+        const experiences = character.experiences.map(exp => ({
+          description: exp.name,
+          modifier: parseInt(exp.modifier?.replace('+', '')) || 2
+        }));
+        updates['experiences'] = experiences;
+        return updates;
+      }
+
+      // For other fields, store as-is
+      updates[field] = value;
+      return updates;
+    }
 
     // Update only the dynamic parts of the character sheet (for real-time updates)
     function updateCharacterSheetDisplay(char) {
@@ -1387,7 +1674,9 @@
         await charactersRef.child(currentCharacterId).child(`statModifiers/${stat}`).set(newValue);
         showSyncIndicator();
         // Re-render character sheet to update threshold displays
-        renderCharacterSheet(char);
+        if (sheetComponent) {
+          sheetComponent.setCharacter(convertToNewFormat(char));
+        }
       } catch (error) {
         console.error('Error updating stat modifier:', error);
       }
@@ -3102,114 +3391,8 @@
     });
     confirmDeleteBtn.addEventListener('click', deleteCharacter);
 
-    editModeBtn.addEventListener('click', toggleEditMode);
-
-    function toggleEditMode() {
-      editMode = !editMode;
-      editModeBtn.classList.toggle('active', editMode);
-
-      const char = characters[currentCharacterId];
-      if (!char) return;
-
-      if (editMode) {
-        // Show edit overlay
-        showEditOverlay(char);
-      } else {
-        // Hide edit overlay
-        hideEditOverlay();
-      }
-    }
-
-    function showEditOverlay(char) {
-      // Check if overlay already exists
-      let overlay = document.getElementById('editOverlay');
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'editOverlay';
-        overlay.className = 'edit-overlay';
-        document.getElementById('characterSheetScreen').appendChild(overlay);
-      }
-
-      overlay.innerHTML = `
-        <div class="edit-panel">
-          <h3 class="edit-panel-title">Edit Character</h3>
-
-          <div class="edit-form-group">
-            <label class="edit-label">Character Name</label>
-            <input type="text" id="editCharName" class="edit-input" value="${escapeHtml(char.name || '')}" />
-          </div>
-
-          <div class="edit-form-group">
-            <label class="edit-label">Player Name</label>
-            <input type="text" id="editPlayerName" class="edit-input" value="${escapeHtml(char.playerName || '')}" />
-          </div>
-
-          <div class="edit-form-group">
-            <label class="edit-label">Background</label>
-            <textarea id="editBackground" class="edit-textarea">${escapeHtml(char.background || '')}</textarea>
-          </div>
-
-          <div class="edit-form-group">
-            <label class="edit-label">Portrait URL</label>
-            <input type="text" id="editPortrait" class="edit-input" value="${escapeHtml(char.portrait || '')}" placeholder="https://..." />
-          </div>
-
-          <div class="edit-buttons">
-            <button class="edit-btn edit-btn-cancel" onclick="cancelEdit()">Cancel</button>
-            <button class="edit-btn edit-btn-save" onclick="saveEdit()">Save Changes</button>
-          </div>
-        </div>
-      `;
-
-      overlay.classList.add('visible');
-    }
-
-    function hideEditOverlay() {
-      const overlay = document.getElementById('editOverlay');
-      if (overlay) {
-        overlay.classList.remove('visible');
-      }
-    }
-
-    window.cancelEdit = function() {
-      editMode = false;
-      editModeBtn.classList.remove('active');
-      hideEditOverlay();
-    };
-
-    window.saveEdit = async function() {
-      const charName = document.getElementById('editCharName').value.trim();
-      const playerName = document.getElementById('editPlayerName').value.trim();
-      const background = document.getElementById('editBackground').value.trim();
-      const portrait = document.getElementById('editPortrait').value.trim();
-
-      if (!charName) {
-        alert('Character name is required');
-        return;
-      }
-
-      try {
-        await charactersRef.child(currentCharacterId).update({
-          name: charName,
-          playerName: playerName || null,
-          background: background || null,
-          portrait: portrait || null,
-          updatedAt: Date.now()
-        });
-
-        // Update header
-        document.getElementById('sheetCharacterName').textContent = charName;
-
-        editMode = false;
-        editModeBtn.classList.remove('active');
-        hideEditOverlay();
-
-        showSyncIndicator();
-      } catch (error) {
-        console.error('Error saving character edits:', error);
-        alert('Failed to save changes. Please try again.');
-      }
-    };
+    // Note: Old edit mode code removed - the new CharacterSheetComponent handles editing directly
+    // All editing is now done inline through the form-based character sheet
 
     // Initialize
     showScreen(roomJoinScreen);

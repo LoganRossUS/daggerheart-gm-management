@@ -343,6 +343,7 @@ export function createDefaultCharacter(campaign_id = '', odeum_id = '') {
     class_name: '',
     subclass: '',
     level: 1,
+    portrait: null, // URL or data URL for character portrait (used as battle token)
 
     // Combat Stats (numeric)
     evasion: 10,

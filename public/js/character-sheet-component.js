@@ -114,12 +114,33 @@ export class CharacterSheetComponent {
   renderClassBanner(char) {
     const classData = CLASS_DATA[char.class_name] || {};
     const classLower = (char.class_name || '').toLowerCase();
+    const portraitUrl = char.portrait || '';
 
     return `
       <div class="class-banner ${classLower}">
         <div class="class-banner-left">
-          <div class="class-banner-title">${escapeHtml(char.class_name) || 'Character'}</div>
-          <div class="class-banner-domains">${escapeHtml(classData.domains || '')}</div>
+          <div class="portrait-section">
+            <div class="portrait-container" id="portraitContainer">
+              ${portraitUrl
+                ? `<img src="${escapeHtml(portraitUrl)}" alt="Character portrait" class="portrait-image" id="portraitImage">`
+                : `<div class="portrait-placeholder">
+                    <span class="portrait-placeholder-icon">👤</span>
+                  </div>`
+              }
+              ${!this.options.readOnly ? `
+              <div class="portrait-overlay">
+                <button type="button" class="portrait-edit-btn" data-action="edit-portrait">
+                  ${portraitUrl ? 'Change' : 'Add Photo'}
+                </button>
+              </div>
+              ` : ''}
+            </div>
+            <input type="file" id="portraitFileInput" accept="image/*" style="display: none;">
+          </div>
+          <div class="class-info">
+            <div class="class-banner-title">${escapeHtml(char.class_name) || 'Character'}</div>
+            <div class="class-banner-domains">${escapeHtml(classData.domains || '')}</div>
+          </div>
         </div>
         <div class="class-banner-right">
           <div class="header-field">
@@ -161,6 +182,34 @@ export class CharacterSheetComponent {
           <button class="print-btn" onclick="window.print()">
             Print Sheet
           </button>
+        </div>
+      </div>
+
+      <!-- Portrait URL Modal -->
+      <div class="portrait-modal" id="portraitModal">
+        <div class="portrait-modal-content">
+          <h3>Character Portrait</h3>
+          <div class="portrait-modal-preview" id="portraitModalPreview">
+            ${portraitUrl
+              ? `<img src="${escapeHtml(portraitUrl)}" alt="Preview">`
+              : `<div class="portrait-placeholder"><span class="portrait-placeholder-icon">👤</span></div>`
+            }
+          </div>
+          <div class="portrait-modal-options">
+            <button type="button" class="btn-portrait-upload" data-action="upload-portrait">
+              Upload Image
+            </button>
+            <div class="portrait-url-input-group">
+              <input type="url" id="portraitUrlInput" placeholder="Or paste image URL..." value="${escapeHtml(portraitUrl)}">
+              <button type="button" class="btn-portrait-apply" data-action="apply-portrait-url">Apply</button>
+            </div>
+            ${portraitUrl ? `
+            <button type="button" class="btn-portrait-remove" data-action="remove-portrait">
+              Remove Portrait
+            </button>
+            ` : ''}
+          </div>
+          <button type="button" class="btn-portrait-close" data-action="close-portrait-modal">Close</button>
         </div>
       </div>
     `;
@@ -737,6 +786,224 @@ export class CharacterSheetComponent {
         this.removeExperience(index);
       });
     });
+
+    // Portrait handling
+    this.attachPortraitListeners();
+  }
+
+  /**
+   * Attach portrait-related event listeners
+   */
+  attachPortraitListeners() {
+    // Edit portrait button
+    const editPortraitBtn = this.container.querySelector('[data-action="edit-portrait"]');
+    if (editPortraitBtn) {
+      editPortraitBtn.addEventListener('click', () => this.openPortraitModal());
+    }
+
+    // Close modal button
+    const closeModalBtn = this.container.querySelector('[data-action="close-portrait-modal"]');
+    if (closeModalBtn) {
+      closeModalBtn.addEventListener('click', () => this.closePortraitModal());
+    }
+
+    // Upload portrait button
+    const uploadBtn = this.container.querySelector('[data-action="upload-portrait"]');
+    if (uploadBtn) {
+      uploadBtn.addEventListener('click', () => {
+        const fileInput = this.container.querySelector('#portraitFileInput');
+        if (fileInput) fileInput.click();
+      });
+    }
+
+    // File input change
+    const fileInput = this.container.querySelector('#portraitFileInput');
+    if (fileInput) {
+      fileInput.addEventListener('change', (e) => this.handlePortraitFileUpload(e));
+    }
+
+    // Apply URL button
+    const applyUrlBtn = this.container.querySelector('[data-action="apply-portrait-url"]');
+    if (applyUrlBtn) {
+      applyUrlBtn.addEventListener('click', () => this.applyPortraitUrl());
+    }
+
+    // Remove portrait button
+    const removeBtn = this.container.querySelector('[data-action="remove-portrait"]');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', () => this.removePortrait());
+    }
+
+    // Close modal when clicking outside
+    const modal = this.container.querySelector('#portraitModal');
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) this.closePortraitModal();
+      });
+    }
+  }
+
+  /**
+   * Open portrait modal
+   */
+  openPortraitModal() {
+    const modal = this.container.querySelector('#portraitModal');
+    if (modal) {
+      modal.classList.add('visible');
+    }
+  }
+
+  /**
+   * Close portrait modal
+   */
+  closePortraitModal() {
+    const modal = this.container.querySelector('#portraitModal');
+    if (modal) {
+      modal.classList.remove('visible');
+    }
+  }
+
+  /**
+   * Handle portrait file upload
+   */
+  async handlePortraitFileUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be less than 5MB');
+      return;
+    }
+
+    try {
+      // Convert to data URL
+      const dataUrl = await this.fileToDataUrl(file);
+
+      // Update character and UI
+      this.updatePortrait(dataUrl);
+    } catch (error) {
+      console.error('Error processing portrait:', error);
+      alert('Error processing image');
+    }
+  }
+
+  /**
+   * Convert file to data URL
+   */
+  fileToDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /**
+   * Apply portrait from URL
+   */
+  applyPortraitUrl() {
+    const urlInput = this.container.querySelector('#portraitUrlInput');
+    if (!urlInput) return;
+
+    const url = urlInput.value.trim();
+    if (!url) {
+      alert('Please enter an image URL');
+      return;
+    }
+
+    // Basic URL validation
+    try {
+      new URL(url);
+    } catch {
+      alert('Please enter a valid URL');
+      return;
+    }
+
+    // Update character and UI
+    this.updatePortrait(url);
+  }
+
+  /**
+   * Remove portrait
+   */
+  removePortrait() {
+    this.updatePortrait(null);
+  }
+
+  /**
+   * Update portrait in character and UI
+   */
+  updatePortrait(portraitUrl) {
+    this.character.portrait = portraitUrl;
+    this.character.updated_at = new Date().toISOString();
+
+    // Update the main portrait display
+    const portraitContainer = this.container.querySelector('#portraitContainer');
+    if (portraitContainer) {
+      if (portraitUrl) {
+        const existingImg = portraitContainer.querySelector('.portrait-image');
+        if (existingImg) {
+          existingImg.src = portraitUrl;
+        } else {
+          // Replace placeholder with image
+          const placeholder = portraitContainer.querySelector('.portrait-placeholder');
+          if (placeholder) {
+            const img = document.createElement('img');
+            img.src = portraitUrl;
+            img.alt = 'Character portrait';
+            img.className = 'portrait-image';
+            img.id = 'portraitImage';
+            placeholder.replaceWith(img);
+          }
+        }
+      } else {
+        // Replace image with placeholder
+        const existingImg = portraitContainer.querySelector('.portrait-image');
+        if (existingImg) {
+          const placeholder = document.createElement('div');
+          placeholder.className = 'portrait-placeholder';
+          placeholder.innerHTML = '<span class="portrait-placeholder-icon">👤</span>';
+          existingImg.replaceWith(placeholder);
+        }
+      }
+    }
+
+    // Update modal preview
+    const modalPreview = this.container.querySelector('#portraitModalPreview');
+    if (modalPreview) {
+      if (portraitUrl) {
+        modalPreview.innerHTML = `<img src="${escapeHtml(portraitUrl)}" alt="Preview">`;
+      } else {
+        modalPreview.innerHTML = '<div class="portrait-placeholder"><span class="portrait-placeholder-icon">👤</span></div>';
+      }
+    }
+
+    // Update URL input
+    const urlInput = this.container.querySelector('#portraitUrlInput');
+    if (urlInput) {
+      urlInput.value = portraitUrl || '';
+    }
+
+    // Close modal
+    this.closePortraitModal();
+
+    // Trigger update
+    this.debouncedUpdate('portrait', portraitUrl);
+  }
+
+  /**
+   * Get portrait URL for use as battle token
+   */
+  getPortraitUrl() {
+    return this.character?.portrait || null;
   }
 
   /**
