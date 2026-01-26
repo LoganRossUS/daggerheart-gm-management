@@ -328,7 +328,21 @@ export function getDomainCardSlots(level) {
   return 2 + Math.max(0, level - 1);
 }
 
+/**
+ * Parse armor thresholds from "5/11" format to { major, severe }
+ */
+export function parseArmorThresholds(thresholdsString) {
+  if (!thresholdsString) return { major: 0, severe: 0 };
+  const parts = thresholdsString.split('/');
+  return {
+    major: parseInt(parts[0]) || 0,
+    severe: parseInt(parts[1]) || 0
+  };
+}
+
 // Default character structure matching new data model
+// UPDATED: Uses major_threshold/severe_threshold (not minor/major/severe damage)
+// UPDATED: Gold uses numbers (odometer style) not boolean arrays
 export function createDefaultCharacter(campaign_id = '', odeum_id = '') {
   return {
     // Identity
@@ -358,10 +372,11 @@ export function createDefaultCharacter(campaign_id = '', odeum_id = '') {
     presence: 0,
     knowledge: 0,
 
-    // Damage Thresholds (free text)
-    minor_damage: '0',
-    major_damage: '0',
-    severe_damage: '0',
+    // Damage Thresholds - CORRECTED
+    // Only Major and Severe thresholds (Minor is implicit - below Major)
+    // These are BASE values from armor, add character level to get total
+    major_threshold: 0,
+    severe_threshold: 0,
 
     // Resource Tracking (arrays of booleans)
     hp_slots: [false, false, false, false, false, false],
@@ -386,10 +401,11 @@ export function createDefaultCharacter(campaign_id = '', odeum_id = '') {
       feature: ''
     },
 
-    // Gold (checkboxes)
-    gold_handfuls: [false, false, false, false, false, false, false, false],
-    gold_bags: [false, false, false, false, false, false, false, false],
-    gold_chests: [false],
+    // Gold - CORRECTED: Odometer style (numbers, not boolean arrays)
+    // 10 handfuls = 1 bag, 10 bags = 1 chest
+    gold_handfuls: 0,
+    gold_bags: 0,
+    gold_chests: 0,
 
     // Free Text Areas
     class_features: '',
@@ -437,13 +453,18 @@ export function populateFromClass(character, className, subclassKey) {
     }));
   }
 
-  // Add suggested armor
+  // Add suggested armor and set damage thresholds
   if (classData.suggested_armor) {
     character.active_armor = { ...classData.suggested_armor };
     // Set armor slots based on armor score
     const armorScore = parseInt(classData.suggested_armor.base_score) || 0;
     character.armor_slots = Array(armorScore).fill(false);
     character.armor = armorScore;
+
+    // Set damage thresholds from armor (CORRECTED - only Major and Severe)
+    const thresholds = parseArmorThresholds(classData.suggested_armor.base_thresholds);
+    character.major_threshold = thresholds.major;
+    character.severe_threshold = thresholds.severe;
   }
 
   return character;

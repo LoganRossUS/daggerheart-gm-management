@@ -837,12 +837,15 @@
         }
       }
 
-      // Gold
+      // Gold - Now uses numeric format (odometer style)
       if (char.gold) {
-        newChar.gold_handfuls = Array(8).fill(false).map((_, i) => i < (char.gold.handfuls || 0));
-        newChar.gold_bags = Array(8).fill(false).map((_, i) => i < (char.gold.bags || 0));
-        const chestCount = char.gold.chests || 0;
-        newChar.gold_chests = Array(Math.max(1, chestCount)).fill(false).map((_, i) => i < chestCount);
+        newChar.gold_handfuls = char.gold.handfuls || 0;
+        newChar.gold_bags = char.gold.bags || 0;
+        newChar.gold_chests = char.gold.chests || 0;
+      } else {
+        newChar.gold_handfuls = 0;
+        newChar.gold_bags = 0;
+        newChar.gold_chests = 0;
       }
 
       // Populate class features if we have class data
@@ -950,24 +953,32 @@
         return updates;
       }
 
-      // Gold
+      // Gold - Now uses numeric format (odometer style)
       if (field === 'gold' || field.startsWith('gold_')) {
-        updates['gold/handfuls'] = (character.gold_handfuls || []).filter(Boolean).length;
-        updates['gold/bags'] = (character.gold_bags || []).filter(Boolean).length;
-        updates['gold/chests'] = (character.gold_chests || []).filter(Boolean).length;
+        // Handle both old array format and new numeric format
+        const handfuls = typeof character.gold_handfuls === 'number'
+          ? character.gold_handfuls
+          : (character.gold_handfuls || []).filter(Boolean).length;
+        const bags = typeof character.gold_bags === 'number'
+          ? character.gold_bags
+          : (character.gold_bags || []).filter(Boolean).length;
+        const chests = typeof character.gold_chests === 'number'
+          ? character.gold_chests
+          : (character.gold_chests || []).filter(Boolean).length;
+
+        updates['gold/handfuls'] = handfuls;
+        updates['gold/bags'] = bags;
+        updates['gold/chests'] = chests;
         return updates;
       }
 
-      // Damage thresholds
-      if (field === 'minor_damage') {
-        updates['damageThresholds/minor'] = parseInt(value) || 0;
-        return updates;
-      }
-      if (field === 'major_damage') {
+      // Damage thresholds - CORRECTED: Only Major and Severe
+      // (Minor is implicit - anything below Major)
+      if (field === 'major_threshold') {
         updates['damageThresholds/major'] = parseInt(value) || 0;
         return updates;
       }
-      if (field === 'severe_damage') {
+      if (field === 'severe_threshold') {
         updates['damageThresholds/severe'] = parseInt(value) || 0;
         return updates;
       }
