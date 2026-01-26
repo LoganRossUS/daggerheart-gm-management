@@ -141,7 +141,10 @@ export class CharacterSheetComponent {
 
         <!-- Full Width Sections -->
         <div class="sheet-full-width">
+          ${this.renderAncestrySection(character)}
+          ${this.renderCommunitySection(character)}
           ${this.renderClassFeatures(character)}
+          ${this.renderStartingInventorySection(character)}
           ${this.renderBackgroundSection(character)}
           ${this.renderConnectionsSection(character)}
           ${this.renderBeastformsSection(character)}
@@ -829,6 +832,183 @@ export class CharacterSheetComponent {
                     data-field="notes"
                     placeholder="Additional notes..."
                     ${this.options.readOnly ? 'readonly' : ''}>${escapeHtml(char.notes || '')}</textarea>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render Ancestry Section with features
+   */
+  renderAncestrySection(char) {
+    // Check if we have the new ancestryData format
+    const ancestryData = char.ancestryData;
+    if (!ancestryData) {
+      // Fallback for old format - just show ancestry name if available
+      const ancestryName = char.ancestry || '';
+      if (!ancestryName) return '';
+
+      return `
+        <div class="sheet-section collapsible-section" data-section="ancestry">
+          <div class="section-header collapsible-trigger" data-toggle="ancestry">
+            <span>Ancestry: ${escapeHtml(ancestryName)}</span>
+            <span class="collapse-icon"></span>
+          </div>
+          <div class="section-content">
+            <div class="ancestry-features-note">
+              <em>Feature details will appear here for newly created characters.</em>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    const isCollapsed = this.collapsedSections['ancestry'];
+    const features = ancestryData.features || [];
+
+    return `
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="ancestry">
+        <div class="section-header collapsible-trigger" data-toggle="ancestry">
+          <span>Ancestry: ${escapeHtml(ancestryData.name)}</span>
+          <span class="collapse-icon"></span>
+        </div>
+        <div class="section-content">
+          ${ancestryData.description ? `
+            <p class="ancestry-description">${escapeHtml(ancestryData.description)}</p>
+          ` : ''}
+
+          <div class="ancestry-features">
+            ${features.map(feature => `
+              <div class="feature-card">
+                <div class="feature-name">${escapeHtml(feature.name)}${feature.fromAncestry ? ` <span class="feature-source">(from ${escapeHtml(feature.fromAncestry)})</span>` : ''}</div>
+                <div class="feature-description">${escapeHtml(feature.description)}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render Community Section with features
+   */
+  renderCommunitySection(char) {
+    // Check if we have the new communityData format
+    const communityData = char.communityData;
+    if (!communityData) {
+      // Fallback for old format
+      const communityName = char.community || '';
+      if (!communityName) return '';
+
+      return `
+        <div class="sheet-section collapsible-section" data-section="community">
+          <div class="section-header collapsible-trigger" data-toggle="community">
+            <span>Community: ${escapeHtml(communityName)}</span>
+            <span class="collapse-icon"></span>
+          </div>
+          <div class="section-content">
+            <div class="community-features-note">
+              <em>Feature details will appear here for newly created characters.</em>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    const isCollapsed = this.collapsedSections['community'];
+    const feature = communityData.feature || {};
+    const adjectives = communityData.adjectives || [];
+
+    return `
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="community">
+        <div class="section-header collapsible-trigger" data-toggle="community">
+          <span>Community: ${escapeHtml(communityData.name)}</span>
+          <span class="collapse-icon"></span>
+        </div>
+        <div class="section-content">
+          <div class="feature-card community-feature">
+            <div class="feature-name">${escapeHtml(feature.name || '')}</div>
+            <div class="feature-description">${escapeHtml(feature.description || '')}</div>
+          </div>
+
+          ${adjectives.length > 0 ? `
+            <div class="community-adjectives">
+              <div class="adjectives-label">Personality Traits:</div>
+              <div class="adjective-tags">
+                ${adjectives.map(adj => `<span class="adjective-tag">${escapeHtml(adj)}</span>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render Starting Inventory Section
+   */
+  renderStartingInventorySection(char) {
+    const startingInventory = char.startingInventory;
+    if (!startingInventory) return '';
+
+    const isCollapsed = this.collapsedSections['starting-inventory'];
+    const baseItems = startingInventory.baseItems || [];
+    const potion = startingInventory.potion;
+    const flavorItem = startingInventory.flavorItem;
+    const spellcastingFocus = startingInventory.spellcastingFocus;
+    const otherItems = startingInventory.other || [];
+
+    // Don't render if empty
+    if (baseItems.length === 0 && !potion && !flavorItem && !spellcastingFocus && otherItems.length === 0) {
+      return '';
+    }
+
+    return `
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="starting-inventory">
+        <div class="section-header collapsible-trigger" data-toggle="starting-inventory">
+          <span>Starting Inventory</span>
+          <span class="collapse-icon"></span>
+        </div>
+        <div class="section-content">
+          ${baseItems.length > 0 ? `
+            <div class="inventory-group">
+              <div class="inventory-group-label">Starting Gear</div>
+              <ul class="inventory-list">
+                ${baseItems.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+
+          ${potion ? `
+            <div class="inventory-group">
+              <div class="inventory-group-label">Consumable</div>
+              <div class="inventory-item potion-item">${escapeHtml(potion)}</div>
+            </div>
+          ` : ''}
+
+          ${flavorItem ? `
+            <div class="inventory-group">
+              <div class="inventory-group-label">Special Item</div>
+              <div class="inventory-item flavor-item">${escapeHtml(flavorItem)}</div>
+            </div>
+          ` : ''}
+
+          ${spellcastingFocus ? `
+            <div class="inventory-group">
+              <div class="inventory-group-label">Spellcasting Focus</div>
+              <div class="inventory-item focus-item">${escapeHtml(spellcastingFocus)}</div>
+            </div>
+          ` : ''}
+
+          ${otherItems.length > 0 ? `
+            <div class="inventory-group">
+              <div class="inventory-group-label">Other Items</div>
+              <ul class="inventory-list">
+                ${otherItems.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
         </div>
       </div>
     `;

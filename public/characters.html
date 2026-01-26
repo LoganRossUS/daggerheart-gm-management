@@ -358,7 +358,7 @@
 
     // Import new character sheet component
     import { CharacterSheetComponent } from '/js/character-sheet-component.js';
-    import { CLASS_DATA, createDefaultCharacter } from '/js/class-data.js';
+    import { CLASS_DATA, createDefaultCharacter, normalizeClassName } from '/js/class-data.js';
 
     // Firebase Configuration
     const firebaseConfig = {
@@ -407,7 +407,11 @@
       characterName: '',
       playerName: '',
       portrait: null,
-      mixedAncestryFeatures: []
+      mixedAncestryFeatures: [],
+      // Starting inventory selections
+      selectedPotion: null,
+      selectedFlavorItem: null,
+      spellcastingFocus: null
     };
 
     // DOM Elements
@@ -869,12 +873,48 @@
       // Populate class features if we have class data
       if (newChar.class_name && CLASS_DATA[newChar.class_name]) {
         const classData = CLASS_DATA[newChar.class_name];
-        newChar.class_features = classData.class_features || '';
-        newChar.hope_feature = classData.hope_feature || '';
+        newChar.class_features = char.classFeatures || classData.class_features || '';
+        newChar.hope_feature = char.hopeFeature || classData.hope_feature || '';
+      }
+
+      // Ancestry data - copy the complete ancestry info if available
+      if (char.ancestryData) {
+        newChar.ancestryData = char.ancestryData;
+      }
+
+      // Community data - copy the complete community info if available
+      if (char.communityData) {
+        newChar.communityData = char.communityData;
+      }
+
+      // Heritage field
+      if (char.heritage) {
+        newChar.heritage = char.heritage;
+      }
+
+      // Starting inventory
+      if (char.startingInventory) {
+        newChar.startingInventory = char.startingInventory;
+      }
+
+      // Background questions from class
+      if (char.backgroundQuestions) {
+        newChar.background_questions = char.backgroundQuestions;
+      }
+
+      // Connections questions from class
+      if (char.connectionsQuestions) {
+        newChar.connections_questions = char.connectionsQuestions;
+      }
+
+      // Connections answers
+      if (char.connections) {
+        newChar.connections = char.connections;
       }
 
       // Notes/Background
       newChar.notes = char.background || char.notes || '';
+      newChar.background = char.background || '';
 
       return newChar;
     }
@@ -2969,8 +3009,113 @@
             }).join('')}
           </div>
         </div>
+
+        ${renderStartingInventorySection()}
       `;
     }
+
+    function renderStartingInventorySection() {
+      // Get class-specific inventory options from CLASS_DATA
+      const classDataSpecific = CLASS_DATA ? CLASS_DATA[normalizeClassName(wizardState.selectedClass)] : null;
+      const startingInventory = classDataSpecific?.starting_inventory || {
+        take_all: ['A torch', '50 feet of rope', 'Basic supplies', 'A handful of gold'],
+        choose_one_1: ['Minor Health Potion', 'Minor Stamina Potion'],
+        choose_one_2: []
+      };
+
+      const potionOptions = startingInventory.choose_one_1 || ['Minor Health Potion', 'Minor Stamina Potion'];
+      const flavorOptions = startingInventory.choose_one_2 || [];
+      const spellcastingFocusHint = startingInventory.spellcasting_focus || null;
+
+      // Check if this class uses spellcasting focus (Bard, Wizard)
+      const needsSpellcastingFocus = ['bard', 'wizard'].includes((wizardState.selectedClass || '').toLowerCase());
+
+      return `
+        <!-- Starting Inventory -->
+        <div class="equipment-category" style="margin-top: 2rem;">
+          <h4 class="equipment-category-title">Starting Inventory</h4>
+
+          <!-- Base Items (everyone gets these) -->
+          <div class="inventory-base-items" style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(255,255,255,0.1); border-radius: 8px;">
+            <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #ffd700;">Everyone Starts With:</div>
+            <ul style="margin: 0; padding-left: 1.5rem; font-size: 0.9rem; color: rgba(255,255,255,0.9);">
+              ${(startingInventory.take_all || ['A torch', '50 feet of rope', 'Basic supplies', 'A handful of gold']).map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+
+          <!-- Potion Choice -->
+          <div class="inventory-choice-section" style="margin-bottom: 1rem;">
+            <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #b388ff;">Choose One Potion:</div>
+            <div class="inventory-choice-options" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              ${potionOptions.map((potion, i) => {
+                const selected = wizardState.selectedPotion === potion ? 'selected' : '';
+                return `
+                  <div class="inventory-choice-card ${selected}" onclick="selectPotion('${potion}')"
+                       style="flex: 1; min-width: 140px; padding: 0.75rem; background: ${selected ? 'rgba(76,175,80,0.3)' : 'rgba(255,255,255,0.05)'};
+                              border: 2px solid ${selected ? '#4caf50' : 'rgba(255,255,255,0.1)'}; border-radius: 8px; cursor: pointer; text-align: center;">
+                    <div style="font-size: 0.9rem; color: ${selected ? '#4caf50' : 'rgba(255,255,255,0.9)'};">${potion}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          ${flavorOptions.length > 0 ? `
+          <!-- Flavor Item Choice (Class-specific) -->
+          <div class="inventory-choice-section" style="margin-bottom: 1rem;">
+            <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #b388ff;">Choose One Special Item:</div>
+            <div class="inventory-choice-options" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              ${flavorOptions.map((item, i) => {
+                const selected = wizardState.selectedFlavorItem === item ? 'selected' : '';
+                return `
+                  <div class="inventory-choice-card ${selected}" onclick="selectFlavorItem('${escapeHtml(item)}')"
+                       style="flex: 1; min-width: 180px; padding: 0.75rem; background: ${selected ? 'rgba(179,136,255,0.3)' : 'rgba(255,255,255,0.05)'};
+                              border: 2px solid ${selected ? '#b388ff' : 'rgba(255,255,255,0.1)'}; border-radius: 8px; cursor: pointer; text-align: center;">
+                    <div style="font-size: 0.9rem; color: ${selected ? '#b388ff' : 'rgba(255,255,255,0.9)'};">${item}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+          ` : ''}
+
+          ${needsSpellcastingFocus ? `
+          <!-- Spellcasting Focus (Bard/Wizard) -->
+          <div class="inventory-choice-section" style="margin-bottom: 1rem;">
+            <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #b388ff;">Spellcasting Focus:</div>
+            <input type="text" id="spellcastingFocusInput"
+                   placeholder="${spellcastingFocusHint || 'What do you carry your spells in? (e.g., songbook, wand, tome)'}"
+                   value="${wizardState.spellcastingFocus || ''}"
+                   onchange="updateSpellcastingFocus(this.value)"
+                   style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+                          border-radius: 8px; color: #fff; font-size: 0.9rem;">
+          </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function selectPotion(potion) {
+      wizardState.selectedPotion = potion;
+      renderEquipmentSection();
+      updateWizardButtons();
+    }
+
+    window.selectPotion = selectPotion;
+
+    function selectFlavorItem(item) {
+      wizardState.selectedFlavorItem = item;
+      renderEquipmentSection();
+      updateWizardButtons();
+    }
+
+    window.selectFlavorItem = selectFlavorItem;
+
+    function updateSpellcastingFocus(value) {
+      wizardState.spellcastingFocus = value;
+    }
+
+    window.updateSpellcastingFocus = updateSpellcastingFocus;
 
     function selectPrimaryWeapon(index) {
       const allWeapons = [...PRIMARY_WEAPONS.physical, ...PRIMARY_WEAPONS.magical];
@@ -3244,23 +3389,77 @@
       const armorScore = calculateArmorScore(wizardState.armor, wizardState.secondaryWeapon);
       const thresholds = calculateDamageThresholds(wizardState.armor, level);
 
+      // Build complete ancestry data with features
+      let ancestryData = null;
       let ancestryFeatures = [];
       if (wizardState.selectedAncestry === 'mixed') {
-        ancestryFeatures = wizardState.mixedAncestryFeatures.map(mf => {
+        // For mixed ancestry, combine features from two ancestries
+        const mixedFeatures = wizardState.mixedAncestryFeatures.map(mf => {
           const anc = ANCESTRIES[mf.ancestry];
-          return anc.features[mf.featureIndex].name;
+          return {
+            name: anc.features[mf.featureIndex].name,
+            description: anc.features[mf.featureIndex].description,
+            fromAncestry: anc.name
+          };
         });
+        ancestryData = {
+          name: 'Mixed',
+          isMixed: true,
+          features: mixedFeatures,
+          sourceAncestries: wizardState.mixedAncestryFeatures.map(mf => ANCESTRIES[mf.ancestry].name)
+        };
+        ancestryFeatures = mixedFeatures.map(f => f.name);
       } else {
         const ancestry = ANCESTRIES[wizardState.selectedAncestry];
+        ancestryData = {
+          id: wizardState.selectedAncestry,
+          name: ancestry.name,
+          description: ancestry.description,
+          features: ancestry.features.map(f => ({
+            name: f.name,
+            description: f.description
+          }))
+        };
         ancestryFeatures = ancestry.features.map(f => f.name);
       }
+
+      // Build complete community data with features
+      const communitySource = COMMUNITIES[wizardState.selectedCommunity];
+      const communityData = {
+        id: wizardState.selectedCommunity,
+        name: communitySource.name,
+        feature: {
+          name: communitySource.feature.name,
+          description: communitySource.feature.description
+        },
+        adjectives: [...communitySource.adjectives]
+      };
+
+      // Build heritage string
+      const heritage = ancestryData.isMixed
+        ? `Mixed (${ancestryData.sourceAncestries.join(' & ')}) of ${communityData.name}`
+        : `${ancestryData.name} of ${communityData.name}`;
+
+      // Get class-specific data for class features and starting inventory
+      const classSpecificData = CLASS_DATA ? CLASS_DATA[classData.name] : null;
+
+      // Build starting inventory
+      const startingInventory = {
+        baseItems: ['A torch', '50 feet of rope', 'Basic supplies', 'A handful of gold'],
+        potion: wizardState.selectedPotion || 'Minor Health Potion',
+        flavorItem: wizardState.selectedFlavorItem || null,
+        spellcastingFocus: wizardState.spellcastingFocus || null,
+        other: []
+      };
 
       // Debug: Log what we're saving
       console.log('Creating character with wizardState:', {
         traits: wizardState.traits,
         primaryWeapon: wizardState.primaryWeapon,
         secondaryWeapon: wizardState.secondaryWeapon,
-        armor: wizardState.armor
+        armor: wizardState.armor,
+        ancestryData: ancestryData,
+        communityData: communityData
       });
 
       // Deep copy traits and equipment to avoid reference issues
@@ -3274,8 +3473,12 @@
         name: wizardState.characterName,
         class: wizardState.selectedClass,
         subclass: wizardState.selectedSubclass,
+        // Store both legacy ancestry ID and new complete data
         ancestry: wizardState.selectedAncestry,
+        ancestryData: ancestryData,
         community: wizardState.selectedCommunity,
+        communityData: communityData,
+        heritage: heritage,
         level: level,
         traits: traits,
         hp: {
@@ -3313,23 +3516,30 @@
           armor: armor,
           inventory: [] // General inventory items (weapons, consumables, loot)
         },
+        // Starting inventory with selections
+        startingInventory: startingInventory,
         domainCards: domainCards,
         features: {
           ancestry: ancestryFeatures,
-          community: COMMUNITIES[wizardState.selectedCommunity]?.feature.name,
-          class: [],
+          community: communityData.feature.name,
+          class: classSpecificData?.class_features || [],
           subclass: {
             foundation: classData?.subclasses[wizardState.selectedSubclass]?.foundation.name,
             specialization: null,
             mastery: null
           }
         },
+        // Store complete class features text for display
+        classFeatures: classSpecificData?.class_features || '',
+        hopeFeature: classSpecificData?.hope_feature || classData?.hopeFeature || '',
         background: wizardState.background,
+        backgroundQuestions: classSpecificData?.background_questions || [],
         experiences: wizardState.experiences.filter(e => e).map(exp => ({
           description: exp,
           modifier: 1
         })),
         connections: wizardState.connections.filter(c => c),
+        connectionsQuestions: classSpecificData?.connections_questions || [],
         playerName: wizardState.playerName || null,
         portrait: wizardState.portrait || null,
         createdAt: Date.now(),
