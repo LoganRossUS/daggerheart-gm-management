@@ -6449,6 +6449,40 @@
                   <input type="number" id="charSevereThreshold" class="threshold-input" min="1" placeholder="HP">
                 </div>
               </div>
+
+              <h4 style="margin-top: 20px;">Gold</h4>
+              <p style="font-size: 0.75rem; color: #888; margin-bottom: 10px;">10 handfuls = 1 bag, 10 bags = 1 chest</p>
+              <div class="stats-grid">
+                <div class="stat-box">
+                  <label>Handfuls</label>
+                  <input type="number" id="charGoldHandfuls" class="stat-input single" min="0" max="9" value="0">
+                </div>
+                <div class="stat-box">
+                  <label>Bags</label>
+                  <input type="number" id="charGoldBags" class="stat-input single" min="0" max="9" value="0">
+                </div>
+                <div class="stat-box">
+                  <label>Chests</label>
+                  <input type="number" id="charGoldChests" class="stat-input single" min="0" max="1" value="0">
+                </div>
+              </div>
+
+              <h4 style="margin-top: 20px;">Stat Modifiers</h4>
+              <p style="font-size: 0.75rem; color: #888; margin-bottom: 10px;">Bonuses from equipment, features, or effects</p>
+              <div class="stats-grid">
+                <div class="stat-box">
+                  <label>Evasion Mod</label>
+                  <input type="number" id="charEvasionMod" class="stat-input single" value="0">
+                </div>
+                <div class="stat-box">
+                  <label>Major Mod</label>
+                  <input type="number" id="charMajorMod" class="stat-input single" value="0">
+                </div>
+                <div class="stat-box">
+                  <label>Severe Mod</label>
+                  <input type="number" id="charSevereMod" class="stat-input single" value="0">
+                </div>
+              </div>
             </div>
 
             <div class="character-domain-section">
@@ -12967,6 +13001,24 @@
         hopeInput.value = char.hope ?? 2;
       }
 
+      // Gold fields
+      const gold = char.gold || {};
+      const goldHandfulsInput = document.getElementById('charGoldHandfuls');
+      if (goldHandfulsInput) goldHandfulsInput.value = gold.handfuls ?? 1;
+      const goldBagsInput = document.getElementById('charGoldBags');
+      if (goldBagsInput) goldBagsInput.value = gold.bags ?? 0;
+      const goldChestsInput = document.getElementById('charGoldChests');
+      if (goldChestsInput) goldChestsInput.value = gold.chests ?? 0;
+
+      // Stat Modifiers
+      const statMods = char.statModifiers || {};
+      const evasionModInput = document.getElementById('charEvasionMod');
+      if (evasionModInput) evasionModInput.value = statMods.evasion ?? 0;
+      const majorModInput = document.getElementById('charMajorMod');
+      if (majorModInput) majorModInput.value = statMods.majorThreshold ?? 0;
+      const severeModInput = document.getElementById('charSevereMod');
+      if (severeModInput) severeModInput.value = statMods.severeThreshold ?? 0;
+
       // Render Traits display
       renderTraitsDisplay(char.traits);
 
@@ -13084,14 +13136,14 @@
         return;
       }
 
-      let html = '';
+      let html = '<h5 style="color: #ffd700; margin-bottom: 8px;">Equipped</h5>';
 
       if (equipment.primaryWeapon) {
         html += `
           <div class="equipment-display-item">
             <div class="equipment-label">Primary Weapon</div>
             <div class="equipment-name">${equipment.primaryWeapon.name || 'Unknown'}</div>
-            <div class="equipment-details">${equipment.primaryWeapon.type || ''} ${equipment.primaryWeapon.damage || ''}</div>
+            <div class="equipment-details">${equipment.primaryWeapon.trait || ''} ${equipment.primaryWeapon.damage || ''} ${equipment.primaryWeapon.range || ''}</div>
           </div>
         `;
       }
@@ -13101,7 +13153,7 @@
           <div class="equipment-display-item">
             <div class="equipment-label">Secondary Weapon</div>
             <div class="equipment-name">${equipment.secondaryWeapon.name || 'Unknown'}</div>
-            <div class="equipment-details">${equipment.secondaryWeapon.type || ''} ${equipment.secondaryWeapon.damage || ''}</div>
+            <div class="equipment-details">${equipment.secondaryWeapon.trait || ''} ${equipment.secondaryWeapon.damage || ''}</div>
           </div>
         `;
       }
@@ -13111,9 +13163,22 @@
           <div class="equipment-display-item">
             <div class="equipment-label">Armor</div>
             <div class="equipment-name">${equipment.armor.name || 'Unknown'}</div>
-            <div class="equipment-details">${equipment.armor.type || ''} ${equipment.armor.armorScore ? `Armor: ${equipment.armor.armorScore}` : ''}</div>
+            <div class="equipment-details">${equipment.armor.baseScore ? `Armor Score: ${equipment.armor.baseScore}` : ''}</div>
           </div>
         `;
+      }
+
+      // Render inventory/loadout
+      if (equipment.inventory && equipment.inventory.length > 0) {
+        html += '<h5 style="color: #b388ff; margin-top: 16px; margin-bottom: 8px;">Inventory (Loadout)</h5>';
+        equipment.inventory.forEach(item => {
+          html += `
+            <div class="equipment-display-item" style="background: rgba(179, 136, 255, 0.1);">
+              <div class="equipment-name">${item.name || 'Unknown Item'}</div>
+              <div class="equipment-details">${item.type === 'weapon' ? `${item.trait || ''} ${item.damage || ''} ${item.range || ''}` : item.description ? item.description.substring(0, 50) + '...' : ''}</div>
+            </div>
+          `;
+        });
       }
 
       container.innerHTML = html;
@@ -13158,6 +13223,16 @@
         domains: getSelectedDomains(),
         experiences: currentCharacterExperiences,
         notes: document.getElementById('charNotes').value,
+        gold: {
+          handfuls: parseInt(document.getElementById('charGoldHandfuls')?.value) || 0,
+          bags: parseInt(document.getElementById('charGoldBags')?.value) || 0,
+          chests: parseInt(document.getElementById('charGoldChests')?.value) || 0
+        },
+        statModifiers: {
+          evasion: parseInt(document.getElementById('charEvasionMod')?.value) || 0,
+          majorThreshold: parseInt(document.getElementById('charMajorMod')?.value) || 0,
+          severeThreshold: parseInt(document.getElementById('charSevereMod')?.value) || 0
+        },
         updatedAt: new Date().toISOString()
       };
 
@@ -13350,6 +13425,8 @@
         portrait: roomChar.portrait || roomChar.image || '',
         notes: roomChar.notes || roomChar.background || '',
         playerName: roomChar.playerName || '',
+        gold: roomChar.gold || { handfuls: 1, bags: 0, chests: 0 },
+        statModifiers: roomChar.statModifiers || { evasion: 0, majorThreshold: 0, severeThreshold: 0 },
         roomCharId: roomCharId // Link back to room character for syncing
       };
     }
@@ -13396,7 +13473,9 @@
         connections: cloudChar.connections || [],
         portrait: cloudChar.portrait || '',
         background: cloudChar.notes || cloudChar.background || '',
-        playerName: cloudChar.playerName || ''
+        playerName: cloudChar.playerName || '',
+        gold: cloudChar.gold || { handfuls: 1, bags: 0, chests: 0 },
+        statModifiers: cloudChar.statModifiers || { evasion: 0, majorThreshold: 0, severeThreshold: 0 }
       };
     }
 
