@@ -750,7 +750,7 @@
       }
       const goldChests = document.getElementById('goldChests');
       if (goldChests) {
-        goldChests.innerHTML = renderGoldSlots('chests', char.gold?.chests || 0, 1);
+        goldChests.innerHTML = renderGoldSlots('chests', char.gold?.chests || 0, 10);
         goldChests.nextElementSibling.textContent = char.gold?.chests || 0;
       }
 
@@ -878,7 +878,7 @@
             <div class="gold-row">
               <span class="gold-row-label">Chests</span>
               <div class="gold-slots" id="goldChests">
-                ${renderGoldSlots('chests', char.gold?.chests || 0, 1)}
+                ${renderGoldSlots('chests', char.gold?.chests || 0, 10)}
               </div>
               <span class="gold-row-value">${char.gold?.chests || 0}</span>
             </div>
@@ -1346,14 +1346,11 @@
         handfuls = handfuls % 10;
       }
 
-      // Convert bags to chests (max 1 chest)
+      // Convert bags to chests
       if (bags >= 10) {
-        chests = Math.min(1, chests + Math.floor(bags / 10));
+        chests += Math.floor(bags / 10);
         bags = bags % 10;
       }
-
-      // Ensure max values
-      chests = Math.min(1, chests);
 
       try {
         await charactersRef.child(currentCharacterId).child('gold').set({
@@ -1444,7 +1441,25 @@
 
     window.hideLootSearch = hideLootSearch;
 
-    function searchLoot(query) {
+    // Equipment data loaded from JSON
+    let equipmentData = null;
+
+    async function loadEquipmentData() {
+      if (equipmentData) return equipmentData;
+      try {
+        const response = await fetch('/daggerheart_equipment.json');
+        equipmentData = await response.json();
+        return equipmentData;
+      } catch (error) {
+        console.error('Error loading equipment data:', error);
+        return null;
+      }
+    }
+
+    // Load equipment data on page load
+    loadEquipmentData();
+
+    async function searchLoot(query) {
       const dropdown = document.getElementById('lootSearchDropdown');
 
       if (!query || query.length < 2) {
@@ -1452,49 +1467,107 @@
         return;
       }
 
+      // Ensure equipment data is loaded
+      const data = await loadEquipmentData();
+      if (!data) {
+        dropdown.innerHTML = '<div class="loot-search-item"><div class="loot-search-item-name">Error loading equipment data</div></div>';
+        dropdown.classList.add('visible');
+        return;
+      }
+
       const results = [];
       const queryLower = query.toLowerCase();
 
-      // Search primary weapons
-      Object.entries(PRIMARY_WEAPONS).forEach(([tier, weapons]) => {
-        weapons.forEach(weapon => {
-          if (weapon.name.toLowerCase().includes(queryLower)) {
-            results.push({
-              ...weapon,
-              type: 'weapon',
-              weaponType: 'primary',
-              tier: tier
+      // Search primary weapons (physical and magical across all tiers)
+      if (data.primary_weapons) {
+        Object.entries(data.primary_weapons).forEach(([tierKey, tierData]) => {
+          const tierNum = tierKey.replace('tier_', '');
+          // Search physical weapons
+          if (tierData.physical) {
+            tierData.physical.forEach(weapon => {
+              if (weapon.name.toLowerCase().includes(queryLower)) {
+                results.push({
+                  name: weapon.name,
+                  trait: weapon.trait,
+                  range: weapon.range,
+                  damage: weapon.damage,
+                  damageType: weapon.damage_type,
+                  burden: weapon.burden,
+                  feature: weapon.feature?.description || null,
+                  type: 'weapon',
+                  weaponType: 'primary',
+                  tier: tierNum
+                });
+              }
+            });
+          }
+          // Search magical weapons
+          if (tierData.magical) {
+            tierData.magical.forEach(weapon => {
+              if (weapon.name.toLowerCase().includes(queryLower)) {
+                results.push({
+                  name: weapon.name,
+                  trait: weapon.trait,
+                  range: weapon.range,
+                  damage: weapon.damage,
+                  damageType: weapon.damage_type,
+                  burden: weapon.burden,
+                  feature: weapon.feature?.description || null,
+                  type: 'weapon',
+                  weaponType: 'primary',
+                  tier: tierNum
+                });
+              }
             });
           }
         });
-      });
+      }
 
       // Search secondary weapons
-      Object.entries(SECONDARY_WEAPONS).forEach(([tier, weapons]) => {
-        weapons.forEach(weapon => {
-          if (weapon.name.toLowerCase().includes(queryLower)) {
-            results.push({
-              ...weapon,
-              type: 'weapon',
-              weaponType: 'secondary',
-              tier: tier
+      if (data.secondary_weapons) {
+        Object.entries(data.secondary_weapons).forEach(([tierKey, tierData]) => {
+          const tierNum = tierKey.replace('tier_', '');
+          if (tierData.weapons) {
+            tierData.weapons.forEach(weapon => {
+              if (weapon.name.toLowerCase().includes(queryLower)) {
+                results.push({
+                  name: weapon.name,
+                  trait: weapon.trait,
+                  range: weapon.range,
+                  damage: weapon.damage,
+                  damageType: weapon.damage_type,
+                  burden: weapon.burden,
+                  feature: weapon.feature?.description || null,
+                  type: 'weapon',
+                  weaponType: 'secondary',
+                  tier: tierNum
+                });
+              }
             });
           }
         });
-      });
+      }
 
       // Search armor
-      Object.entries(ARMOR).forEach(([tier, armors]) => {
-        armors.forEach(armor => {
-          if (armor.name.toLowerCase().includes(queryLower)) {
-            results.push({
-              ...armor,
-              type: 'armor',
-              tier: tier
+      if (data.armor) {
+        Object.entries(data.armor).forEach(([tierKey, tierData]) => {
+          const tierNum = tierKey.replace('tier_', '');
+          if (tierData.armors) {
+            tierData.armors.forEach(armor => {
+              if (armor.name.toLowerCase().includes(queryLower)) {
+                results.push({
+                  name: armor.name,
+                  baseThresholds: armor.base_thresholds,
+                  baseScore: armor.base_score,
+                  feature: armor.feature?.description || null,
+                  type: 'armor',
+                  tier: tierNum
+                });
+              }
             });
           }
         });
-      });
+      }
 
       // Limit results
       const limitedResults = results.slice(0, 10);
@@ -1505,7 +1578,7 @@
         dropdown.innerHTML = limitedResults.map((item, index) => `
           <div class="loot-search-item" onclick="addToInventory(${index})" data-index="${index}">
             <div class="loot-search-item-name">${escapeHtml(item.name)}</div>
-            <div class="loot-search-item-type">${item.type === 'weapon' ? `${item.weaponType} weapon` : item.type} - Tier ${item.tier.replace('tier_', '')}</div>
+            <div class="loot-search-item-type">${item.type === 'weapon' ? `${item.weaponType} weapon` : item.type} - Tier ${item.tier}</div>
             ${item.feature ? `<div class="loot-search-item-desc">${escapeHtml(item.feature)}</div>` : ''}
           </div>
         `).join('');
