@@ -736,6 +736,29 @@
       if (armorLabel) {
         armorLabel.textContent = `Armor Slots (${char.armorSlots.marked}/${char.armorSlots.total})`;
       }
+
+      // Update Gold
+      const goldHandfuls = document.getElementById('goldHandfuls');
+      if (goldHandfuls) {
+        goldHandfuls.innerHTML = renderGoldSlots('handfuls', char.gold?.handfuls || 0, 10);
+        goldHandfuls.nextElementSibling.textContent = char.gold?.handfuls || 0;
+      }
+      const goldBags = document.getElementById('goldBags');
+      if (goldBags) {
+        goldBags.innerHTML = renderGoldSlots('bags', char.gold?.bags || 0, 10);
+        goldBags.nextElementSibling.textContent = char.gold?.bags || 0;
+      }
+      const goldChests = document.getElementById('goldChests');
+      if (goldChests) {
+        goldChests.innerHTML = renderGoldSlots('chests', char.gold?.chests || 0, 1);
+        goldChests.nextElementSibling.textContent = char.gold?.chests || 0;
+      }
+
+      // Update Inventory
+      const inventoryList = document.getElementById('inventoryList');
+      if (inventoryList) {
+        inventoryList.innerHTML = renderInventoryItems(char.equipment?.inventory || []);
+      }
     }
 
     function renderCharacterSheet(char) {
@@ -759,7 +782,10 @@
               <div class="identity-class">${classData?.name || char.class} - ${subclassData?.name || char.subclass}</div>
               <div class="identity-ancestry">${ancestryData?.name || char.ancestry} ${communityData?.name || char.community}</div>
             </div>
-            <span class="level-badge">Level ${char.level}</span>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+              <span class="level-badge">Level ${char.level}</span>
+              ${char.level < 10 ? `<button class="level-up-btn" onclick="startLevelUp()"><span class="arrow">↑</span> Level Up</button>` : ''}
+            </div>
           </div>
         </div>
 
@@ -813,15 +839,81 @@
           <div class="thresholds-display">
             <div class="threshold-box evasion">
               <div class="threshold-label">Evasion</div>
-              <div class="threshold-value">${char.evasion}</div>
+              <div class="threshold-value">${char.evasion + (char.statModifiers?.evasion || 0)}</div>
+              ${(char.statModifiers?.evasion || 0) !== 0 ? `<div style="font-size: 0.65rem; color: ${char.statModifiers.evasion > 0 ? '#4caf50' : '#f44336'};">(${char.statModifiers.evasion > 0 ? '+' : ''}${char.statModifiers.evasion})</div>` : ''}
             </div>
             <div class="threshold-box major">
               <div class="threshold-label">Major</div>
-              <div class="threshold-value">${char.damageThresholds.major}+</div>
+              <div class="threshold-value">${char.damageThresholds.major + (char.statModifiers?.majorThreshold || 0)}+</div>
+              ${(char.statModifiers?.majorThreshold || 0) !== 0 ? `<div style="font-size: 0.65rem; color: ${char.statModifiers.majorThreshold > 0 ? '#4caf50' : '#f44336'};">(${char.statModifiers.majorThreshold > 0 ? '+' : ''}${char.statModifiers.majorThreshold})</div>` : ''}
             </div>
             <div class="threshold-box severe">
               <div class="threshold-label">Severe</div>
-              <div class="threshold-value">${char.damageThresholds.severe}+</div>
+              <div class="threshold-value">${char.damageThresholds.severe + (char.statModifiers?.severeThreshold || 0)}+</div>
+              ${(char.statModifiers?.severeThreshold || 0) !== 0 ? `<div style="font-size: 0.65rem; color: ${char.statModifiers.severeThreshold > 0 ? '#4caf50' : '#f44336'};">(${char.statModifiers.severeThreshold > 0 ? '+' : ''}${char.statModifiers.severeThreshold})</div>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- Gold Tracker -->
+        <div class="gold-tracker">
+          <div class="gold-tracker-header">
+            <span class="gold-tracker-title">Gold</span>
+          </div>
+          <div class="gold-rows">
+            <div class="gold-row">
+              <span class="gold-row-label">Handfuls</span>
+              <div class="gold-slots" id="goldHandfuls">
+                ${renderGoldSlots('handfuls', char.gold?.handfuls || 0, 10)}
+              </div>
+              <span class="gold-row-value">${char.gold?.handfuls || 0}</span>
+            </div>
+            <div class="gold-row">
+              <span class="gold-row-label">Bags</span>
+              <div class="gold-slots" id="goldBags">
+                ${renderGoldSlots('bags', char.gold?.bags || 0, 10)}
+              </div>
+              <span class="gold-row-value">${char.gold?.bags || 0}</span>
+            </div>
+            <div class="gold-row">
+              <span class="gold-row-label">Chests</span>
+              <div class="gold-slots" id="goldChests">
+                ${renderGoldSlots('chests', char.gold?.chests || 0, 1)}
+              </div>
+              <span class="gold-row-value">${char.gold?.chests || 0}</span>
+            </div>
+          </div>
+          <p style="color: rgba(255,255,255,0.5); font-size: 0.75rem; margin-top: 0.5rem; text-align: center;">10 handfuls = 1 bag, 10 bags = 1 chest</p>
+        </div>
+
+        <!-- Stat Modifiers -->
+        <div class="stat-modifiers">
+          <div class="stat-modifiers-header">
+            <span class="stat-modifiers-title">Stat Modifiers</span>
+          </div>
+          <p style="color: rgba(255,255,255,0.5); font-size: 0.75rem; margin-bottom: 0.75rem;">Apply bonuses from equipment, features, or spells</p>
+          <div class="stat-modifier-row">
+            <span class="stat-modifier-label">Evasion Bonus</span>
+            <div class="stat-modifier-controls">
+              <button class="stat-modifier-btn" onclick="updateStatModifier('evasion', -1)">−</button>
+              <span class="stat-modifier-value ${(char.statModifiers?.evasion || 0) > 0 ? 'positive' : (char.statModifiers?.evasion || 0) < 0 ? 'negative' : ''}">${(char.statModifiers?.evasion || 0) >= 0 ? '+' : ''}${char.statModifiers?.evasion || 0}</span>
+              <button class="stat-modifier-btn" onclick="updateStatModifier('evasion', 1)">+</button>
+            </div>
+          </div>
+          <div class="stat-modifier-row">
+            <span class="stat-modifier-label">Major Threshold</span>
+            <div class="stat-modifier-controls">
+              <button class="stat-modifier-btn" onclick="updateStatModifier('majorThreshold', -1)">−</button>
+              <span class="stat-modifier-value ${(char.statModifiers?.majorThreshold || 0) > 0 ? 'positive' : (char.statModifiers?.majorThreshold || 0) < 0 ? 'negative' : ''}">${(char.statModifiers?.majorThreshold || 0) >= 0 ? '+' : ''}${char.statModifiers?.majorThreshold || 0}</span>
+              <button class="stat-modifier-btn" onclick="updateStatModifier('majorThreshold', 1)">+</button>
+            </div>
+          </div>
+          <div class="stat-modifier-row">
+            <span class="stat-modifier-label">Severe Threshold</span>
+            <div class="stat-modifier-controls">
+              <button class="stat-modifier-btn" onclick="updateStatModifier('severeThreshold', -1)">−</button>
+              <span class="stat-modifier-value ${(char.statModifiers?.severeThreshold || 0) > 0 ? 'positive' : (char.statModifiers?.severeThreshold || 0) < 0 ? 'negative' : ''}">${(char.statModifiers?.severeThreshold || 0) >= 0 ? '+' : ''}${char.statModifiers?.severeThreshold || 0}</span>
+              <button class="stat-modifier-btn" onclick="updateStatModifier('severeThreshold', 1)">+</button>
             </div>
           </div>
         </div>
@@ -900,17 +992,35 @@
         </div>
 
         <!-- Equipment -->
-        <div class="collapsible-section">
+        <div class="collapsible-section expanded">
           <div class="collapsible-header" onclick="toggleCollapsible(this.parentElement)">
-            <span class="collapsible-title">Equipment</span>
+            <span class="collapsible-title">Equipment & Inventory</span>
             <span class="collapsible-toggle">▼</span>
           </div>
           <div class="collapsible-content">
             <div class="collapsible-inner">
+              <h4 style="color: #ffd700; font-size: 0.9rem; margin-bottom: 0.75rem;">Equipped</h4>
               <div class="equipment-list">
                 ${renderEquipmentItem(char.equipment?.primaryWeapon, 'Primary Weapon')}
                 ${char.equipment?.secondaryWeapon ? renderEquipmentItem(char.equipment.secondaryWeapon, 'Secondary Weapon') : ''}
                 ${renderEquipmentItem(char.equipment?.armor, 'Armor')}
+              </div>
+
+              <!-- Inventory Section -->
+              <div class="inventory-section">
+                <div class="inventory-header">
+                  <span class="inventory-title">Inventory (Loadout)</span>
+                  <button class="add-item-btn" onclick="showLootSearch()">+ Add Item</button>
+                </div>
+                <div class="inventory-list" id="inventoryList">
+                  ${renderInventoryItems(char.equipment?.inventory || [])}
+                </div>
+
+                <!-- Loot Search -->
+                <div class="loot-search-container" id="lootSearchContainer" style="display: none;">
+                  <input type="text" class="loot-search-input" id="lootSearchInput" placeholder="Search weapons, armor, consumables..." oninput="searchLoot(this.value)" onblur="setTimeout(() => hideLootSearch(), 200)">
+                  <div class="loot-search-dropdown" id="lootSearchDropdown"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -1198,6 +1308,456 @@
         syncIndicator.classList.remove('visible');
       }, 1500);
     }
+
+    // ============================================
+    // GOLD TRACKING FUNCTIONS
+    // ============================================
+
+    function renderGoldSlots(type, current, max) {
+      let html = '';
+      for (let i = 0; i < max; i++) {
+        const marked = i < current ? 'marked' : '';
+        html += `<div class="gold-slot ${marked}" onclick="toggleGold('${type}', ${i})" data-index="${i}"></div>`;
+      }
+      return html;
+    }
+
+    async function toggleGold(type, index) {
+      if (!currentCharacterId || !charactersRef) return;
+      const char = characters[currentCharacterId];
+      if (!char) return;
+
+      // Initialize gold if not present
+      if (!char.gold) {
+        char.gold = { handfuls: 0, bags: 0, chests: 0 };
+      }
+
+      const currentValue = char.gold[type] || 0;
+      let newValue = index < currentValue ? index : index + 1;
+
+      // Handle overflow: 10 handfuls = 1 bag, 10 bags = 1 chest
+      let handfuls = type === 'handfuls' ? newValue : (char.gold.handfuls || 0);
+      let bags = type === 'bags' ? newValue : (char.gold.bags || 0);
+      let chests = type === 'chests' ? newValue : (char.gold.chests || 0);
+
+      // Convert handfuls to bags
+      if (handfuls >= 10) {
+        bags += Math.floor(handfuls / 10);
+        handfuls = handfuls % 10;
+      }
+
+      // Convert bags to chests (max 1 chest)
+      if (bags >= 10) {
+        chests = Math.min(1, chests + Math.floor(bags / 10));
+        bags = bags % 10;
+      }
+
+      // Ensure max values
+      chests = Math.min(1, chests);
+
+      try {
+        await charactersRef.child(currentCharacterId).child('gold').set({
+          handfuls,
+          bags,
+          chests
+        });
+        showSyncIndicator();
+      } catch (error) {
+        console.error('Error updating gold:', error);
+      }
+    }
+
+    window.toggleGold = toggleGold;
+
+    // ============================================
+    // STAT MODIFIER FUNCTIONS
+    // ============================================
+
+    async function updateStatModifier(stat, delta) {
+      if (!currentCharacterId || !charactersRef) return;
+      const char = characters[currentCharacterId];
+      if (!char) return;
+
+      // Initialize statModifiers if not present
+      if (!char.statModifiers) {
+        char.statModifiers = { evasion: 0, armorScore: 0, majorThreshold: 0, severeThreshold: 0 };
+      }
+
+      const currentValue = char.statModifiers[stat] || 0;
+      const newValue = currentValue + delta;
+
+      try {
+        await charactersRef.child(currentCharacterId).child(`statModifiers/${stat}`).set(newValue);
+        showSyncIndicator();
+        // Re-render character sheet to update threshold displays
+        renderCharacterSheet(char);
+      } catch (error) {
+        console.error('Error updating stat modifier:', error);
+      }
+    }
+
+    window.updateStatModifier = updateStatModifier;
+
+    // ============================================
+    // INVENTORY / LOADOUT FUNCTIONS
+    // ============================================
+
+    function renderInventoryItems(inventory) {
+      if (!inventory || inventory.length === 0) {
+        return '<div class="empty-inventory">No items in inventory. Click "Add Item" to search for equipment.</div>';
+      }
+
+      return inventory.map((item, index) => `
+        <div class="inventory-item">
+          <div class="inventory-item-info">
+            <div class="inventory-item-name">${escapeHtml(item.name)}</div>
+            <div class="inventory-item-stats">
+              ${item.type === 'weapon' ? `${item.trait} • ${item.range} • ${item.damage}` :
+                item.type === 'armor' ? `Armor Score: ${item.baseScore}` :
+                item.type === 'consumable' ? 'Consumable' :
+                item.description ? item.description.substring(0, 50) + '...' : 'Item'}
+            </div>
+          </div>
+          <div class="inventory-item-actions">
+            ${item.type === 'weapon' ? `<button class="equip-btn" onclick="equipWeapon(${index})">Equip</button>` : ''}
+            <button class="remove-btn" onclick="removeFromInventory(${index})">Remove</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function showLootSearch() {
+      const container = document.getElementById('lootSearchContainer');
+      const input = document.getElementById('lootSearchInput');
+      container.style.display = 'block';
+      input.focus();
+    }
+
+    window.showLootSearch = showLootSearch;
+
+    function hideLootSearch() {
+      const container = document.getElementById('lootSearchContainer');
+      const dropdown = document.getElementById('lootSearchDropdown');
+      container.style.display = 'none';
+      dropdown.classList.remove('visible');
+    }
+
+    window.hideLootSearch = hideLootSearch;
+
+    function searchLoot(query) {
+      const dropdown = document.getElementById('lootSearchDropdown');
+
+      if (!query || query.length < 2) {
+        dropdown.classList.remove('visible');
+        return;
+      }
+
+      const results = [];
+      const queryLower = query.toLowerCase();
+
+      // Search primary weapons
+      Object.entries(PRIMARY_WEAPONS).forEach(([tier, weapons]) => {
+        weapons.forEach(weapon => {
+          if (weapon.name.toLowerCase().includes(queryLower)) {
+            results.push({
+              ...weapon,
+              type: 'weapon',
+              weaponType: 'primary',
+              tier: tier
+            });
+          }
+        });
+      });
+
+      // Search secondary weapons
+      Object.entries(SECONDARY_WEAPONS).forEach(([tier, weapons]) => {
+        weapons.forEach(weapon => {
+          if (weapon.name.toLowerCase().includes(queryLower)) {
+            results.push({
+              ...weapon,
+              type: 'weapon',
+              weaponType: 'secondary',
+              tier: tier
+            });
+          }
+        });
+      });
+
+      // Search armor
+      Object.entries(ARMOR).forEach(([tier, armors]) => {
+        armors.forEach(armor => {
+          if (armor.name.toLowerCase().includes(queryLower)) {
+            results.push({
+              ...armor,
+              type: 'armor',
+              tier: tier
+            });
+          }
+        });
+      });
+
+      // Limit results
+      const limitedResults = results.slice(0, 10);
+
+      if (limitedResults.length === 0) {
+        dropdown.innerHTML = '<div class="loot-search-item"><div class="loot-search-item-name">No items found</div></div>';
+      } else {
+        dropdown.innerHTML = limitedResults.map((item, index) => `
+          <div class="loot-search-item" onclick="addToInventory(${index})" data-index="${index}">
+            <div class="loot-search-item-name">${escapeHtml(item.name)}</div>
+            <div class="loot-search-item-type">${item.type === 'weapon' ? `${item.weaponType} weapon` : item.type} - Tier ${item.tier.replace('tier_', '')}</div>
+            ${item.feature ? `<div class="loot-search-item-desc">${escapeHtml(item.feature)}</div>` : ''}
+          </div>
+        `).join('');
+      }
+
+      // Store results for selection
+      window.lootSearchResults = limitedResults;
+      dropdown.classList.add('visible');
+    }
+
+    window.searchLoot = searchLoot;
+
+    async function addToInventory(resultIndex) {
+      if (!currentCharacterId || !charactersRef) return;
+      const char = characters[currentCharacterId];
+      if (!char) return;
+
+      const item = window.lootSearchResults[resultIndex];
+      if (!item) return;
+
+      // Initialize inventory if not present
+      if (!char.equipment) char.equipment = {};
+      if (!char.equipment.inventory) char.equipment.inventory = [];
+
+      const newInventory = [...char.equipment.inventory, item];
+
+      try {
+        await charactersRef.child(currentCharacterId).child('equipment/inventory').set(newInventory);
+        showSyncIndicator();
+        hideLootSearch();
+        document.getElementById('lootSearchInput').value = '';
+      } catch (error) {
+        console.error('Error adding to inventory:', error);
+      }
+    }
+
+    window.addToInventory = addToInventory;
+
+    async function removeFromInventory(index) {
+      if (!currentCharacterId || !charactersRef) return;
+      const char = characters[currentCharacterId];
+      if (!char || !char.equipment?.inventory) return;
+
+      const newInventory = char.equipment.inventory.filter((_, i) => i !== index);
+
+      try {
+        await charactersRef.child(currentCharacterId).child('equipment/inventory').set(newInventory);
+        showSyncIndicator();
+      } catch (error) {
+        console.error('Error removing from inventory:', error);
+      }
+    }
+
+    window.removeFromInventory = removeFromInventory;
+
+    async function equipWeapon(inventoryIndex) {
+      if (!currentCharacterId || !charactersRef) return;
+      const char = characters[currentCharacterId];
+      if (!char || !char.equipment?.inventory) return;
+
+      const item = char.equipment.inventory[inventoryIndex];
+      if (!item || item.type !== 'weapon') return;
+
+      // Determine if primary or secondary
+      const isPrimary = item.weaponType === 'primary';
+      const slotKey = isPrimary ? 'primaryWeapon' : 'secondaryWeapon';
+
+      // Move current equipped weapon to inventory if exists
+      const currentWeapon = char.equipment[slotKey];
+      let newInventory = [...char.equipment.inventory];
+
+      // Remove the weapon we're equipping from inventory
+      newInventory = newInventory.filter((_, i) => i !== inventoryIndex);
+
+      // Add old weapon to inventory if it exists
+      if (currentWeapon) {
+        newInventory.push({ ...currentWeapon, type: 'weapon', weaponType: isPrimary ? 'primary' : 'secondary' });
+      }
+
+      try {
+        await charactersRef.child(currentCharacterId).child('equipment').update({
+          [slotKey]: item,
+          inventory: newInventory
+        });
+        showSyncIndicator();
+      } catch (error) {
+        console.error('Error equipping weapon:', error);
+      }
+    }
+
+    window.equipWeapon = equipWeapon;
+
+    // ============================================
+    // LEVEL UP FUNCTIONS
+    // ============================================
+
+    let levelUpState = {
+      selectedOptions: [],
+      selectedDomainCard: null
+    };
+
+    function startLevelUp() {
+      if (!currentCharacterId) return;
+      const char = characters[currentCharacterId];
+      if (!char || char.level >= 10) return;
+
+      levelUpState = {
+        selectedOptions: [],
+        selectedDomainCard: null
+      };
+
+      showLevelUpModal(char);
+    }
+
+    window.startLevelUp = startLevelUp;
+
+    function showLevelUpModal(char) {
+      const newLevel = char.level + 1;
+      const classData = CLASSES[char.class];
+      const tier = getCharacterTier(newLevel);
+      const previousTier = getCharacterTier(char.level);
+      const tierChanged = tier !== previousTier;
+
+      // Get available domain cards
+      const domains = classData?.domains || [];
+      const maxCardLevel = getMaxDomainCardLevel(newLevel);
+      const availableCards = [];
+
+      domains.forEach(domainId => {
+        const domainData = DOMAIN_CARDS[domainId];
+        if (domainData) {
+          domainData.cards.forEach(card => {
+            if (card.level <= maxCardLevel) {
+              // Check if character already has this card
+              const hasCard = (char.domainCards || []).some(c => c.id === card.id);
+              if (!hasCard) {
+                availableCards.push({ ...card, domain: domainId });
+              }
+            }
+          });
+        }
+      });
+
+      // Create modal
+      let modal = document.getElementById('levelUpModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'levelUpModal';
+        modal.className = 'level-up-modal';
+        document.body.appendChild(modal);
+      }
+
+      modal.innerHTML = `
+        <div class="level-up-panel">
+          <div class="level-up-header">
+            <div class="level-up-title">Level Up to ${newLevel}!</div>
+            <div class="level-up-subtitle">${char.name} is advancing to ${getTierName(tier)} tier</div>
+          </div>
+
+          <div class="level-up-options">
+            <p style="color: rgba(255,255,255,0.7); margin-bottom: 0.75rem;">When you level up, you gain:</p>
+            <ul style="color: rgba(255,255,255,0.8); margin-left: 1.5rem; margin-bottom: 1rem;">
+              <li>+${classData?.hpFormula?.perLevel || 2} Max HP</li>
+              <li>+1 Domain Card (select below)</li>
+              ${tierChanged ? '<li style="color: #4caf50;">New tier! Your damage thresholds increase</li>' : ''}
+            </ul>
+          </div>
+
+          <div class="level-up-domain-cards">
+            <div class="level-up-domain-title">Choose a New Domain Card</div>
+            <div class="level-up-card-grid">
+              ${availableCards.map((card, index) => `
+                <div class="level-up-card ${levelUpState.selectedDomainCard === index ? 'selected' : ''}" onclick="selectLevelUpCard(${index})">
+                  <div class="level-up-card-name">${escapeHtml(card.name)}</div>
+                  <div class="level-up-card-info">Level ${card.level} ${card.domain} ${card.type}</div>
+                </div>
+              `).join('')}
+              ${availableCards.length === 0 ? '<p style="color: rgba(255,255,255,0.5);">No new cards available</p>' : ''}
+            </div>
+          </div>
+
+          <div class="level-up-buttons">
+            <button class="btn btn-secondary" onclick="closeLevelUpModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="confirmLevelUp()" ${availableCards.length > 0 && levelUpState.selectedDomainCard === null ? 'disabled' : ''}>
+              Confirm Level Up
+            </button>
+          </div>
+        </div>
+      `;
+
+      // Store available cards for selection
+      window.levelUpAvailableCards = availableCards;
+      modal.classList.add('visible');
+    }
+
+    function selectLevelUpCard(index) {
+      levelUpState.selectedDomainCard = index;
+      // Re-render the modal to show selection
+      const char = characters[currentCharacterId];
+      if (char) showLevelUpModal(char);
+    }
+
+    window.selectLevelUpCard = selectLevelUpCard;
+
+    function closeLevelUpModal() {
+      const modal = document.getElementById('levelUpModal');
+      if (modal) {
+        modal.classList.remove('visible');
+      }
+    }
+
+    window.closeLevelUpModal = closeLevelUpModal;
+
+    async function confirmLevelUp() {
+      if (!currentCharacterId || !charactersRef) return;
+      const char = characters[currentCharacterId];
+      if (!char) return;
+
+      const newLevel = char.level + 1;
+      const classData = CLASSES[char.class];
+      const selectedCard = window.levelUpAvailableCards?.[levelUpState.selectedDomainCard];
+
+      // Calculate new stats
+      const newMaxHP = char.hp.max + (classData?.hpFormula?.perLevel || 2);
+      const newThresholds = calculateDamageThresholds(char.equipment?.armor, newLevel);
+
+      // Prepare updates
+      const updates = {
+        level: newLevel,
+        'hp/max': newMaxHP,
+        'hp/current': Math.min(char.hp.current, newMaxHP),
+        damageThresholds: newThresholds,
+        updatedAt: Date.now()
+      };
+
+      // Add new domain card if selected
+      if (selectedCard) {
+        const newDomainCards = [...(char.domainCards || []), selectedCard];
+        updates.domainCards = newDomainCards;
+      }
+
+      try {
+        await charactersRef.child(currentCharacterId).update(updates);
+        showSyncIndicator();
+        closeLevelUpModal();
+      } catch (error) {
+        console.error('Error leveling up:', error);
+        alert('Failed to level up. Please try again.');
+      }
+    }
+
+    window.confirmLevelUp = confirmLevelUp;
 
     // ============================================
     // CHARACTER CREATION WIZARD
@@ -2251,11 +2811,24 @@
           marked: 0
         },
         damageThresholds: thresholds,
+        // Gold tracking: 10 handfuls = 1 bag, 10 bags = 1 chest
+        gold: {
+          handfuls: 1, // Starting with 1 handful as per SRD
+          bags: 0,
+          chests: 0
+        },
+        // Stat modifiers from equipment, features, etc.
+        statModifiers: {
+          evasion: 0,
+          armorScore: 0,
+          majorThreshold: 0,
+          severeThreshold: 0
+        },
         equipment: {
           primaryWeapon: primaryWeapon,
           secondaryWeapon: secondaryWeapon,
           armor: armor,
-          inventoryWeapons: []
+          inventory: [] // General inventory items (weapons, consumables, loot)
         },
         domainCards: domainCards,
         features: {
