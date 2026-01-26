@@ -705,6 +705,306 @@
       white-space: nowrap;
     }
 
+    /* NPC Generator Section */
+    .npc-generator-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-left: 15px;
+      border-left: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .npc-generator-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #ff9800, #e65100);
+      color: white;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .npc-generator-btn:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #ffb74d, #ff9800);
+    }
+
+    /* NPC Generator Modal */
+    .npc-generator-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      backdrop-filter: blur(4px);
+    }
+
+    .npc-generator-modal.visible {
+      display: flex;
+    }
+
+    .npc-generator-modal-content {
+      background: linear-gradient(180deg, #1e1e2e 0%, #12121a 100%);
+      border: 1px solid rgba(255, 152, 0, 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 700px;
+      width: 95%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .npc-generator-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255, 152, 0, 0.2);
+    }
+
+    .npc-generator-modal-header h3 {
+      margin: 0;
+      color: #ff9800;
+      font-size: 1.3rem;
+      font-family: 'Cinzel', serif;
+    }
+
+    .npc-generator-modal-close {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 1.5rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .npc-generator-modal-close:hover {
+      color: #fff;
+    }
+
+    .npc-field {
+      margin-bottom: 16px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .npc-field-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .npc-field-label {
+      font-size: 0.75rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Cinzel', serif;
+    }
+
+    .npc-field-reroll {
+      background: rgba(255, 152, 0, 0.2);
+      border: 1px solid rgba(255, 152, 0, 0.4);
+      border-radius: 4px;
+      color: #ff9800;
+      font-size: 0.7rem;
+      padding: 4px 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .npc-field-reroll:hover {
+      background: rgba(255, 152, 0, 0.4);
+    }
+
+    .npc-field-value {
+      color: #e0e0e0;
+      font-size: 1rem;
+    }
+
+    .npc-name-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ffd700;
+      font-family: 'Cinzel', serif;
+    }
+
+    .npc-demographics {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .npc-demographics .npc-field {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .npc-voice-value {
+      font-size: 1.1rem;
+      color: #4fc3f7;
+      font-style: italic;
+      padding: 8px 12px;
+      background: rgba(79, 195, 247, 0.1);
+      border-radius: 6px;
+      border-left: 3px solid #4fc3f7;
+    }
+
+    .npc-description-value {
+      line-height: 1.6;
+      color: #ccc;
+    }
+
+    .npc-stat-block {
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid rgba(255, 152, 0, 0.2);
+    }
+
+    .npc-stat-block-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .npc-stat-block-title {
+      font-size: 0.9rem;
+      color: #ff9800;
+      font-weight: 600;
+      font-family: 'Cinzel', serif;
+    }
+
+    .npc-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .npc-stat {
+      text-align: center;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+    }
+
+    .npc-stat-label {
+      font-size: 0.65rem;
+      color: #888;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .npc-stat-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffd700;
+    }
+
+    .npc-abilities-list {
+      margin-top: 12px;
+    }
+
+    .npc-ability {
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      border-left: 3px solid #b388ff;
+    }
+
+    .npc-ability-name {
+      font-weight: 600;
+      color: #b388ff;
+      font-size: 0.85rem;
+    }
+
+    .npc-ability-type {
+      font-size: 0.7rem;
+      color: #888;
+      font-style: italic;
+      margin-left: 8px;
+    }
+
+    .npc-ability-description {
+      font-size: 0.85rem;
+      color: #aaa;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .npc-generator-modal-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(255, 152, 0, 0.2);
+      flex-wrap: wrap;
+    }
+
+    .npc-generator-modal-footer button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .npc-btn-regenerate {
+      background: linear-gradient(135deg, #ff9800, #e65100);
+      color: white;
+    }
+
+    .npc-btn-regenerate:hover {
+      transform: scale(1.02);
+    }
+
+    .npc-btn-save {
+      background: linear-gradient(135deg, #4CAF50, #2e7d32);
+      color: white;
+    }
+
+    .npc-btn-save:hover {
+      transform: scale(1.02);
+    }
+
+    .npc-btn-copy {
+      background: linear-gradient(135deg, #4fc3f7, #0288d1);
+      color: white;
+    }
+
+    .npc-btn-copy:hover {
+      transform: scale(1.02);
+    }
+
+    .npc-btn-close {
+      background: rgba(255, 255, 255, 0.1);
+      color: #888;
+    }
+
+    .npc-btn-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: #e0e0e0;
+    }
+
     /* Tab Navigation */
     .tab-nav {
       display: flex;
@@ -6241,6 +6541,93 @@
     </div>
   </div>
 
+  <!-- NPC Generator Modal -->
+  <div id="npcGeneratorModal" class="npc-generator-modal">
+    <div class="npc-generator-modal-content">
+      <div class="npc-generator-modal-header">
+        <h3>Random NPC Generator</h3>
+        <button class="npc-generator-modal-close" onclick="closeNpcGeneratorModal()">&times;</button>
+      </div>
+
+      <!-- Name Field -->
+      <div class="npc-field">
+        <div class="npc-field-header">
+          <span class="npc-field-label">Name</span>
+          <button class="npc-field-reroll" onclick="rerollNpcField('name')">↻ Reroll</button>
+        </div>
+        <div class="npc-name-value" id="npcGenName">-</div>
+      </div>
+
+      <!-- Demographics Row -->
+      <div class="npc-demographics">
+        <div class="npc-field">
+          <div class="npc-field-header">
+            <span class="npc-field-label">Sex</span>
+            <button class="npc-field-reroll" onclick="rerollNpcField('sex')">↻</button>
+          </div>
+          <div class="npc-field-value" id="npcGenSex">-</div>
+        </div>
+        <div class="npc-field">
+          <div class="npc-field-header">
+            <span class="npc-field-label">Age</span>
+            <button class="npc-field-reroll" onclick="rerollNpcField('age')">↻</button>
+          </div>
+          <div class="npc-field-value" id="npcGenAge">-</div>
+        </div>
+        <div class="npc-field">
+          <div class="npc-field-header">
+            <span class="npc-field-label">Ancestry</span>
+            <button class="npc-field-reroll" onclick="rerollNpcField('ancestry')">↻</button>
+          </div>
+          <div class="npc-field-value" id="npcGenAncestry">-</div>
+        </div>
+      </div>
+
+      <!-- Physical Description -->
+      <div class="npc-field">
+        <div class="npc-field-header">
+          <span class="npc-field-label">Physical Description</span>
+          <button class="npc-field-reroll" onclick="rerollNpcField('description')">↻ Reroll</button>
+        </div>
+        <div class="npc-description-value" id="npcGenDescription">-</div>
+      </div>
+
+      <!-- Voice -->
+      <div class="npc-field">
+        <div class="npc-field-header">
+          <span class="npc-field-label">Voice Characterization</span>
+          <button class="npc-field-reroll" onclick="rerollNpcField('voice')">↻ Reroll</button>
+        </div>
+        <div class="npc-voice-value" id="npcGenVoice">-</div>
+      </div>
+
+      <!-- Stat Block -->
+      <div class="npc-field">
+        <div class="npc-stat-block">
+          <div class="npc-stat-block-header">
+            <span class="npc-stat-block-title">Social NPC Stat Block</span>
+            <button class="npc-field-reroll" onclick="rerollNpcField('stats')">↻ Reroll</button>
+          </div>
+          <div class="npc-stats-grid" id="npcGenStats">
+            <!-- Stats rendered here -->
+          </div>
+          <div class="npc-abilities-list" id="npcGenAbilities">
+            <!-- Abilities rendered here -->
+          </div>
+        </div>
+      </div>
+
+      <div class="npc-generator-modal-footer">
+        <button class="npc-btn-regenerate" onclick="regenerateAllNpc()">↻ Regenerate All</button>
+        <div style="display: flex; gap: 10px;">
+          <button class="npc-btn-copy" onclick="copyNpcToClipboard()">Copy</button>
+          <button class="npc-btn-save" onclick="saveNpcToCampaign()">Save to Campaign</button>
+          <button class="npc-btn-close" onclick="closeNpcGeneratorModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Room Session Modal -->
   <div id="roomSessionModal" class="session-modal" style="display: none;">
     <div class="session-modal-content">
@@ -6358,6 +6745,11 @@
       <div class="npc-name-display">
         <div class="npc-name-result" id="npcNameResult">-</div>
       </div>
+    </div>
+
+    <div class="npc-generator-section">
+      <button class="npc-generator-btn" onclick="openNpcGeneratorModal()" title="Generate random NPC (Alt+Shift+C)">Full NPC</button>
+      <span class="keyboard-hint">Alt+Shift+C</span>
     </div>
 
     <div class="quicknote-section">
@@ -8104,6 +8496,577 @@
         nameDisplay.style.color = '#ce93d8';
       }, 200);
     }
+
+    // ========== Full NPC Generator ==========
+
+    // Voice characterization data
+    const voiceQualityAdjectives = [
+      'raspy', 'smooth', 'high-pitched', 'deep', 'nasal', 'breathy', 'gravelly',
+      'melodic', 'monotone', 'whispery', 'booming', 'squeaky', 'husky', 'sharp', 'soft'
+    ];
+
+    const voiceMannerismAdjectives = [
+      'nervous', 'confident', 'stuttering', 'fast-talking', 'slow', 'dramatic',
+      'sarcastic', 'cheerful', 'grumpy', 'twitchy', 'measured', 'rambling',
+      'curt', 'flowery', 'mumbling'
+    ];
+
+    const voiceArchetypeNouns = [
+      'merchant', 'soldier', 'grandmother', 'uncle', 'professor', 'drunk',
+      'preacher', 'noble', 'beggar', 'child', 'storyteller', 'conspirator',
+      'flirt', 'bully', 'sage'
+    ];
+
+    // Non-binary first names
+    const nonbinaryNames = [
+      'Ash', 'River', 'Sage', 'Wren', 'Rowan', 'Quinn', 'Avery', 'Morgan',
+      'Emery', 'Finley', 'Haven', 'Indigo', 'Kai', 'Lark', 'Neve', 'Oakley',
+      'Phoenix', 'Raven', 'Sky', 'Storm', 'Thorn', 'Vale', 'Winter', 'Zephyr'
+    ];
+
+    // Ancestry-specific data with descriptions and age ranges
+    const ancestryData = {
+      clank: {
+        name: 'Clank',
+        maxAge: 500,
+        ageCategories: { child: 10, youngAdult: 30, adult: 100, middleAged: 250, elder: 400 },
+        features: ['brass gears visible beneath translucent skin', 'glowing crystal eyes', 'articulated metal fingers', 'steam vents along the spine', 'clockwork heart visible through chest panel', 'porcelain face plate', 'copper wire hair'],
+        builds: ['humanoid frame', 'angular construction', 'elegant mechanical design', 'utilitarian build', 'ornate brass chassis'],
+        quirks: ['occasional clicking sounds', 'faint whirring when thinking', 'eyes that glow brighter with emotion', 'steam puffs when exerting', 'gears that spin visibly when speaking']
+      },
+      drakona: {
+        name: 'Drakona',
+        maxAge: 200,
+        ageCategories: { child: 12, youngAdult: 20, adult: 50, middleAged: 100, elder: 160 },
+        features: ['iridescent scales', 'small horns curving back', 'slitted golden eyes', 'forked tongue', 'ridge of spines down the back', 'scaled tail', 'elongated face'],
+        builds: ['tall and lean', 'muscular and imposing', 'lithe and graceful', 'broad-shouldered', 'compact but powerful'],
+        quirks: ['scales that shift color with mood', 'smoke wisps from nostrils', 'teeth slightly too sharp', 'clawed fingertips', 'heat shimmer around hands']
+      },
+      dwarf: {
+        name: 'Dwarf',
+        maxAge: 350,
+        ageCategories: { child: 20, youngAdult: 40, adult: 100, middleAged: 200, elder: 300 },
+        features: ['thick braided beard', 'intricate hair braids with metal clasps', 'deep-set eyes', 'prominent brow', 'calloused hands', 'gem-studded earrings', 'clan tattoos'],
+        builds: ['broad and stocky', 'barrel-chested', 'muscular and compact', 'stout and sturdy', 'heavyset but agile'],
+        quirks: ['constantly adjusting tools on belt', 'beard care obsession', 'mutters in Dwarvish', 'stamps feet when emphatic', 'touches stone walls appreciatively']
+      },
+      elf: {
+        name: 'Elf',
+        maxAge: 750,
+        ageCategories: { child: 30, youngAdult: 80, adult: 200, middleAged: 400, elder: 600 },
+        features: ['pointed ears', 'angular features', 'almond-shaped eyes', 'high cheekbones', 'flowing hair', 'graceful long fingers', 'luminous skin'],
+        builds: ['tall and slender', 'willowy and graceful', 'lithe and athletic', 'ethereally thin', 'elegant frame'],
+        quirks: ['unnervingly still when listening', 'moves without sound', 'gazes into middle distance', 'speaks in flowing sentences', 'tilts head like a bird']
+      },
+      faerie: {
+        name: 'Faerie',
+        maxAge: 400,
+        ageCategories: { child: 15, youngAdult: 40, adult: 100, middleAged: 200, elder: 350 },
+        features: ['delicate translucent wings', 'eyes that sparkle with inner light', 'hair that floats slightly', 'pointed ears', 'tiny stature', 'skin with subtle shimmer', 'antenna-like hair wisps'],
+        builds: ['tiny and delicate', 'small but well-proportioned', 'diminutive and spritely', 'petite frame', 'doll-like proportions'],
+        quirks: ['leaves trail of faint sparkles', 'giggles at odd moments', 'easily distracted by shiny things', 'floats slightly when excited', 'speaks in musical tones']
+      },
+      faun: {
+        name: 'Faun',
+        maxAge: 150,
+        ageCategories: { child: 10, youngAdult: 18, adult: 40, middleAged: 80, elder: 120 },
+        features: ['curving horns', 'goat-like legs with hooves', 'pointed ears', 'tufted tail', 'fur-covered lower body', 'bright mischievous eyes', 'wild curly hair'],
+        builds: ['athletic and nimble', 'lean and agile', 'compact but strong', 'dancer-like physique', 'wiry frame'],
+        quirks: ['stamps hooves when impatient', 'ear flicks when listening', 'prone to dancing', 'laughs easily', 'sniffs the air frequently']
+      },
+      firbolg: {
+        name: 'Firbolg',
+        maxAge: 500,
+        ageCategories: { child: 30, youngAdult: 60, adult: 150, middleAged: 300, elder: 450 },
+        features: ['large floppy ears', 'broad flat nose', 'bluish-gray skin', 'moss growing in hair', 'bark-like patches on skin', 'gentle eyes', 'towering height'],
+        builds: ['tall and broad', 'gentle giant frame', 'large but soft', 'imposing yet kind', 'massive but graceful'],
+        quirks: ['speaks to plants', 'moves slowly and deliberately', 'hums nature sounds', 'smells of forest', 'pauses to listen to wind']
+      },
+      fungril: {
+        name: 'Fungril',
+        maxAge: 200,
+        ageCategories: { child: 10, youngAdult: 25, adult: 60, middleAged: 120, elder: 170 },
+        features: ['mushroom cap head', 'bioluminescent spots', 'spongy skin texture', 'spore patches', 'mycelium tendrils', 'varied cap colors', 'hollow stem-like limbs'],
+        builds: ['squat and rounded', 'tall and thin like a stem', 'bulbous and compact', 'willowy', 'thick-capped'],
+        quirks: ['releases spores when startled', 'cap changes color with mood', 'speaks in slow measured tones', 'prefers damp environments', 'skin slightly sticky']
+      },
+      galapa: {
+        name: 'Galapa',
+        maxAge: 400,
+        ageCategories: { child: 25, youngAdult: 50, adult: 120, middleAged: 250, elder: 350 },
+        features: ['domed shell on back', 'beak-like mouth', 'scaled skin', 'webbed fingers', 'wise old eyes', 'shell patterns unique to each', 'retractable neck'],
+        builds: ['slow and sturdy', 'rounded and protected', 'compact with heavy shell', 'surprisingly agile', 'weighted but balanced'],
+        quirks: ['withdraws into shell when stressed', 'moves methodically', 'blinks very slowly', 'supremely patient', 'enjoys basking in sun']
+      },
+      giant: {
+        name: 'Giant',
+        maxAge: 300,
+        ageCategories: { child: 15, youngAdult: 30, adult: 80, middleAged: 150, elder: 250 },
+        features: ['towering over others', 'thick hide-like skin', 'heavy brow', 'massive hands', 'booming voice', 'hair like rope', 'earth-toned complexion'],
+        builds: ['massive and imposing', 'tall and broad', 'mountainous frame', 'tree-trunk limbs', 'boulder-like shoulders'],
+        quirks: ['ground shakes with steps', 'speaks loudly even when trying to whisper', 'frequently bumps head on doorframes', 'sits on ground rather than chairs', 'accidentally breaks delicate things']
+      },
+      goblin: {
+        name: 'Goblin',
+        maxAge: 60,
+        ageCategories: { child: 5, youngAdult: 10, adult: 20, middleAged: 35, elder: 50 },
+        features: ['large pointed ears', 'sharp teeth', 'yellow or orange eyes', 'green or gray skin', 'long hooked nose', 'wiry frame', 'nimble fingers'],
+        builds: ['small and wiry', 'scrawny but quick', 'compact and nimble', 'thin and agile', 'lean and twitchy'],
+        quirks: ['cackling laugh', 'fidgets constantly', 'hoards shiny objects', 'speaks rapidly', 'climbs on everything']
+      },
+      halfling: {
+        name: 'Halfling',
+        maxAge: 150,
+        ageCategories: { child: 15, youngAdult: 25, adult: 50, middleAged: 80, elder: 120 },
+        features: ['curly hair', 'rosy cheeks', 'large hairy feet', 'bright eyes', 'round face', 'dimpled smile', 'button nose'],
+        builds: ['small and round', 'compact and cheerful', 'stout but nimble', 'plump and comfortable', 'short but sturdy'],
+        quirks: ['always has a snack', 'walks without shoes', 'hums while working', 'loves comfort', 'tells long-winded stories']
+      },
+      human: {
+        name: 'Human',
+        maxAge: 100,
+        ageCategories: { child: 12, youngAdult: 18, adult: 35, middleAged: 50, elder: 70 },
+        features: ['varied skin tones', 'diverse hair textures', 'expressive face', 'average proportions', 'adaptable appearance', 'weather-worn features', 'regional characteristics'],
+        builds: ['average build', 'athletic', 'stocky', 'tall and lean', 'compact and strong', 'heavyset', 'wiry'],
+        quirks: ['gestures while talking', 'shows emotion openly', 'curious about everything', 'ambitious demeanor', 'restless energy']
+      },
+      infernis: {
+        name: 'Infernis',
+        maxAge: 150,
+        ageCategories: { child: 12, youngAdult: 20, adult: 45, middleAged: 80, elder: 120 },
+        features: ['curved horns', 'pointed tail', 'red or purple skin tones', 'solid-colored eyes', 'sharp canines', 'cloven hooves', 'sulfurous scent'],
+        builds: ['lithe and sinuous', 'athletic build', 'compact and dangerous', 'tall and imposing', 'graceful predator'],
+        quirks: ['tail swishes with mood', 'eyes glow when emotional', 'uncomfortably warm to touch', 'smirks knowingly', 'makes deals reflexively']
+      },
+      katari: {
+        name: 'Katari',
+        maxAge: 80,
+        ageCategories: { child: 8, youngAdult: 14, adult: 30, middleAged: 50, elder: 65 },
+        features: ['fur-covered body', 'cat-like ears', 'slitted pupils', 'whiskers', 'retractable claws', 'long tail', 'various fur patterns'],
+        builds: ['lithe and flexible', 'athletic and graceful', 'lean predator', 'compact and agile', 'sleek frame'],
+        quirks: ['purrs when content', 'hisses when startled', 'grooms self unconsciously', 'stalks rather than walks', 'fascinated by moving objects']
+      },
+      orc: {
+        name: 'Orc',
+        maxAge: 80,
+        ageCategories: { child: 8, youngAdult: 14, adult: 30, middleAged: 50, elder: 70 },
+        features: ['prominent tusks', 'green or gray skin', 'broad nose', 'heavy brow', 'tribal scars or tattoos', 'pointed ears', 'strong jaw'],
+        builds: ['muscular and broad', 'powerfully built', 'imposing frame', 'warrior physique', 'massive and strong'],
+        quirks: ['cracks knuckles', 'stands with arms crossed', 'speaks bluntly', 'respects strength', 'laughs heartily']
+      },
+      ribbet: {
+        name: 'Ribbet',
+        maxAge: 80,
+        ageCategories: { child: 5, youngAdult: 12, adult: 30, middleAged: 50, elder: 70 },
+        features: ['bulging eyes', 'wide mouth', 'moist skin', 'webbed hands and feet', 'powerful legs', 'varied skin colors', 'vocal sac visible'],
+        builds: ['compact and springy', 'lean and long-limbed', 'squat and powerful', 'streamlined', 'athletic crouch'],
+        quirks: ['croaks when nervous', 'catches flies reflexively', 'jumps rather than walks', 'skin glistens', 'blinks sideways']
+      },
+      simiah: {
+        name: 'Simiah',
+        maxAge: 90,
+        ageCategories: { child: 8, youngAdult: 15, adult: 35, middleAged: 55, elder: 75 },
+        features: ['prehensile tail', 'expressive face', 'fur-covered body', 'long arms', 'opposable toes', 'intelligent eyes', 'various fur colors'],
+        builds: ['agile and limber', 'long-limbed and flexible', 'compact but strong', 'athletic climber', 'wiry frame'],
+        quirks: ['hangs from things', 'uses tail constantly', 'picks at fruit', 'chatters when excited', 'grooms companions']
+      }
+    };
+
+    // Distinguishing characteristics
+    const distinguishingFeatures = [
+      'a jagged scar across the cheek',
+      'an intricate tattoo on the forearm',
+      'a missing finger on the left hand',
+      'a distinctive birthmark',
+      'unusual eye color',
+      'a gold tooth',
+      'elaborate braided hair',
+      'a perpetual squint',
+      'calloused hands from hard work',
+      'an ornate piece of jewelry',
+      'a distinctive limp',
+      'a memorable laugh',
+      'weather-beaten skin',
+      'ink-stained fingers',
+      'a nervous habit of touching their face',
+      'pristine clothing despite circumstances',
+      'multiple earrings',
+      'a well-worn holy symbol',
+      'burn scars on their hands',
+      'a distinctive hat or headwear'
+    ];
+
+    // Social NPC abilities
+    const socialAbilities = [
+      { name: 'Silver Tongue', type: 'Passive', description: 'Has advantage on rolls to persuade or negotiate.' },
+      { name: 'Read the Room', type: 'Passive', description: 'Can sense the general mood and intentions of a group.' },
+      { name: 'Local Knowledge', type: 'Passive', description: 'Knows the area well; can provide information about locations, people, and rumors.' },
+      { name: 'Connections', type: 'Passive', description: 'Has contacts in the underworld, nobility, or merchant guilds.' },
+      { name: 'Inspiring Presence', type: 'Passive', description: 'Allies nearby feel more confident; +1 to morale-related rolls.' },
+      { name: 'Merchant\'s Eye', type: 'Passive', description: 'Can accurately appraise the value of goods and detect counterfeits.' },
+      { name: 'Gossip Network', type: 'Action', description: 'Spend time gathering information; learn one rumor or secret.' },
+      { name: 'Call for Help', type: 'Action', description: 'Can summon 1d4 guards or allies within a few minutes.' },
+      { name: 'Distraction', type: 'Action', description: 'Create a diversion that draws attention away from others.' },
+      { name: 'Bribe', type: 'Action', description: 'Offer coin to make a problem go away or gain favor.' },
+      { name: 'Intimidate', type: 'Action', description: 'Make a Presence roll to frighten or cow a target.' },
+      { name: 'Keen Observer', type: 'Passive', description: 'Notices small details others miss; hard to deceive.' },
+      { name: 'Trustworthy Face', type: 'Passive', description: 'People are inclined to believe and confide in them.' },
+      { name: 'Dramatic Exit', type: 'Reaction', description: 'When things go wrong, can slip away unnoticed.' }
+    ];
+
+    // Current generated NPC state
+    let currentNpc = {
+      name: '',
+      sex: '',
+      age: 0,
+      ageCategory: '',
+      ancestry: '',
+      ancestryKey: '',
+      description: '',
+      voice: '',
+      stats: null
+    };
+
+    // Helper function to pick random item from array
+    function pickRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // Generate a random sex
+    function generateNpcSex() {
+      const sexes = ['Male', 'Female', 'Non-binary'];
+      const weights = [0.45, 0.45, 0.10]; // 45% male, 45% female, 10% non-binary
+      const rand = Math.random();
+      let cumulative = 0;
+      for (let i = 0; i < sexes.length; i++) {
+        cumulative += weights[i];
+        if (rand < cumulative) return sexes[i];
+      }
+      return sexes[0];
+    }
+
+    // Generate a name based on sex
+    function generateNpcFullName(sex) {
+      let firstName;
+      if (sex === 'Non-binary') {
+        firstName = pickRandom(nonbinaryNames);
+      } else {
+        const gender = sex.toLowerCase();
+        firstName = pickRandom(npcNames[gender]);
+      }
+      const lastName = pickRandom(npcNames.surnames);
+      return `${firstName} ${lastName}`;
+    }
+
+    // Generate age based on ancestry
+    function generateNpcAge(ancestryKey) {
+      const data = ancestryData[ancestryKey];
+      const maxAge = data.maxAge;
+      const categories = data.ageCategories;
+
+      // Generate a random age with slight bias toward adult
+      const ageRanges = [
+        { min: categories.child / 2, max: categories.child, category: 'child', weight: 0.05 },
+        { min: categories.child, max: categories.youngAdult, category: 'young adult', weight: 0.15 },
+        { min: categories.youngAdult, max: categories.adult, category: 'adult', weight: 0.35 },
+        { min: categories.adult, max: categories.middleAged, category: 'middle-aged', weight: 0.25 },
+        { min: categories.middleAged, max: categories.elder, category: 'elder', weight: 0.15 },
+        { min: categories.elder, max: maxAge, category: 'ancient', weight: 0.05 }
+      ];
+
+      const rand = Math.random();
+      let cumulative = 0;
+      for (const range of ageRanges) {
+        cumulative += range.weight;
+        if (rand < cumulative) {
+          const age = Math.floor(Math.random() * (range.max - range.min)) + range.min;
+          return { age, category: range.category };
+        }
+      }
+      return { age: categories.adult, category: 'adult' };
+    }
+
+    // Generate ancestry
+    function generateNpcAncestry() {
+      const ancestryKeys = Object.keys(ancestryData);
+      return pickRandom(ancestryKeys);
+    }
+
+    // Generate physical description
+    function generateNpcDescription(ancestryKey, ageCategory, sex) {
+      const data = ancestryData[ancestryKey];
+      const feature1 = pickRandom(data.features);
+      const feature2 = pickRandom(data.features.filter(f => f !== feature1));
+      const build = pickRandom(data.builds);
+      const quirk = pickRandom(data.quirks);
+      const distinguishing = pickRandom(distinguishingFeatures);
+
+      // Build description with age-appropriate language
+      let ageDesc = '';
+      switch (ageCategory) {
+        case 'child': ageDesc = 'young and energetic'; break;
+        case 'young adult': ageDesc = 'youthful'; break;
+        case 'adult': ageDesc = 'in their prime'; break;
+        case 'middle-aged': ageDesc = 'showing signs of experience'; break;
+        case 'elder': ageDesc = 'weathered by time but dignified'; break;
+        case 'ancient': ageDesc = 'ancient but still present'; break;
+        default: ageDesc = 'mature';
+      }
+
+      // Construct the description
+      const descriptions = [
+        `A ${build} ${data.name} ${ageDesc}, with ${feature1} and ${feature2}. They have ${distinguishing}, and ${quirk}.`,
+        `This ${ageDesc} ${data.name} has a ${build}, featuring ${feature1}. Notable for ${distinguishing}, they often ${quirk.replace('their', 'themselves')}.`,
+        `${ageDesc.charAt(0).toUpperCase() + ageDesc.slice(1)}, this ${data.name} has ${feature1} and a ${build}. ${distinguishing.charAt(0).toUpperCase() + distinguishing.slice(1)} marks their appearance, and ${quirk}.`
+      ];
+
+      return pickRandom(descriptions);
+    }
+
+    // Generate voice characterization
+    function generateNpcVoice() {
+      const quality = pickRandom(voiceQualityAdjectives);
+      const mannerism = pickRandom(voiceMannerismAdjectives);
+      const archetype = pickRandom(voiceArchetypeNouns);
+      return `${quality}, ${mannerism} ${archetype}`;
+    }
+
+    // Generate social stat block
+    function generateNpcStats() {
+      // Social NPCs have lower stats - they're not combat-focused
+      const hp = Math.floor(Math.random() * 3) + 1; // 1-3 HP
+      const stress = Math.floor(Math.random() * 2) + 1; // 1-2 Stress
+      const evasion = Math.floor(Math.random() * 4) + 8; // 8-11 Evasion
+      const difficulty = Math.floor(Math.random() * 4) + 10; // 10-13 Difficulty
+
+      // Pick 1-2 social abilities
+      const numAbilities = Math.random() < 0.4 ? 1 : 2;
+      const abilities = [];
+      const availableAbilities = [...socialAbilities];
+      for (let i = 0; i < numAbilities; i++) {
+        const idx = Math.floor(Math.random() * availableAbilities.length);
+        abilities.push(availableAbilities.splice(idx, 1)[0]);
+      }
+
+      return {
+        hp,
+        stress,
+        evasion,
+        difficulty,
+        abilities
+      };
+    }
+
+    // Generate complete NPC
+    function generateFullNpc() {
+      currentNpc.sex = generateNpcSex();
+      currentNpc.ancestryKey = generateNpcAncestry();
+      currentNpc.ancestry = ancestryData[currentNpc.ancestryKey].name;
+      const ageResult = generateNpcAge(currentNpc.ancestryKey);
+      currentNpc.age = ageResult.age;
+      currentNpc.ageCategory = ageResult.category;
+      currentNpc.name = generateNpcFullName(currentNpc.sex);
+      currentNpc.description = generateNpcDescription(currentNpc.ancestryKey, currentNpc.ageCategory, currentNpc.sex);
+      currentNpc.voice = generateNpcVoice();
+      currentNpc.stats = generateNpcStats();
+    }
+
+    // Render NPC to modal
+    function renderNpcToModal() {
+      document.getElementById('npcGenName').textContent = currentNpc.name;
+      document.getElementById('npcGenSex').textContent = currentNpc.sex;
+      document.getElementById('npcGenAge').textContent = `${currentNpc.age} (${currentNpc.ageCategory})`;
+      document.getElementById('npcGenAncestry').textContent = currentNpc.ancestry;
+      document.getElementById('npcGenDescription').textContent = currentNpc.description;
+      document.getElementById('npcGenVoice').textContent = currentNpc.voice;
+
+      // Render stats
+      const statsEl = document.getElementById('npcGenStats');
+      statsEl.innerHTML = `
+        <div class="npc-stat">
+          <div class="npc-stat-label">HP</div>
+          <div class="npc-stat-value">${currentNpc.stats.hp}</div>
+        </div>
+        <div class="npc-stat">
+          <div class="npc-stat-label">Stress</div>
+          <div class="npc-stat-value">${currentNpc.stats.stress}</div>
+        </div>
+        <div class="npc-stat">
+          <div class="npc-stat-label">Evasion</div>
+          <div class="npc-stat-value">${currentNpc.stats.evasion}</div>
+        </div>
+        <div class="npc-stat">
+          <div class="npc-stat-label">Difficulty</div>
+          <div class="npc-stat-value">${currentNpc.stats.difficulty}</div>
+        </div>
+      `;
+
+      // Render abilities
+      const abilitiesEl = document.getElementById('npcGenAbilities');
+      abilitiesEl.innerHTML = currentNpc.stats.abilities.map(ability => `
+        <div class="npc-ability">
+          <span class="npc-ability-name">${ability.name}</span>
+          <span class="npc-ability-type">(${ability.type})</span>
+          <div class="npc-ability-description">${ability.description}</div>
+        </div>
+      `).join('');
+    }
+
+    // Open NPC generator modal
+    function openNpcGeneratorModal() {
+      generateFullNpc();
+      renderNpcToModal();
+      const modal = document.getElementById('npcGeneratorModal');
+      modal.classList.add('visible');
+    }
+
+    // Close NPC generator modal
+    function closeNpcGeneratorModal() {
+      const modal = document.getElementById('npcGeneratorModal');
+      modal.classList.remove('visible');
+    }
+
+    // Regenerate all fields
+    function regenerateAllNpc() {
+      generateFullNpc();
+      renderNpcToModal();
+    }
+
+    // Reroll individual field
+    function rerollNpcField(field) {
+      switch (field) {
+        case 'name':
+          currentNpc.name = generateNpcFullName(currentNpc.sex);
+          document.getElementById('npcGenName').textContent = currentNpc.name;
+          break;
+        case 'sex':
+          currentNpc.sex = generateNpcSex();
+          currentNpc.name = generateNpcFullName(currentNpc.sex); // Regenerate name to match sex
+          document.getElementById('npcGenSex').textContent = currentNpc.sex;
+          document.getElementById('npcGenName').textContent = currentNpc.name;
+          break;
+        case 'age':
+          const ageResult = generateNpcAge(currentNpc.ancestryKey);
+          currentNpc.age = ageResult.age;
+          currentNpc.ageCategory = ageResult.category;
+          currentNpc.description = generateNpcDescription(currentNpc.ancestryKey, currentNpc.ageCategory, currentNpc.sex);
+          document.getElementById('npcGenAge').textContent = `${currentNpc.age} (${currentNpc.ageCategory})`;
+          document.getElementById('npcGenDescription').textContent = currentNpc.description;
+          break;
+        case 'ancestry':
+          currentNpc.ancestryKey = generateNpcAncestry();
+          currentNpc.ancestry = ancestryData[currentNpc.ancestryKey].name;
+          const newAgeResult = generateNpcAge(currentNpc.ancestryKey);
+          currentNpc.age = newAgeResult.age;
+          currentNpc.ageCategory = newAgeResult.category;
+          currentNpc.description = generateNpcDescription(currentNpc.ancestryKey, currentNpc.ageCategory, currentNpc.sex);
+          document.getElementById('npcGenAncestry').textContent = currentNpc.ancestry;
+          document.getElementById('npcGenAge').textContent = `${currentNpc.age} (${currentNpc.ageCategory})`;
+          document.getElementById('npcGenDescription').textContent = currentNpc.description;
+          break;
+        case 'description':
+          currentNpc.description = generateNpcDescription(currentNpc.ancestryKey, currentNpc.ageCategory, currentNpc.sex);
+          document.getElementById('npcGenDescription').textContent = currentNpc.description;
+          break;
+        case 'voice':
+          currentNpc.voice = generateNpcVoice();
+          document.getElementById('npcGenVoice').textContent = currentNpc.voice;
+          break;
+        case 'stats':
+          currentNpc.stats = generateNpcStats();
+          renderNpcToModal(); // Re-render to update stats section
+          break;
+      }
+    }
+
+    // Copy NPC to clipboard
+    function copyNpcToClipboard() {
+      const text = `
+${currentNpc.name}
+${currentNpc.sex} ${currentNpc.ancestry}, ${currentNpc.age} years old (${currentNpc.ageCategory})
+
+PHYSICAL DESCRIPTION:
+${currentNpc.description}
+
+VOICE: "${currentNpc.voice}"
+
+STAT BLOCK (Social NPC):
+HP: ${currentNpc.stats.hp} | Stress: ${currentNpc.stats.stress} | Evasion: ${currentNpc.stats.evasion} | Difficulty: ${currentNpc.stats.difficulty}
+
+ABILITIES:
+${currentNpc.stats.abilities.map(a => `• ${a.name} (${a.type}): ${a.description}`).join('\n')}
+      `.trim();
+
+      navigator.clipboard.writeText(text).then(() => {
+        // Show confirmation toast
+        let toast = document.getElementById('npcCopyToast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'npcCopyToast';
+          toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #4fc3f7, #0288d1); color: white; padding: 12px 20px; border-radius: 6px; font-family: Cinzel, serif; font-size: 0.9rem; z-index: 10001; opacity: 0; transition: opacity 0.3s;';
+          document.body.appendChild(toast);
+        }
+        toast.textContent = 'NPC copied to clipboard!';
+        toast.style.opacity = '1';
+        setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+      });
+    }
+
+    // Save NPC to campaign notes
+    function saveNpcToCampaign() {
+      // Check if campaign is loaded
+      if (!window.currentCampaignId) {
+        alert('Please select a campaign first before saving NPCs.');
+        return;
+      }
+
+      const noteContent = `
+**${currentNpc.sex} ${currentNpc.ancestry}** | ${currentNpc.age} years old (${currentNpc.ageCategory})
+
+**Physical Description:**
+${currentNpc.description}
+
+**Voice:** "${currentNpc.voice}"
+
+**Stat Block (Social NPC):**
+HP: ${currentNpc.stats.hp} | Stress: ${currentNpc.stats.stress} | Evasion: ${currentNpc.stats.evasion} | Difficulty: ${currentNpc.stats.difficulty}
+
+**Abilities:**
+${currentNpc.stats.abilities.map(a => `• **${a.name}** (${a.type}): ${a.description}`).join('\n')}
+      `.trim();
+
+      const newNote = {
+        id: 'note-' + Math.random().toString(36).substr(2, 9),
+        title: currentNpc.name,
+        category: 'npc',
+        content: noteContent,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      campaignNotes.push(newNote);
+      renderNotesList();
+      scheduleAutoSaveIfAvailable();
+
+      // Show confirmation toast
+      let toast = document.getElementById('npcSaveToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'npcSaveToast';
+        toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #4CAF50, #2e7d32); color: white; padding: 12px 20px; border-radius: 6px; font-family: Cinzel, serif; font-size: 0.9rem; z-index: 10001; opacity: 0; transition: opacity 0.3s;';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = `${currentNpc.name} saved to campaign!`;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('npcGeneratorModal')?.addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeNpcGeneratorModal();
+      }
+    });
 
     // ========== Image Upload Helper ==========
     async function uploadImageToCloud(file) {
@@ -13100,6 +14063,18 @@
         return;
       }
 
+      // Alt+Shift+C - Open NPC Generator Modal
+      if (e.altKey && e.shiftKey && !e.ctrlKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        const modal = document.getElementById('npcGeneratorModal');
+        if (modal.classList.contains('visible')) {
+          closeNpcGeneratorModal();
+        } else {
+          openNpcGeneratorModal();
+        }
+        return;
+      }
+
       // Shift+Alt+Up - Add Fear
       if (e.shiftKey && e.altKey && !e.ctrlKey && e.key === 'ArrowUp') {
         e.preventDefault();
@@ -13114,12 +14089,18 @@
         return;
       }
 
-      // Escape - Close Quick Note Modal
+      // Escape - Close modals
       if (e.key === 'Escape') {
         const quickNoteModal = document.getElementById('quickNoteModal');
         if (quickNoteModal?.classList.contains('visible')) {
           e.preventDefault();
           closeQuickNoteModal();
+          return;
+        }
+        const npcGeneratorModal = document.getElementById('npcGeneratorModal');
+        if (npcGeneratorModal?.classList.contains('visible')) {
+          e.preventDefault();
+          closeNpcGeneratorModal();
           return;
         }
       }
