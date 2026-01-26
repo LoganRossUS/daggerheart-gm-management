@@ -1805,3 +1805,226 @@
     flex-wrap: wrap;
   }
 }
+
+/* ============================================
+   ANCESTRY SECTION
+   ============================================ */
+
+.ancestry-description {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--sheet-muted);
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+}
+
+.dark-mode .ancestry-description {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ancestry-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ancestry-features-note,
+.community-features-note {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--sheet-muted);
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+}
+
+.dark-mode .ancestry-features-note,
+.dark-mode .community-features-note {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Feature Cards (shared for ancestry and community) */
+.feature-card {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.dark-mode .feature-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.feature-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--sheet-accent);
+  margin-bottom: 0.35rem;
+}
+
+.dark-mode .feature-name {
+  color: #ffd700;
+}
+
+.feature-source {
+  font-size: 0.8rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--sheet-muted);
+}
+
+.feature-description {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--sheet-text);
+}
+
+/* ============================================
+   COMMUNITY SECTION
+   ============================================ */
+
+.community-feature {
+  margin-bottom: 1rem;
+}
+
+.community-adjectives {
+  padding-top: 0.75rem;
+}
+
+.adjectives-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+  color: var(--sheet-muted);
+}
+
+.adjective-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.adjective-tag {
+  background: rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+  color: var(--sheet-text);
+}
+
+.dark-mode .adjective-tag {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ============================================
+   STARTING INVENTORY SECTION
+   ============================================ */
+
+.inventory-group {
+  margin-bottom: 1rem;
+}
+
+.inventory-group:last-child {
+  margin-bottom: 0;
+}
+
+.inventory-group-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.35rem;
+  color: var(--sheet-muted);
+}
+
+.inventory-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.inventory-list li {
+  margin-bottom: 0.25rem;
+}
+
+.inventory-item {
+  font-size: 0.9rem;
+  padding: 0.35rem 0.5rem;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+}
+
+.dark-mode .inventory-item {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.potion-item {
+  color: #2e7d32;
+  background: rgba(46, 125, 50, 0.1);
+  border-left: 3px solid #2e7d32;
+}
+
+.dark-mode .potion-item {
+  color: #81c784;
+  background: rgba(46, 125, 50, 0.15);
+}
+
+.flavor-item {
+  color: var(--sheet-accent);
+  background: rgba(139, 69, 19, 0.1);
+  border-left: 3px solid var(--sheet-accent);
+}
+
+.dark-mode .flavor-item {
+  color: #daa520;
+  background: rgba(218, 165, 32, 0.15);
+  border-left-color: #daa520;
+}
+
+.focus-item {
+  color: #5e35b1;
+  background: rgba(94, 53, 177, 0.1);
+  border-left: 3px solid #5e35b1;
+}
+
+.dark-mode .focus-item {
+  color: #b388ff;
+  background: rgba(179, 136, 255, 0.15);
+  border-left-color: #b388ff;
+}
+
+/* ============================================
+   MOBILE STYLES FOR NEW SECTIONS
+   ============================================ */
+
+@media screen and (max-width: 600px) {
+  .adjective-tags {
+    gap: 0.35rem;
+  }
+
+  .adjective-tag {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .feature-card {
+    padding: 0.6rem;
+  }
+
+  .feature-name {
+    font-size: 0.9rem;
+  }
+
+  .feature-description {
+    font-size: 0.8rem;
+  }
+}
