@@ -1403,6 +1403,27 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Dark mode checked states - must override base dark mode background */
+.character-sheet-form.dark-mode .checkbox-slot.checked {
+  background: var(--sheet-border);
+}
+
+.character-sheet-form.dark-mode .checkbox-slot.hp.checked {
+  background: #c62828;
+}
+
+.character-sheet-form.dark-mode .checkbox-slot.stress.checked {
+  background: #7c4dff;
+}
+
+.character-sheet-form.dark-mode .checkbox-slot.hope.checked {
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+}
+
+.character-sheet-form.dark-mode .checkbox-slot.armor.checked {
+  background: #607d8b;
+}
+
 .character-sheet-form.dark-mode .gold-value {
   background: rgba(255, 255, 255, 0.1);
 }
