@@ -1509,3 +1509,299 @@
     margin-top: 1rem;
   }
 }
+
+/* ============================================
+   BACKGROUND SECTION
+   ============================================ */
+
+.background-questions {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.dark-mode .background-questions {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.questions-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--sheet-muted);
+}
+
+.questions-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.questions-list li {
+  margin-bottom: 0.35rem;
+}
+
+/* ============================================
+   CONNECTIONS SECTION
+   ============================================ */
+
+.connections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.connection-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.connection-question {
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--sheet-accent);
+}
+
+.dark-mode .connection-question {
+  color: #b388ff;
+}
+
+.connection-answer {
+  min-height: 60px;
+  resize: vertical;
+}
+
+/* ============================================
+   BEASTFORMS SECTION (DRUID)
+   ============================================ */
+
+.beastform-tier {
+  margin-bottom: 1.5rem;
+}
+
+.beastform-tier:last-child {
+  margin-bottom: 0;
+}
+
+.tier-header {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid var(--color-druid);
+  color: var(--color-druid);
+}
+
+.dark-mode .tier-header {
+  color: #8fbc8f;
+  border-color: #8fbc8f;
+}
+
+.beastform-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.beastform-card {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.dark-mode .beastform-card {
+  background: rgba(45, 90, 61, 0.1);
+  border-color: rgba(45, 90, 61, 0.3);
+}
+
+.beastform-header {
+  margin-bottom: 0.5rem;
+}
+
+.beastform-header strong {
+  font-size: 0.95rem;
+  color: var(--color-druid);
+}
+
+.dark-mode .beastform-header strong {
+  color: #8fbc8f;
+}
+
+.beastform-examples {
+  font-size: 0.75rem;
+  color: var(--sheet-muted);
+  font-style: italic;
+  margin-left: 0.5rem;
+}
+
+.beastform-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.beastform-stats span {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+}
+
+.dark-mode .beastform-stats span {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.beastform-advantages {
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.beastform-advantages strong {
+  color: var(--sheet-accent);
+}
+
+.beastform-features {
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.beastform-feature {
+  margin-bottom: 0.35rem;
+}
+
+.beastform-feature strong {
+  color: var(--color-druid);
+}
+
+.dark-mode .beastform-feature strong {
+  color: #8fbc8f;
+}
+
+/* ============================================
+   COMPANION SECTION (RANGER)
+   ============================================ */
+
+.companion-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.companion-header {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.companion-field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.companion-field label,
+.companion-stat label,
+.companion-attack label,
+.companion-experiences label,
+.companion-training label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+  color: var(--color-ranger);
+}
+
+.dark-mode .companion-field label,
+.dark-mode .companion-stat label,
+.dark-mode .companion-attack label,
+.dark-mode .companion-experiences label,
+.dark-mode .companion-training label {
+  color: #d2691e;
+}
+
+.companion-stat {
+  width: 80px;
+}
+
+.companion-stat input {
+  text-align: center;
+  width: 100%;
+}
+
+.companion-stress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.dark-mode .companion-stress {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.companion-stress .resource-label {
+  min-width: 120px;
+}
+
+.companion-attack-fields {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.companion-attack-fields .text-input-field.small {
+  width: 80px;
+}
+
+.companion-experiences textarea,
+.companion-training textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+/* ============================================
+   MOBILE STYLES FOR NEW SECTIONS
+   ============================================ */
+
+@media screen and (max-width: 600px) {
+  .beastform-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .companion-header {
+    flex-direction: column;
+  }
+
+  .companion-field {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .companion-stat {
+    width: 100%;
+  }
+
+  .companion-attack-fields {
+    flex-direction: column;
+  }
+
+  .companion-attack-fields .text-input-field.small {
+    width: 100%;
+  }
+
+  .companion-stress {
+    flex-wrap: wrap;
+  }
+}

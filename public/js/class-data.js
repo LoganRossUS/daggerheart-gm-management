@@ -883,6 +883,23 @@ export function getDomainCardSlots(level) {
 }
 
 /**
+ * Normalize class name to match CLASS_DATA keys (capitalize first letter)
+ * Handles: "bard" -> "Bard", "BARD" -> "Bard", "Bard" -> "Bard"
+ */
+export function normalizeClassName(className) {
+  if (!className || typeof className !== 'string') return '';
+  return className.charAt(0).toUpperCase() + className.slice(1).toLowerCase();
+}
+
+/**
+ * Get class data with case-insensitive lookup
+ */
+export function getClassData(className) {
+  const normalized = normalizeClassName(className);
+  return CLASS_DATA[normalized] || null;
+}
+
+/**
  * Parse armor thresholds from "5/11" format to { major, severe }
  */
 export function parseArmorThresholds(thresholdsString) {

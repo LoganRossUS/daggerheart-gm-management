@@ -335,7 +335,7 @@
 
   <script type="module">
     import { CharacterSheetComponent } from '/js/character-sheet-component.js';
-    import { CLASS_DATA, createDefaultCharacter, populateFromClass } from '/js/class-data.js';
+    import { CLASS_DATA, createDefaultCharacter, populateFromClass, normalizeClassName, getClassData } from '/js/class-data.js';
 
     // Firebase Configuration
     const firebaseConfig = {
@@ -541,7 +541,8 @@
       // Copy basic fields
       newChar.id = char.id || crypto.randomUUID();
       newChar.name = char.name || '';
-      newChar.class_name = char.class || char.characterClass || '';
+      // Normalize class name for consistent CLASS_DATA lookup (handles "bard" -> "Bard")
+      newChar.class_name = normalizeClassName(char.class || char.characterClass || '');
       newChar.subclass = char.subclass || '';
       newChar.heritage = char.ancestry || char.heritage || '';
       newChar.level = char.level || 1;
@@ -651,15 +652,46 @@
         newChar.gold_chests = 0;
       }
 
-      // Populate class features if we have class data
-      if (newChar.class_name && CLASS_DATA[newChar.class_name]) {
-        const classData = CLASS_DATA[newChar.class_name];
-        newChar.class_features = classData.class_features || '';
-        newChar.hope_feature = classData.hope_feature || '';
+      // Populate class features and questions from CLASS_DATA
+      const classData = getClassData(newChar.class_name);
+      if (classData) {
+        newChar.class_features = char.class_features || classData.class_features || '';
+        newChar.hope_feature = char.hope_feature || classData.hope_feature || '';
+
+        // Background questions (from class) and answers (from saved character)
+        newChar.background_questions = classData.background_questions || [];
+        newChar.background = char.background || '';
+
+        // Connections questions (from class) and answers (from saved character)
+        newChar.connections_questions = classData.connections_questions || [];
+        newChar.connections = char.connections || [];
+
+        // Description options (from class)
+        newChar.description_options = classData.description_options || null;
+
+        // Domains
+        newChar.domains = classData.domains || '';
+
+        // Beastforms for Druids
+        if (newChar.class_name === 'Druid' && classData.beastforms) {
+          newChar.beastforms = classData.beastforms;
+        }
+
+        // Companion for Rangers
+        if (newChar.class_name === 'Ranger') {
+          newChar.companion = char.companion || {
+            name: '',
+            evasion: 10,
+            stress: { current: 0, max: 3 },
+            experiences: [],
+            training: [],
+            attack: { die: 'd6', range: 'Melee' }
+          };
+        }
       }
 
-      // Notes
-      newChar.notes = char.background || char.notes || '';
+      // Notes (separate from background)
+      newChar.notes = char.notes || '';
 
       return newChar;
     }
@@ -774,6 +806,36 @@
           };
         });
         updates['experiences'] = experiences;
+        return updates;
+      }
+
+      // Background (user's written background story)
+      if (field === 'background') {
+        updates['background'] = value;
+        return updates;
+      }
+
+      // Connections (array of answers)
+      if (field === 'connections') {
+        updates['connections'] = value;
+        return updates;
+      }
+
+      // Companion (for Rangers)
+      if (field === 'companion' || field.startsWith('companion.')) {
+        if (field === 'companion') {
+          updates['companion'] = value;
+        } else {
+          // Handle nested companion fields like companion.name, companion.evasion
+          const subField = field.replace('companion.', '');
+          updates[`companion/${subField.replace('.', '/')}`] = value;
+        }
+        return updates;
+      }
+
+      // Class features and hope feature (text fields)
+      if (field === 'class_features' || field === 'hope_feature') {
+        updates[field] = value;
         return updates;
       }
 

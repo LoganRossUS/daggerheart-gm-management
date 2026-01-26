@@ -15,7 +15,7 @@
  * - Class-specific content auto-populated
  */
 
-import { CLASS_DATA, CLASS_COLORS, TRAIT_SKILLS, getProficiency, getTier } from './class-data.js';
+import { CLASS_DATA, CLASS_COLORS, TRAIT_SKILLS, getProficiency, getTier, normalizeClassName, getClassData } from './class-data.js';
 
 // Debounce helper - longer delay for text inputs
 function debounce(func, wait) {
@@ -142,6 +142,10 @@ export class CharacterSheetComponent {
         <!-- Full Width Sections -->
         <div class="sheet-full-width">
           ${this.renderClassFeatures(character)}
+          ${this.renderBackgroundSection(character)}
+          ${this.renderConnectionsSection(character)}
+          ${this.renderBeastformsSection(character)}
+          ${this.renderCompanionSection(character)}
           ${this.renderNotes(character)}
         </div>
 
@@ -164,7 +168,7 @@ export class CharacterSheetComponent {
    * Render Class Banner
    */
   renderClassBanner(char) {
-    const classData = CLASS_DATA[char.class_name] || {};
+    const classData = getClassData(char.class_name) || {};
     const classLower = (char.class_name || '').toLowerCase();
     const portraitUrl = char.portrait || '';
     const startingEvasion = classData.base_evasion || 10;
@@ -272,7 +276,7 @@ export class CharacterSheetComponent {
    * Render Combat Stats Section
    */
   renderCombatStats(char) {
-    const classData = CLASS_DATA[char.class_name] || {};
+    const classData = getClassData(char.class_name) || {};
     const proficiency = char.proficiency || getProficiency(char.level || 1);
     const startingEvasion = classData.base_evasion;
 
@@ -372,7 +376,7 @@ export class CharacterSheetComponent {
    * Get spellcast trait for a character
    */
   getSpellcastTrait(char) {
-    const classData = CLASS_DATA[char.class_name];
+    const classData = getClassData(char.class_name);
     if (!classData || !classData.subclasses) return null;
 
     // Find subclass by name
@@ -480,7 +484,7 @@ export class CharacterSheetComponent {
    */
   renderHopeSection(char) {
     const hopeSlots = char.hope_slots || Array(6).fill(false);
-    const classData = CLASS_DATA[char.class_name] || {};
+    const classData = getClassData(char.class_name) || {};
     const hopeFeature = char.hope_feature || classData.hope_feature || '';
     const isCollapsed = this.collapsedSections['hope'];
 
@@ -797,7 +801,7 @@ export class CharacterSheetComponent {
    * Render Class Features Section
    */
   renderClassFeatures(char) {
-    const classData = CLASS_DATA[char.class_name] || {};
+    const classData = getClassData(char.class_name) || {};
     const classFeatures = char.class_features || classData.class_features || '';
 
     return `
@@ -823,8 +827,243 @@ export class CharacterSheetComponent {
         <div class="section-content">
           <textarea class="text-area-field large"
                     data-field="notes"
-                    placeholder="Additional notes, background, connections..."
+                    placeholder="Additional notes..."
                     ${this.options.readOnly ? 'readonly' : ''}>${escapeHtml(char.notes || '')}</textarea>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render Background Section
+   */
+  renderBackgroundSection(char) {
+    const questions = char.background_questions || [];
+    const background = char.background || '';
+    const isCollapsed = this.collapsedSections['background'];
+
+    if (questions.length === 0 && !background) {
+      return '';
+    }
+
+    return `
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="background">
+        <div class="section-header collapsible-trigger" data-toggle="background">
+          <span>Background</span>
+          <span class="collapse-icon"></span>
+        </div>
+        <div class="section-content">
+          ${questions.length > 0 ? `
+            <div class="background-questions">
+              <div class="questions-label">Consider these questions when writing your background:</div>
+              <ul class="questions-list">
+                ${questions.map(q => `<li>${escapeHtml(q)}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+          <textarea class="text-area-field large"
+                    data-field="background"
+                    placeholder="Write your character's background story..."
+                    ${this.options.readOnly ? 'readonly' : ''}>${escapeHtml(background)}</textarea>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render Connections Section
+   */
+  renderConnectionsSection(char) {
+    const questions = char.connections_questions || [];
+    const connections = char.connections || [];
+    const isCollapsed = this.collapsedSections['connections'];
+
+    if (questions.length === 0) {
+      return '';
+    }
+
+    return `
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="connections">
+        <div class="section-header collapsible-trigger" data-toggle="connections">
+          <span>Connections</span>
+          <span class="collapse-icon"></span>
+        </div>
+        <div class="section-content">
+          <div class="connections-list">
+            ${questions.map((q, i) => `
+              <div class="connection-item">
+                <label class="connection-question">${escapeHtml(q)}</label>
+                <textarea class="text-area-field connection-answer"
+                          data-field="connections"
+                          data-index="${i}"
+                          placeholder="Your answer..."
+                          ${this.options.readOnly ? 'readonly' : ''}>${escapeHtml(connections[i] || '')}</textarea>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render Beastforms Section (Druid only)
+   */
+  renderBeastformsSection(char) {
+    if (normalizeClassName(char.class_name) !== 'Druid' || !char.beastforms) {
+      return '';
+    }
+
+    const isCollapsed = this.collapsedSections['beastforms'];
+    const beastforms = char.beastforms;
+
+    // Organize by tier
+    const tiers = ['tier1', 'tier2', 'tier3'];
+    const tierNames = { tier1: 'Tier 1', tier2: 'Tier 2', tier3: 'Tier 3' };
+
+    return `
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="beastforms">
+        <div class="section-header collapsible-trigger" data-toggle="beastforms">
+          <span>Beastforms</span>
+          <span class="collapse-icon"></span>
+        </div>
+        <div class="section-content">
+          ${tiers.map(tier => {
+            const forms = beastforms[tier];
+            if (!forms || forms.length === 0) return '';
+            return `
+              <div class="beastform-tier">
+                <h4 class="tier-header">${tierNames[tier]}</h4>
+                <div class="beastform-cards">
+                  ${forms.map(form => `
+                    <div class="beastform-card">
+                      <div class="beastform-header">
+                        <strong>${escapeHtml(form.name)}</strong>
+                        <span class="beastform-examples">(${escapeHtml(form.examples)})</span>
+                      </div>
+                      <div class="beastform-stats">
+                        <span>Trait: ${escapeHtml(form.trait)} ${form.trait_bonus >= 0 ? '+' : ''}${form.trait_bonus}</span>
+                        <span>Evasion: +${form.evasion_bonus}</span>
+                        <span>Attack: ${escapeHtml(form.attack)}</span>
+                      </div>
+                      ${form.advantages && form.advantages.length > 0 ? `
+                        <div class="beastform-advantages">
+                          <strong>Advantages:</strong> ${form.advantages.map(a => escapeHtml(a)).join(', ')}
+                        </div>
+                      ` : ''}
+                      ${form.features && form.features.length > 0 ? `
+                        <div class="beastform-features">
+                          ${form.features.map(f => `
+                            <div class="beastform-feature">
+                              <strong>${escapeHtml(f.name)}:</strong> ${escapeHtml(f.description)}
+                            </div>
+                          `).join('')}
+                        </div>
+                      ` : ''}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render Companion Section (Ranger only)
+   */
+  renderCompanionSection(char) {
+    if (normalizeClassName(char.class_name) !== 'Ranger') {
+      return '';
+    }
+
+    const isCollapsed = this.collapsedSections['companion'];
+    const companion = char.companion || {
+      name: '',
+      evasion: 10,
+      stress: { current: 0, max: 3 },
+      experiences: [],
+      training: [],
+      attack: { die: 'd6', range: 'Melee' }
+    };
+
+    return `
+      <div class="sheet-section collapsible-section ${isCollapsed ? 'collapsed' : ''}" data-section="companion">
+        <div class="section-header collapsible-trigger" data-toggle="companion">
+          <span>Companion</span>
+          <span class="collapse-icon"></span>
+        </div>
+        <div class="section-content">
+          <div class="companion-sheet">
+            <div class="companion-header">
+              <div class="companion-field">
+                <label>Companion Name</label>
+                <input type="text"
+                       class="text-input-field"
+                       data-field="companion.name"
+                       value="${escapeHtml(companion.name || '')}"
+                       placeholder="Name your companion..."
+                       ${this.options.readOnly ? 'readonly' : ''}>
+              </div>
+              <div class="companion-stat">
+                <label>Evasion</label>
+                <input type="number"
+                       class="number-input-field"
+                       data-field="companion.evasion"
+                       value="${companion.evasion || 10}"
+                       ${this.options.readOnly ? 'readonly' : ''}>
+              </div>
+            </div>
+            <div class="companion-stress">
+              <span class="resource-label">Companion Stress</span>
+              <div class="checkbox-slots companion-stress-slots" data-slots="companion_stress">
+                ${Array(companion.stress?.max || 3).fill(false).map((_, i) => `
+                  <button type="button"
+                          class="checkbox-slot stress ${i < (companion.stress?.current || 0) ? 'checked' : ''}"
+                          data-index="${i}"
+                          data-type="companion_stress"
+                          data-action="toggle-checkbox"
+                          aria-pressed="${i < (companion.stress?.current || 0)}"
+                          aria-label="Companion stress slot ${i + 1}">
+                  </button>
+                `).join('')}
+              </div>
+              <span class="resource-count">${companion.stress?.current || 0}/${companion.stress?.max || 3}</span>
+            </div>
+            <div class="companion-attack">
+              <label>Attack</label>
+              <div class="companion-attack-fields">
+                <input type="text"
+                       class="text-input-field small"
+                       data-field="companion.attack.die"
+                       value="${escapeHtml(companion.attack?.die || 'd6')}"
+                       placeholder="d6"
+                       ${this.options.readOnly ? 'readonly' : ''}>
+                <input type="text"
+                       class="text-input-field small"
+                       data-field="companion.attack.range"
+                       value="${escapeHtml(companion.attack?.range || 'Melee')}"
+                       placeholder="Melee"
+                       ${this.options.readOnly ? 'readonly' : ''}>
+              </div>
+            </div>
+            <div class="companion-experiences">
+              <label>Experiences</label>
+              <textarea class="text-area-field"
+                        data-field="companion.experiences"
+                        placeholder="Companion experiences..."
+                        ${this.options.readOnly ? 'readonly' : ''}>${escapeHtml(Array.isArray(companion.experiences) ? companion.experiences.join(', ') : '')}</textarea>
+            </div>
+            <div class="companion-training">
+              <label>Training</label>
+              <textarea class="text-area-field"
+                        data-field="companion.training"
+                        placeholder="Companion training..."
+                        ${this.options.readOnly ? 'readonly' : ''}>${escapeHtml(Array.isArray(companion.training) ? companion.training.join(', ') : '')}</textarea>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -962,8 +1201,15 @@ export class CharacterSheetComponent {
     // Mark this field as actively being edited
     this.activeEditField = field;
 
+    // Handle array fields with data-index (like connections)
+    if (target.dataset.index !== undefined) {
+      const index = parseInt(target.dataset.index);
+      const arr = this.character[field] || [];
+      arr[index] = value;
+      this.updateFieldLocal(field, arr);
+    }
     // Handle trait inputs - convert "+2" to 2, "-1" to -1
-    if (target.dataset.type === 'trait') {
+    else if (target.dataset.type === 'trait') {
       const parsed = parseInt(value.replace(/[^-\d]/g, '')) || 0;
       // Don't update input value while typing, just store the parsed value
       this.updateFieldLocal(field, parsed);
@@ -1044,6 +1290,13 @@ export class CharacterSheetComponent {
 
     const index = parseInt(target.dataset.index);
     const type = target.dataset.type;
+
+    // Special handling for companion stress
+    if (type === 'companion_stress') {
+      this.handleCompanionStressToggle(target, index);
+      return;
+    }
+
     const slotsField = `${type}_slots`;
 
     // Ensure slots array exists
@@ -1076,6 +1329,63 @@ export class CharacterSheetComponent {
     // Sync immediately for checkboxes
     if (this.options.onUpdate) {
       this.options.onUpdate(slotsField, slots, this.character);
+      this.showSyncIndicator('Saved');
+    }
+  }
+
+  /**
+   * Handle companion stress checkbox toggle
+   */
+  handleCompanionStressToggle(target, index) {
+    if (!this.character.companion) {
+      this.character.companion = {
+        name: '',
+        evasion: 10,
+        stress: { current: 0, max: 3 },
+        experiences: [],
+        training: [],
+        attack: { die: 'd6', range: 'Melee' }
+      };
+    }
+
+    const maxStress = this.character.companion.stress?.max || 3;
+    let currentStress = this.character.companion.stress?.current || 0;
+
+    // Determine if we're checking or unchecking
+    const wasChecked = target.classList.contains('checked');
+
+    if (wasChecked) {
+      // Unchecking - reduce stress count
+      currentStress = Math.max(0, currentStress - 1);
+    } else {
+      // Checking - increase stress count
+      currentStress = Math.min(maxStress, currentStress + 1);
+    }
+
+    // Update character data
+    this.character.companion.stress.current = currentStress;
+    this.character.updated_at = new Date().toISOString();
+
+    // Update all checkboxes in the container to reflect the count
+    const container = target.closest('.companion-stress');
+    if (container) {
+      const checkboxes = container.querySelectorAll('.checkbox-slot');
+      checkboxes.forEach((cb, i) => {
+        const isChecked = i < currentStress;
+        cb.classList.toggle('checked', isChecked);
+        cb.setAttribute('aria-pressed', isChecked);
+      });
+
+      // Update count display
+      const countEl = container.querySelector('.resource-count');
+      if (countEl) {
+        countEl.textContent = `${currentStress}/${maxStress}`;
+      }
+    }
+
+    // Sync to database
+    if (this.options.onUpdate) {
+      this.options.onUpdate('companion', this.character.companion, this.character);
       this.showSyncIndicator('Saved');
     }
   }
