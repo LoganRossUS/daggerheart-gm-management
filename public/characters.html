@@ -2212,6 +2212,21 @@
         ancestryFeatures = ancestry.features.map(f => f.name);
       }
 
+      // Debug: Log what we're saving
+      console.log('Creating character with wizardState:', {
+        traits: wizardState.traits,
+        primaryWeapon: wizardState.primaryWeapon,
+        secondaryWeapon: wizardState.secondaryWeapon,
+        armor: wizardState.armor
+      });
+
+      // Deep copy traits and equipment to avoid reference issues
+      const traits = { ...wizardState.traits };
+      const primaryWeapon = wizardState.primaryWeapon ? { ...wizardState.primaryWeapon } : null;
+      const secondaryWeapon = wizardState.secondaryWeapon ? { ...wizardState.secondaryWeapon } : null;
+      const armor = wizardState.armor ? { ...wizardState.armor } : null;
+      const domainCards = wizardState.selectedDomainCards.map(card => ({ ...card }));
+
       const character = {
         name: wizardState.characterName,
         class: wizardState.selectedClass,
@@ -2219,7 +2234,7 @@
         ancestry: wizardState.selectedAncestry,
         community: wizardState.selectedCommunity,
         level: level,
-        traits: wizardState.traits,
+        traits: traits,
         hp: {
           current: maxHP,
           max: maxHP
@@ -2237,12 +2252,12 @@
         },
         damageThresholds: thresholds,
         equipment: {
-          primaryWeapon: wizardState.primaryWeapon,
-          secondaryWeapon: wizardState.secondaryWeapon,
-          armor: wizardState.armor,
+          primaryWeapon: primaryWeapon,
+          secondaryWeapon: secondaryWeapon,
+          armor: armor,
           inventoryWeapons: []
         },
-        domainCards: wizardState.selectedDomainCards,
+        domainCards: domainCards,
         features: {
           ancestry: ancestryFeatures,
           community: COMMUNITIES[wizardState.selectedCommunity]?.feature.name,
@@ -2265,9 +2280,12 @@
         updatedAt: Date.now()
       };
 
+      console.log('Final character object:', character);
+
       try {
         const newCharRef = charactersRef.push();
         await newCharRef.set(character);
+        console.log('Character saved successfully');
         showScreen(characterListScreen);
       } catch (error) {
         console.error('Error creating character:', error);
@@ -2362,10 +2380,114 @@
     });
     confirmDeleteBtn.addEventListener('click', deleteCharacter);
 
-    editModeBtn.addEventListener('click', () => {
+    editModeBtn.addEventListener('click', toggleEditMode);
+
+    function toggleEditMode() {
       editMode = !editMode;
       editModeBtn.classList.toggle('active', editMode);
-    });
+
+      const char = characters[currentCharacterId];
+      if (!char) return;
+
+      if (editMode) {
+        // Show edit overlay
+        showEditOverlay(char);
+      } else {
+        // Hide edit overlay
+        hideEditOverlay();
+      }
+    }
+
+    function showEditOverlay(char) {
+      // Check if overlay already exists
+      let overlay = document.getElementById('editOverlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'editOverlay';
+        overlay.className = 'edit-overlay';
+        document.getElementById('characterSheetScreen').appendChild(overlay);
+      }
+
+      overlay.innerHTML = `
+        <div class="edit-panel">
+          <h3 class="edit-panel-title">Edit Character</h3>
+
+          <div class="edit-form-group">
+            <label class="edit-label">Character Name</label>
+            <input type="text" id="editCharName" class="edit-input" value="${escapeHtml(char.name || '')}" />
+          </div>
+
+          <div class="edit-form-group">
+            <label class="edit-label">Player Name</label>
+            <input type="text" id="editPlayerName" class="edit-input" value="${escapeHtml(char.playerName || '')}" />
+          </div>
+
+          <div class="edit-form-group">
+            <label class="edit-label">Background</label>
+            <textarea id="editBackground" class="edit-textarea">${escapeHtml(char.background || '')}</textarea>
+          </div>
+
+          <div class="edit-form-group">
+            <label class="edit-label">Portrait URL</label>
+            <input type="text" id="editPortrait" class="edit-input" value="${escapeHtml(char.portrait || '')}" placeholder="https://..." />
+          </div>
+
+          <div class="edit-buttons">
+            <button class="edit-btn edit-btn-cancel" onclick="cancelEdit()">Cancel</button>
+            <button class="edit-btn edit-btn-save" onclick="saveEdit()">Save Changes</button>
+          </div>
+        </div>
+      `;
+
+      overlay.classList.add('visible');
+    }
+
+    function hideEditOverlay() {
+      const overlay = document.getElementById('editOverlay');
+      if (overlay) {
+        overlay.classList.remove('visible');
+      }
+    }
+
+    window.cancelEdit = function() {
+      editMode = false;
+      editModeBtn.classList.remove('active');
+      hideEditOverlay();
+    };
+
+    window.saveEdit = async function() {
+      const charName = document.getElementById('editCharName').value.trim();
+      const playerName = document.getElementById('editPlayerName').value.trim();
+      const background = document.getElementById('editBackground').value.trim();
+      const portrait = document.getElementById('editPortrait').value.trim();
+
+      if (!charName) {
+        alert('Character name is required');
+        return;
+      }
+
+      try {
+        await charactersRef.child(currentCharacterId).update({
+          name: charName,
+          playerName: playerName || null,
+          background: background || null,
+          portrait: portrait || null,
+          updatedAt: Date.now()
+        });
+
+        // Update header
+        document.getElementById('sheetCharacterName').textContent = charName;
+
+        editMode = false;
+        editModeBtn.classList.remove('active');
+        hideEditOverlay();
+
+        showSyncIndicator();
+      } catch (error) {
+        console.error('Error saving character edits:', error);
+        alert('Failed to save changes. Please try again.');
+      }
+    };
 
     // Initialize
     showScreen(roomJoinScreen);

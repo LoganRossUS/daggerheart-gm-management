@@ -2150,3 +2150,129 @@ textarea {
   padding: 0.5rem 1rem;
   font-size: 0.85rem;
 }
+
+/* Edit Overlay */
+.edit-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+  display: none;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.edit-overlay.visible {
+  display: flex;
+}
+
+.edit-panel {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 500px;
+  margin-top: 60px;
+}
+
+.edit-panel-title {
+  text-align: center;
+  color: #ffd700;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+}
+
+.edit-form-group {
+  margin-bottom: 1rem;
+}
+
+.edit-label {
+  display: block;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.edit-input:focus {
+  outline: none;
+  border-color: rgba(255, 215, 0, 0.6);
+}
+
+.edit-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.edit-textarea:focus {
+  outline: none;
+  border-color: rgba(255, 215, 0, 0.6);
+}
+
+.edit-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.edit-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-btn-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.edit-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.edit-btn-save {
+  background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+  color: #1a1a2e;
+}
+
+.edit-btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+/* Edit Mode Button Active State */
+.edit-mode-btn.active {
+  background: rgba(255, 215, 0, 0.3);
+  color: #ffd700;
+}
