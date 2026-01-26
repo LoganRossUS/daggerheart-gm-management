@@ -750,7 +750,7 @@
       }
       const goldChests = document.getElementById('goldChests');
       if (goldChests) {
-        goldChests.innerHTML = renderGoldSlots('chests', char.gold?.chests || 0, 1);
+        goldChests.innerHTML = renderGoldSlots('chests', char.gold?.chests || 0, 10);
         goldChests.nextElementSibling.textContent = char.gold?.chests || 0;
       }
 
@@ -878,7 +878,7 @@
             <div class="gold-row">
               <span class="gold-row-label">Chests</span>
               <div class="gold-slots" id="goldChests">
-                ${renderGoldSlots('chests', char.gold?.chests || 0, 1)}
+                ${renderGoldSlots('chests', char.gold?.chests || 0, 10)}
               </div>
               <span class="gold-row-value">${char.gold?.chests || 0}</span>
             </div>
@@ -1346,14 +1346,11 @@
         handfuls = handfuls % 10;
       }
 
-      // Convert bags to chests (max 1 chest)
+      // Convert bags to chests
       if (bags >= 10) {
-        chests = Math.min(1, chests + Math.floor(bags / 10));
+        chests += Math.floor(bags / 10);
         bags = bags % 10;
       }
-
-      // Ensure max values
-      chests = Math.min(1, chests);
 
       try {
         await charactersRef.child(currentCharacterId).child('gold').set({
