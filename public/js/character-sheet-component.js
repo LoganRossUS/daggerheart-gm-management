@@ -854,10 +854,43 @@ export class CharacterSheetComponent {
     this.container.addEventListener('blur', this.handleBlur.bind(this), true);
     this.container.addEventListener('focus', this.handleFocus.bind(this), true);
 
+    // Prevent browser shortcuts (like Ctrl+F/Cmd+F) from triggering when typing in inputs
+    this.container.addEventListener('keydown', this.handleKeyDown.bind(this));
+
     // File input for portrait
     const fileInput = this.container.querySelector('#portraitFileInput');
     if (fileInput) {
       fileInput.addEventListener('change', (e) => this.handlePortraitFileUpload(e));
+    }
+  }
+
+  /**
+   * Handle keydown events - prevent browser shortcuts when typing in form fields
+   */
+  handleKeyDown(e) {
+    const target = e.target;
+    const isFormElement = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+
+    if (!isFormElement) return;
+
+    // Prevent browser find (Ctrl+F / Cmd+F) and other shortcuts when typing
+    // But allow copy/paste/cut (Ctrl+C, Ctrl+V, Ctrl+X) and undo/redo (Ctrl+Z, Ctrl+Y)
+    const allowedKeys = ['c', 'v', 'x', 'z', 'y', 'a']; // copy, paste, cut, undo, redo, select all
+
+    if ((e.ctrlKey || e.metaKey) && !allowedKeys.includes(e.key.toLowerCase())) {
+      // Don't prevent the default for allowed shortcuts
+      // For 'f' specifically (find), prevent it in text inputs
+      if (e.key.toLowerCase() === 'f') {
+        e.stopPropagation();
+        // Don't preventDefault here as it may interfere with normal typing
+        // The key will be typed into the input instead
+      }
+    }
+
+    // Prevent '/' from opening quick find in Firefox when typing
+    // (The slash should just be typed into the input normally)
+    if (e.key === '/' && isFormElement) {
+      e.stopPropagation();
     }
   }
 
@@ -1504,29 +1537,90 @@ export class CharacterSheetComponent {
   /**
    * Update character from external source (e.g., Firebase sync)
    * Only updates fields that aren't currently being edited
+   * This prevents re-render loops that cause checkbox multi-select bugs
    */
-  updateFromExternal(updates) {
-    if (!this.character) return;
+  updateFromExternal(newCharacter) {
+    if (!this.character || !newCharacter) return;
 
-    for (const [field, value] of Object.entries(updates)) {
-      // Don't overwrite the field being actively edited
-      if (field === this.activeEditField) continue;
+    // If user is actively editing a field, don't update at all
+    // This prevents any interference with user interactions
+    if (this.activeEditField) {
+      return;
+    }
 
-      // Update local state
-      if (field.includes('.')) {
-        this.setNestedValue(this.character, field, value);
-      } else {
-        this.character[field] = value;
+    // Check if any form element has focus - if so, skip update
+    const activeElement = document.activeElement;
+    if (activeElement && this.container.contains(activeElement)) {
+      const isFormElement = ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(activeElement.tagName);
+      if (isFormElement) {
+        return;
       }
+    }
 
-      // Update DOM for simple fields
+    // Update local character state with new data
+    for (const [field, value] of Object.entries(newCharacter)) {
+      this.character[field] = value;
+    }
+
+    // Update specific DOM elements without full re-render
+    // This preserves user interaction state
+    this.updateDOMSelectively(newCharacter);
+  }
+
+  /**
+   * Update DOM elements selectively without full re-render
+   * Only updates elements that aren't being interacted with
+   */
+  updateDOMSelectively(char) {
+    // Update checkbox slots (HP, Stress, Hope, Armor)
+    this.updateSlotDisplay('hp_slots', char.hp_slots || Array(6).fill(false));
+    this.updateSlotDisplay('stress_slots', char.stress_slots || Array(6).fill(false));
+    this.updateSlotDisplay('hope_slots', char.hope_slots || Array(6).fill(false));
+    if (char.armor_slots && char.armor_slots.length > 0) {
+      this.updateSlotDisplay('armor_slots', char.armor_slots);
+    }
+
+    // Update gold display
+    const handfulsEl = this.container.querySelector('#goldHandfuls');
+    const bagsEl = this.container.querySelector('#goldBags');
+    const chestsEl = this.container.querySelector('#goldChests');
+    if (handfulsEl) handfulsEl.textContent = char.gold_handfuls || 0;
+    if (bagsEl) bagsEl.textContent = char.gold_bags || 0;
+    if (chestsEl) chestsEl.textContent = char.gold_chests || 0;
+
+    // Update text fields only if they don't have focus
+    const textFields = ['name', 'pronouns', 'heritage', 'subclass', 'evasion', 'armor'];
+    textFields.forEach(field => {
       const input = this.container.querySelector(`[data-field="${field}"]`);
-      if (input) {
-        if (input.type === 'checkbox') {
-          input.checked = value;
-        } else {
-          input.value = value;
-        }
+      if (input && document.activeElement !== input) {
+        input.value = char[field] || '';
+      }
+    });
+  }
+
+  /**
+   * Update slot display (checkboxes) without re-render
+   */
+  updateSlotDisplay(slotsField, slots) {
+    const type = slotsField.replace('_slots', '');
+    const container = this.container.querySelector(`[data-slots="${slotsField}"]`);
+    if (!container) return;
+
+    const buttons = container.querySelectorAll('.checkbox-slot');
+    buttons.forEach((btn, index) => {
+      if (index < slots.length) {
+        const isChecked = slots[index];
+        btn.classList.toggle('checked', isChecked);
+        btn.setAttribute('aria-pressed', isChecked);
+      }
+    });
+
+    // Update count display
+    const resourceRow = container.closest('.resource-row');
+    if (resourceRow) {
+      const countEl = resourceRow.querySelector('.resource-count');
+      if (countEl) {
+        countEl.textContent = `${this.countChecked(slots)}/${slots.length}`;
       }
     }
   }
