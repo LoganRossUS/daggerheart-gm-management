@@ -301,6 +301,90 @@
       display: block;
     }
 
+    /* Off-screen Token Indicators (HUD Arrows) */
+    .offscreen-indicator {
+      position: fixed;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.85);
+      border-radius: 20px;
+      border: 2px solid;
+      font-size: 0.7rem;
+      color: white;
+      pointer-events: none;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+      animation: pulse-indicator 2s infinite;
+    }
+
+    @keyframes pulse-indicator {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.6; }
+    }
+
+    .offscreen-indicator.player {
+      border-color: #4CAF50;
+      box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    }
+
+    .offscreen-indicator.adversary {
+      border-color: #f44336;
+      box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+    }
+
+    .offscreen-indicator.item {
+      border-color: #ff9800;
+      box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+    }
+
+    .offscreen-indicator.trap {
+      border-color: #9c27b0;
+      box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
+    }
+
+    .offscreen-indicator .arrow {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .offscreen-indicator .token-portrait {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .offscreen-indicator .token-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .offscreen-indicator .token-info .name {
+      font-weight: bold;
+      max-width: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .offscreen-indicator .token-info .distance {
+      font-size: 0.6rem;
+      opacity: 0.7;
+    }
+
+    /* Offscreen indicator layer */
+    #offscreenIndicatorLayer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 200;
+    }
+
   </style>
 </head>
 <body>
@@ -328,6 +412,9 @@
 
   <!-- Token Layer -->
   <div id="tokenLayer"></div>
+
+  <!-- Off-screen Token Indicator Layer -->
+  <div id="offscreenIndicatorLayer"></div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -363,6 +450,15 @@
     let tokens = [];
     let gridSize = 50;
     let firebaseConnected = false;
+
+    // Viewport state - represents what portion of the map to display
+    let currentViewport = {
+      enabled: false,
+      x: 0,       // Left position as percentage of full map
+      y: 0,       // Top position as percentage of full map
+      width: 100, // Width as percentage of full map
+      height: 100 // Height as percentage of full map
+    };
 
     // Heartbeat and reconnection configuration
     const HEARTBEAT_TIMEOUT = 45000; // Consider connection dead after 45 seconds without heartbeat
@@ -559,6 +655,19 @@
           if (data.grid) {
             updateGrid(data.grid);
           }
+          if (data.viewport) {
+            updateViewport(data.viewport);
+          }
+        }
+      });
+
+      // Subscribe to viewport updates (in case sent separately)
+      roomRef.child('viewport').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.timestamp) {
+          lastHeartbeatReceived = Date.now();
+          console.log('Received viewport update:', data);
+          updateViewport(data);
         }
       });
     }
@@ -578,11 +687,15 @@
         case 'grid':
           updateGrid(data);
           break;
+        case 'viewport':
+          updateViewport(data);
+          break;
         case 'mapSync':
           // Full sync
           if (data.map) updateMap(data.map);
           if (data.tokens) updateTokens(data.tokens);
           if (data.grid) updateGrid(data.grid);
+          if (data.viewport) updateViewport(data.viewport);
           break;
       }
     }
@@ -600,6 +713,8 @@
 
         // Set up onload handler before changing src to ensure it fires
         mapImage.onload = () => {
+          // Apply viewport settings first
+          applyViewport();
           // Re-render tokens and grid once image dimensions are available
           renderTokens();
           if (document.getElementById('gridOverlay').classList.contains('visible')) {
@@ -622,7 +737,9 @@
 
     function renderTokens() {
       const tokenLayer = document.getElementById('tokenLayer');
+      const offscreenLayer = document.getElementById('offscreenIndicatorLayer');
       tokenLayer.innerHTML = '';
+      offscreenLayer.innerHTML = '';
 
       if (!currentMap || !tokens.length) return;
 
@@ -633,100 +750,327 @@
         return;
       }
 
+      const containerWidth = window.innerWidth;
+      const containerHeight = window.innerHeight;
+
+      // Check if viewport is active
+      const viewportActive = currentViewport.enabled &&
+        (currentViewport.width < 100 || currentViewport.height < 100 ||
+         currentViewport.x > 0 || currentViewport.y > 0);
+
+      // Calculate display parameters based on viewport state
+      let displayInfo;
+      if (viewportActive) {
+        displayInfo = calculateViewportDisplayInfo();
+      } else {
+        displayInfo = calculateFullMapDisplayInfo();
+      }
+
+      if (!displayInfo) return;
+
+      const offscreenTokens = [];
+
+      tokens.forEach(token => {
+        // Calculate token position on the full map (as percentage)
+        const tokenCenterX = (token.x * gridSize + gridSize / 2) / mapImage.naturalWidth * 100;
+        const tokenCenterY = (token.y * gridSize + gridSize / 2) / mapImage.naturalHeight * 100;
+
+        // Check if token is inside the viewport
+        const isInsideViewport = !viewportActive || (
+          tokenCenterX >= currentViewport.x &&
+          tokenCenterX <= (currentViewport.x + currentViewport.width) &&
+          tokenCenterY >= currentViewport.y &&
+          tokenCenterY <= (currentViewport.y + currentViewport.height)
+        );
+
+        if (isInsideViewport) {
+          // Render token normally
+          const tokenEl = createTokenElement(token, displayInfo, viewportActive);
+          tokenLayer.appendChild(tokenEl);
+        } else {
+          // Token is outside viewport - add to offscreen list
+          offscreenTokens.push({
+            token,
+            tokenCenterX,
+            tokenCenterY
+          });
+        }
+      });
+
+      // Render off-screen indicators
+      if (viewportActive && offscreenTokens.length > 0) {
+        renderOffscreenIndicators(offscreenTokens, displayInfo);
+      }
+    }
+
+    function calculateFullMapDisplayInfo() {
+      const mapImage = document.getElementById('mapImage');
       const mapRect = mapImage.getBoundingClientRect();
 
-      // Calculate the actual displayed dimensions accounting for object-fit: contain
-      // The image maintains aspect ratio, so we need to find where it actually renders
       const imgAspect = mapImage.naturalWidth / mapImage.naturalHeight;
       const containerAspect = mapRect.width / mapRect.height;
 
       let displayedWidth, displayedHeight, offsetX, offsetY;
 
       if (imgAspect > containerAspect) {
-        // Image is wider than container - letterboxing on top/bottom
         displayedWidth = mapRect.width;
         displayedHeight = mapRect.width / imgAspect;
         offsetX = 0;
         offsetY = (mapRect.height - displayedHeight) / 2;
       } else {
-        // Image is taller than container - letterboxing on left/right
         displayedHeight = mapRect.height;
         displayedWidth = mapRect.height * imgAspect;
         offsetX = (mapRect.width - displayedWidth) / 2;
         offsetY = 0;
       }
 
-      // Calculate scale factor between natural and displayed size
-      const scaleX = displayedWidth / mapImage.naturalWidth;
-      const scaleY = displayedHeight / mapImage.naturalHeight;
+      return {
+        displayedWidth,
+        displayedHeight,
+        offsetX: mapRect.left + offsetX,
+        offsetY: mapRect.top + offsetY,
+        scaleX: displayedWidth / mapImage.naturalWidth,
+        scaleY: displayedHeight / mapImage.naturalHeight,
+        viewportX: 0,
+        viewportY: 0,
+        viewportWidth: 100,
+        viewportHeight: 100
+      };
+    }
 
-      tokens.forEach(token => {
-        const tokenEl = document.createElement('div');
-        tokenEl.className = `token ${token.type}`;
-        tokenEl.id = `token-${token.id}`;
+    function calculateViewportDisplayInfo() {
+      const mapImage = document.getElementById('mapImage');
+      const containerWidth = window.innerWidth;
+      const containerHeight = window.innerHeight;
 
-        // Calculate pixel position based on grid coordinates and scale
-        // Add gridSize/2 to center token in the grid cell (matching GM panel behavior)
-        const pixelX = mapRect.left + offsetX + (token.x * gridSize + gridSize / 2) * scaleX;
-        const pixelY = mapRect.top + offsetY + (token.y * gridSize + gridSize / 2) * scaleY;
+      // Calculate the viewport region size in pixels on the full map
+      const viewportWidthPx = (currentViewport.width / 100) * mapImage.naturalWidth;
+      const viewportHeightPx = (currentViewport.height / 100) * mapImage.naturalHeight;
 
-        // Center the token element itself (subtract half its size)
-        tokenEl.style.left = `${pixelX - 30}px`;
-        tokenEl.style.top = `${pixelY - 30}px`;
+      // Calculate how the viewport fills the screen
+      const viewportAspect = viewportWidthPx / viewportHeightPx;
+      const containerAspect = containerWidth / containerHeight;
 
-        // Set token image
-        if (token.image) {
-          tokenEl.style.backgroundImage = `url(${token.image})`;
+      let displayWidth, displayHeight, offsetX, offsetY;
+
+      if (viewportAspect > containerAspect) {
+        displayWidth = containerWidth;
+        displayHeight = containerWidth / viewportAspect;
+        offsetX = 0;
+        offsetY = (containerHeight - displayHeight) / 2;
+      } else {
+        displayHeight = containerHeight;
+        displayWidth = containerHeight * viewportAspect;
+        offsetX = (containerWidth - displayWidth) / 2;
+        offsetY = 0;
+      }
+
+      // Scale from viewport region to displayed size
+      const scaleX = displayWidth / viewportWidthPx;
+      const scaleY = displayHeight / viewportHeightPx;
+
+      return {
+        displayedWidth: displayWidth,
+        displayedHeight: displayHeight,
+        offsetX,
+        offsetY,
+        scaleX,
+        scaleY,
+        viewportX: currentViewport.x,
+        viewportY: currentViewport.y,
+        viewportWidth: currentViewport.width,
+        viewportHeight: currentViewport.height,
+        viewportWidthPx,
+        viewportHeightPx
+      };
+    }
+
+    function createTokenElement(token, displayInfo, viewportActive) {
+      const mapImage = document.getElementById('mapImage');
+      const tokenEl = document.createElement('div');
+      tokenEl.className = `token ${token.type}`;
+      tokenEl.id = `token-${token.id}`;
+
+      let pixelX, pixelY;
+
+      if (viewportActive) {
+        // Calculate position relative to the viewport
+        const tokenPosOnMapX = token.x * gridSize + gridSize / 2;
+        const tokenPosOnMapY = token.y * gridSize + gridSize / 2;
+
+        // Offset from viewport origin
+        const viewportOriginX = (displayInfo.viewportX / 100) * mapImage.naturalWidth;
+        const viewportOriginY = (displayInfo.viewportY / 100) * mapImage.naturalHeight;
+
+        // Position relative to viewport
+        const relativeX = tokenPosOnMapX - viewportOriginX;
+        const relativeY = tokenPosOnMapY - viewportOriginY;
+
+        // Scale to screen coordinates
+        pixelX = displayInfo.offsetX + relativeX * displayInfo.scaleX;
+        pixelY = displayInfo.offsetY + relativeY * displayInfo.scaleY;
+      } else {
+        // Full map mode - use original calculation
+        pixelX = displayInfo.offsetX + (token.x * gridSize + gridSize / 2) * displayInfo.scaleX;
+        pixelY = displayInfo.offsetY + (token.y * gridSize + gridSize / 2) * displayInfo.scaleY;
+      }
+
+      tokenEl.style.left = `${pixelX - 30}px`;
+      tokenEl.style.top = `${pixelY - 30}px`;
+
+      if (token.image) {
+        tokenEl.style.backgroundImage = `url(${token.image})`;
+      } else {
+        const tokenColors = {
+          'player': '#4CAF50',
+          'adversary': '#f44336',
+          'item': '#ff9800',
+          'trap': '#9c27b0'
+        };
+        tokenEl.style.backgroundColor = tokenColors[token.type] || '#888888';
+      }
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'token-name';
+      nameEl.textContent = token.name;
+      tokenEl.appendChild(nameEl);
+
+      if (token.conditions && Object.keys(token.conditions).length > 0) {
+        const conditionsEl = document.createElement('div');
+        conditionsEl.className = 'token-conditions';
+
+        if (token.conditions.hidden) {
+          const badge = document.createElement('div');
+          badge.className = 'condition-badge hidden';
+          badge.textContent = 'H';
+          badge.title = 'Hidden';
+          conditionsEl.appendChild(badge);
+        }
+
+        if (token.conditions.restrained) {
+          const badge = document.createElement('div');
+          badge.className = 'condition-badge restrained';
+          badge.textContent = 'R';
+          badge.title = 'Restrained';
+          conditionsEl.appendChild(badge);
+        }
+
+        if (token.conditions.vulnerable) {
+          const badge = document.createElement('div');
+          badge.className = 'condition-badge vulnerable';
+          badge.textContent = 'V';
+          badge.title = 'Vulnerable';
+          conditionsEl.appendChild(badge);
+        }
+
+        tokenEl.appendChild(conditionsEl);
+      }
+
+      return tokenEl;
+    }
+
+    function renderOffscreenIndicators(offscreenTokens, displayInfo) {
+      const offscreenLayer = document.getElementById('offscreenIndicatorLayer');
+      const containerWidth = window.innerWidth;
+      const containerHeight = window.innerHeight;
+      const padding = 60; // Distance from screen edge
+
+      // Calculate viewport center
+      const viewportCenterX = currentViewport.x + currentViewport.width / 2;
+      const viewportCenterY = currentViewport.y + currentViewport.height / 2;
+
+      offscreenTokens.forEach(({ token, tokenCenterX, tokenCenterY }) => {
+        // Calculate direction from viewport center to token
+        const dx = tokenCenterX - viewportCenterX;
+        const dy = tokenCenterY - viewportCenterY;
+        const angle = Math.atan2(dy, dx);
+
+        // Determine which edge the indicator should appear on
+        // and calculate its position
+        let indicatorX, indicatorY, arrow;
+
+        // Calculate intersection with viewport boundary
+        const halfWidth = currentViewport.width / 2;
+        const halfHeight = currentViewport.height / 2;
+
+        // Determine edge based on angle
+        const tanAngle = Math.abs(Math.tan(angle));
+        const aspectRatio = halfWidth / halfHeight;
+
+        if (tanAngle < aspectRatio) {
+          // Left or right edge
+          if (dx > 0) {
+            // Right edge
+            indicatorX = containerWidth - padding;
+            arrow = '→';
+          } else {
+            // Left edge
+            indicatorX = padding;
+            arrow = '←';
+          }
+          // Calculate Y position
+          const t = (dx > 0 ? (viewportCenterX + halfWidth) : (viewportCenterX - halfWidth) - viewportCenterX) / dx;
+          const edgeY = viewportCenterY + dy * (halfWidth / Math.abs(dx));
+          // Map to screen Y
+          const screenY = displayInfo.offsetY + ((edgeY - currentViewport.y) / currentViewport.height) * displayInfo.displayedHeight;
+          indicatorY = Math.max(padding, Math.min(containerHeight - padding, screenY));
         } else {
-          // Default colored circle if no image
-          const tokenColors = {
-            'player': '#4CAF50',
-            'adversary': '#f44336',
-            'item': '#ff9800',
-            'trap': '#9c27b0'
-          };
-          tokenEl.style.backgroundColor = tokenColors[token.type] || '#888888';
+          // Top or bottom edge
+          if (dy > 0) {
+            // Bottom edge
+            indicatorY = containerHeight - padding;
+            arrow = '↓';
+          } else {
+            // Top edge
+            indicatorY = padding;
+            arrow = '↑';
+          }
+          // Calculate X position
+          const edgeX = viewportCenterX + dx * (halfHeight / Math.abs(dy));
+          // Map to screen X
+          const screenX = displayInfo.offsetX + ((edgeX - currentViewport.x) / currentViewport.width) * displayInfo.displayedWidth;
+          indicatorX = Math.max(padding, Math.min(containerWidth - padding, screenX));
         }
 
-        // Add token name
-        const nameEl = document.createElement('div');
-        nameEl.className = 'token-name';
-        nameEl.textContent = token.name;
-        tokenEl.appendChild(nameEl);
+        // Handle corners
+        if (dx > 0 && dy < 0) arrow = '↗';
+        else if (dx > 0 && dy > 0) arrow = '↘';
+        else if (dx < 0 && dy > 0) arrow = '↙';
+        else if (dx < 0 && dy < 0) arrow = '↖';
 
-        // Add condition badges
-        if (token.conditions && Object.keys(token.conditions).length > 0) {
-          const conditionsEl = document.createElement('div');
-          conditionsEl.className = 'token-conditions';
+        // Calculate distance in grid squares
+        const distX = Math.abs(tokenCenterX - viewportCenterX) / 100 * (document.getElementById('mapImage').naturalWidth / gridSize);
+        const distY = Math.abs(tokenCenterY - viewportCenterY) / 100 * (document.getElementById('mapImage').naturalHeight / gridSize);
+        const distance = Math.round(Math.sqrt(distX * distX + distY * distY));
 
-          if (token.conditions.hidden) {
-            const badge = document.createElement('div');
-            badge.className = 'condition-badge hidden';
-            badge.textContent = 'H';
-            badge.title = 'Hidden';
-            conditionsEl.appendChild(badge);
-          }
+        // Create indicator element
+        const indicator = document.createElement('div');
+        indicator.className = `offscreen-indicator ${token.type}`;
+        indicator.style.left = `${indicatorX}px`;
+        indicator.style.top = `${indicatorY}px`;
+        indicator.style.transform = 'translate(-50%, -50%)';
 
-          if (token.conditions.restrained) {
-            const badge = document.createElement('div');
-            badge.className = 'condition-badge restrained';
-            badge.textContent = 'R';
-            badge.title = 'Restrained';
-            conditionsEl.appendChild(badge);
-          }
+        const arrowEl = document.createElement('span');
+        arrowEl.className = 'arrow';
+        arrowEl.textContent = arrow;
+        indicator.appendChild(arrowEl);
 
-          if (token.conditions.vulnerable) {
-            const badge = document.createElement('div');
-            badge.className = 'condition-badge vulnerable';
-            badge.textContent = 'V';
-            badge.title = 'Vulnerable';
-            conditionsEl.appendChild(badge);
-          }
-
-          tokenEl.appendChild(conditionsEl);
+        if (token.image) {
+          const portrait = document.createElement('div');
+          portrait.className = 'token-portrait';
+          portrait.style.backgroundImage = `url(${token.image})`;
+          indicator.appendChild(portrait);
         }
 
-        tokenLayer.appendChild(tokenEl);
+        const infoEl = document.createElement('div');
+        infoEl.className = 'token-info';
+        infoEl.innerHTML = `
+          <span class="name">${token.name}</span>
+          <span class="distance">${distance} squares away</span>
+        `;
+        indicator.appendChild(infoEl);
+
+        offscreenLayer.appendChild(indicator);
       });
     }
 
@@ -738,6 +1082,114 @@
         drawGrid();
       } else {
         gridOverlay.classList.remove('visible');
+      }
+    }
+
+    function updateViewport(data) {
+      if (!data) return;
+
+      currentViewport = {
+        enabled: data.enabled || false,
+        x: data.x || 0,
+        y: data.y || 0,
+        width: data.width || 100,
+        height: data.height || 100
+      };
+
+      console.log('Viewport updated:', currentViewport);
+
+      // Apply viewport to map display
+      applyViewport();
+
+      // Re-render tokens and grid with new viewport
+      renderTokens();
+      if (document.getElementById('gridOverlay').classList.contains('visible')) {
+        drawGrid();
+      }
+    }
+
+    function applyViewport() {
+      const mapImage = document.getElementById('mapImage');
+      const mapContainer = document.getElementById('mapContainer');
+
+      if (!mapImage || !currentMap) return;
+
+      if (currentViewport.enabled && (currentViewport.width < 100 || currentViewport.height < 100 || currentViewport.x > 0 || currentViewport.y > 0)) {
+        // Viewport is active - apply clipping and scaling
+        // Calculate the transform to show only the viewport region
+
+        // The viewport is specified as percentages of the full map
+        // We need to scale up the map and translate it so the viewport fills the screen
+
+        // Scale factor: 100 / viewport_percentage
+        const scaleX = 100 / currentViewport.width;
+        const scaleY = 100 / currentViewport.height;
+        const scale = Math.min(scaleX, scaleY); // Use uniform scale to maintain aspect ratio
+
+        // Calculate translation to center the viewport region
+        // The viewport x,y are percentages from top-left
+        const translateX = -currentViewport.x * scale;
+        const translateY = -currentViewport.y * scale;
+
+        // Apply transform to the map image
+        mapImage.style.transformOrigin = '0 0';
+        mapImage.style.transform = `scale(${scale}) translate(${translateX}%, ${translateY}%)`;
+
+        // Remove max-width/max-height constraints when viewport is active
+        mapImage.style.maxWidth = 'none';
+        mapImage.style.maxHeight = 'none';
+
+        // Calculate the size of the visible portion
+        const viewportWidthPx = (currentViewport.width / 100) * mapImage.naturalWidth;
+        const viewportHeightPx = (currentViewport.height / 100) * mapImage.naturalHeight;
+
+        // Scale to fill the container while maintaining aspect ratio
+        const containerWidth = window.innerWidth;
+        const containerHeight = window.innerHeight;
+        const viewportAspect = viewportWidthPx / viewportHeightPx;
+        const containerAspect = containerWidth / containerHeight;
+
+        let displayWidth, displayHeight;
+        if (viewportAspect > containerAspect) {
+          // Viewport is wider than container
+          displayWidth = containerWidth;
+          displayHeight = containerWidth / viewportAspect;
+        } else {
+          // Viewport is taller than container
+          displayHeight = containerHeight;
+          displayWidth = containerHeight * viewportAspect;
+        }
+
+        // Set the base size of the image so that viewport fills the container
+        mapImage.style.width = `${displayWidth * (100 / currentViewport.width)}px`;
+        mapImage.style.height = `${displayHeight * (100 / currentViewport.height)}px`;
+
+        // Reset transform and use clip-path instead for cleaner approach
+        mapImage.style.transform = '';
+
+        // Position the image so the viewport region is centered
+        const offsetX = -((currentViewport.x / 100) * displayWidth * (100 / currentViewport.width));
+        const offsetY = -((currentViewport.y / 100) * displayHeight * (100 / currentViewport.height));
+
+        mapImage.style.position = 'absolute';
+        mapImage.style.left = `calc(50% - ${displayWidth / 2}px + ${offsetX}px)`;
+        mapImage.style.top = `calc(50% - ${displayHeight / 2}px + ${offsetY}px)`;
+
+        // Use overflow hidden on container to clip the map
+        mapContainer.style.overflow = 'hidden';
+
+      } else {
+        // Viewport disabled or showing full map - reset to default
+        mapImage.style.transform = '';
+        mapImage.style.transformOrigin = '';
+        mapImage.style.maxWidth = '100%';
+        mapImage.style.maxHeight = '100%';
+        mapImage.style.width = '';
+        mapImage.style.height = '';
+        mapImage.style.position = 'relative';
+        mapImage.style.left = '';
+        mapImage.style.top = '';
+        mapContainer.style.overflow = '';
       }
     }
 
@@ -757,61 +1209,101 @@
         return;
       }
 
-      const mapRect = mapImage.getBoundingClientRect();
+      // Check if viewport is active
+      const viewportActive = currentViewport.enabled &&
+        (currentViewport.width < 100 || currentViewport.height < 100 ||
+         currentViewport.x > 0 || currentViewport.y > 0);
 
-      // Calculate the actual displayed dimensions accounting for object-fit: contain
-      const imgAspect = mapImage.naturalWidth / mapImage.naturalHeight;
-      const containerAspect = mapRect.width / mapRect.height;
-
-      let displayedWidth, displayedHeight, offsetX, offsetY;
-
-      if (imgAspect > containerAspect) {
-        // Image is wider than container - letterboxing on top/bottom
-        displayedWidth = mapRect.width;
-        displayedHeight = mapRect.width / imgAspect;
-        offsetX = 0;
-        offsetY = (mapRect.height - displayedHeight) / 2;
+      let displayInfo;
+      if (viewportActive) {
+        displayInfo = calculateViewportDisplayInfo();
       } else {
-        // Image is taller than container - letterboxing on left/right
-        displayedHeight = mapRect.height;
-        displayedWidth = mapRect.height * imgAspect;
-        offsetX = (mapRect.width - displayedWidth) / 2;
-        offsetY = 0;
+        displayInfo = calculateFullMapDisplayInfo();
       }
 
-      // Calculate scale factor
-      const scaleX = displayedWidth / mapImage.naturalWidth;
-      const scaledGridSize = gridSize * scaleX;
+      if (!displayInfo) return;
 
-      // Calculate where the image actually starts
-      const imageLeft = mapRect.left + offsetX;
-      const imageTop = mapRect.top + offsetY;
-      const imageRight = imageLeft + displayedWidth;
-      const imageBottom = imageTop + displayedHeight;
+      // Calculate scaled grid size based on display
+      let scaledGridSize;
+      let imageLeft, imageTop, imageRight, imageBottom;
 
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-      ctx.lineWidth = 1;
+      if (viewportActive) {
+        // Grid needs to align with the visible viewport region
+        scaledGridSize = gridSize * displayInfo.scaleX;
 
-      // Draw vertical lines (only within the actual image area)
-      for (let x = imageLeft; x <= imageRight; x += scaledGridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, imageTop);
-        ctx.lineTo(x, imageBottom);
-        ctx.stroke();
-      }
+        // Calculate grid offset to align with viewport position
+        const viewportOriginX = (currentViewport.x / 100) * mapImage.naturalWidth;
+        const viewportOriginY = (currentViewport.y / 100) * mapImage.naturalHeight;
 
-      // Draw horizontal lines (only within the actual image area)
-      for (let y = imageTop; y <= imageBottom; y += scaledGridSize) {
-        ctx.beginPath();
-        ctx.moveTo(imageLeft, y);
-        ctx.lineTo(imageRight, y);
-        ctx.stroke();
+        // Find the first grid line that would appear in the viewport
+        const firstGridX = Math.ceil(viewportOriginX / gridSize) * gridSize;
+        const firstGridY = Math.ceil(viewportOriginY / gridSize) * gridSize;
+
+        // Calculate offset from viewport origin to first grid line
+        const gridOffsetX = (firstGridX - viewportOriginX) * displayInfo.scaleX;
+        const gridOffsetY = (firstGridY - viewportOriginY) * displayInfo.scaleY;
+
+        imageLeft = displayInfo.offsetX;
+        imageTop = displayInfo.offsetY;
+        imageRight = imageLeft + displayInfo.displayedWidth;
+        imageBottom = imageTop + displayInfo.displayedHeight;
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
+
+        // Draw vertical lines starting from the first aligned grid line
+        for (let x = imageLeft + gridOffsetX; x <= imageRight; x += scaledGridSize) {
+          if (x >= imageLeft) {
+            ctx.beginPath();
+            ctx.moveTo(x, imageTop);
+            ctx.lineTo(x, imageBottom);
+            ctx.stroke();
+          }
+        }
+
+        // Draw horizontal lines starting from the first aligned grid line
+        for (let y = imageTop + gridOffsetY; y <= imageBottom; y += scaledGridSize) {
+          if (y >= imageTop) {
+            ctx.beginPath();
+            ctx.moveTo(imageLeft, y);
+            ctx.lineTo(imageRight, y);
+            ctx.stroke();
+          }
+        }
+      } else {
+        // Full map mode - use original calculation
+        scaledGridSize = gridSize * displayInfo.scaleX;
+        imageLeft = displayInfo.offsetX;
+        imageTop = displayInfo.offsetY;
+        imageRight = imageLeft + displayInfo.displayedWidth;
+        imageBottom = imageTop + displayInfo.displayedHeight;
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
+
+        // Draw vertical lines (only within the actual image area)
+        for (let x = imageLeft; x <= imageRight; x += scaledGridSize) {
+          ctx.beginPath();
+          ctx.moveTo(x, imageTop);
+          ctx.lineTo(x, imageBottom);
+          ctx.stroke();
+        }
+
+        // Draw horizontal lines (only within the actual image area)
+        for (let y = imageTop; y <= imageBottom; y += scaledGridSize) {
+          ctx.beginPath();
+          ctx.moveTo(imageLeft, y);
+          ctx.lineTo(imageRight, y);
+          ctx.stroke();
+        }
       }
     }
 
     // Redraw grid and tokens on window resize
     window.addEventListener('resize', () => {
       if (currentMap) {
+        // Re-apply viewport to adjust map positioning
+        applyViewport();
         renderTokens();
         if (document.getElementById('gridOverlay').classList.contains('visible')) {
           drawGrid();

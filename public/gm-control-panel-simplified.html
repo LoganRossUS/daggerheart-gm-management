@@ -1317,6 +1317,131 @@
       pointer-events: auto;
     }
 
+    /* Viewport Box Styles */
+    .viewport-box {
+      position: absolute;
+      border: 3px solid #ffd700;
+      background: rgba(255, 215, 0, 0.1);
+      cursor: move;
+      z-index: 50;
+      box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.4);
+      transition: box-shadow 0.15s ease;
+    }
+
+    .viewport-box:hover {
+      border-color: #ffec8b;
+      background: rgba(255, 215, 0, 0.15);
+    }
+
+    .viewport-box.dragging {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .viewport-box-label {
+      position: absolute;
+      top: -24px;
+      left: 0;
+      background: rgba(255, 215, 0, 0.9);
+      color: #1a1a2e;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: bold;
+      border-radius: 3px 3px 0 0;
+      white-space: nowrap;
+    }
+
+    /* Resize handles */
+    .viewport-resize-handle {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: #ffd700;
+      border: 2px solid #1a1a2e;
+      border-radius: 3px;
+      z-index: 51;
+    }
+
+    .viewport-resize-handle:hover {
+      background: #fff;
+      transform: scale(1.2);
+    }
+
+    .viewport-resize-handle.nw { top: -7px; left: -7px; cursor: nw-resize; }
+    .viewport-resize-handle.ne { top: -7px; right: -7px; cursor: ne-resize; }
+    .viewport-resize-handle.sw { bottom: -7px; left: -7px; cursor: sw-resize; }
+    .viewport-resize-handle.se { bottom: -7px; right: -7px; cursor: se-resize; }
+    .viewport-resize-handle.n { top: -7px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+    .viewport-resize-handle.s { bottom: -7px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+    .viewport-resize-handle.w { top: 50%; left: -7px; transform: translateY(-50%); cursor: w-resize; }
+    .viewport-resize-handle.e { top: 50%; right: -7px; transform: translateY(-50%); cursor: e-resize; }
+
+    .viewport-resize-handle.nw:hover,
+    .viewport-resize-handle.ne:hover,
+    .viewport-resize-handle.sw:hover,
+    .viewport-resize-handle.se:hover,
+    .viewport-resize-handle.n:hover,
+    .viewport-resize-handle.s:hover,
+    .viewport-resize-handle.w:hover,
+    .viewport-resize-handle.e:hover {
+      transform: scale(1.2);
+    }
+
+    .viewport-resize-handle.n:hover,
+    .viewport-resize-handle.s:hover {
+      transform: translateX(-50%) scale(1.2);
+    }
+
+    .viewport-resize-handle.w:hover,
+    .viewport-resize-handle.e:hover {
+      transform: translateY(-50%) scale(1.2);
+    }
+
+    /* Viewport Controls */
+    .viewport-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .viewport-toggle-btn {
+      padding: 4px 10px;
+      border: 1px solid rgba(255, 215, 0, 0.5);
+      border-radius: 4px;
+      background: transparent;
+      color: #ffd700;
+      font-size: 0.75rem;
+      font-family: 'Cinzel', serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .viewport-toggle-btn:hover {
+      background: rgba(255, 215, 0, 0.1);
+    }
+
+    .viewport-toggle-btn.active {
+      background: rgba(255, 215, 0, 0.3);
+      border-color: #ffd700;
+    }
+
+    .viewport-reset-btn {
+      padding: 4px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      background: transparent;
+      color: #888;
+      font-size: 0.7rem;
+      font-family: 'Cinzel', serif;
+      cursor: pointer;
+    }
+
+    .viewport-reset-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
     .token-area {
       background: rgba(0,0,0,0.3);
       border-radius: 8px;
@@ -6784,6 +6909,10 @@
               <button class="map-btn" id="mapVisBtn" onclick="toggleMapVisibility()">Show</button>
               <button class="map-btn" id="gridBtn" onclick="toggleGrid()">Grid</button>
               <button class="map-btn" onclick="clearMap()">Clear</button>
+              <div class="viewport-controls">
+                <button class="viewport-toggle-btn" id="viewportToggleBtn" onclick="toggleViewportMode()">Viewport</button>
+                <button class="viewport-reset-btn" id="viewportResetBtn" onclick="resetViewport()" style="display: none;">Reset</button>
+              </div>
             </div>
           </div>
           <div class="map-preview-area" id="mapPreviewArea">
@@ -6791,6 +6920,18 @@
               <img id="mapPreview" style="display: none;" alt="Map Preview">
               <canvas id="mapPreviewGrid" class="map-preview-grid"></canvas>
               <div id="mapPreviewTokenLayer" class="map-preview-token-layer"></div>
+              <!-- Viewport Box - represents what players see -->
+              <div id="viewportBox" class="viewport-box" style="display: none;">
+                <div class="viewport-box-label">Player View</div>
+                <div class="viewport-resize-handle nw" data-handle="nw"></div>
+                <div class="viewport-resize-handle n" data-handle="n"></div>
+                <div class="viewport-resize-handle ne" data-handle="ne"></div>
+                <div class="viewport-resize-handle e" data-handle="e"></div>
+                <div class="viewport-resize-handle se" data-handle="se"></div>
+                <div class="viewport-resize-handle s" data-handle="s"></div>
+                <div class="viewport-resize-handle sw" data-handle="sw"></div>
+                <div class="viewport-resize-handle w" data-handle="w"></div>
+              </div>
             </div>
             <div class="map-placeholder" id="mapPlaceholder">Click Upload to add a battle map</div>
             <div class="position-mode-indicator" id="positionModeIndicator" style="display: none;">
@@ -8005,6 +8146,23 @@
     }
     let gridVisible = false;
     let gridSize = 50;
+
+    // ========== Viewport State ==========
+    let viewportEnabled = false;
+    // Viewport coordinates as percentages of the full map (0-100)
+    let viewport = {
+      x: 0,       // Left position as percentage
+      y: 0,       // Top position as percentage
+      width: 100, // Width as percentage
+      height: 100 // Height as percentage
+    };
+    let viewportDragging = false;
+    let viewportResizing = false;
+    let viewportResizeHandle = null;
+    let viewportDragStart = { x: 0, y: 0 };
+    let viewportStartState = { x: 0, y: 0, width: 0, height: 0 };
+    const MIN_VIEWPORT_SIZE = 10; // Minimum viewport size as percentage
+
     let nextPlayerTokenId = 1;
     let nextItemTokenId = 1;
     let nextTrapTokenId = 1;
@@ -9165,6 +9323,9 @@ ${currentNpc.stats.abilities.map(a => `• **${a.name}** (${a.type}): ${a.descri
         setTimeout(() => {
           drawMapPreviewGrid();
           renderMapPreviewTokens();
+          if (viewportEnabled) {
+            updateViewportBox();
+          }
         }, 50);
       };
 
@@ -9216,6 +9377,14 @@ ${currentNpc.stats.abilities.map(a => `• **${a.name}** (${a.type}): ${a.descri
         } : null,
         tokens: { type: 'tokens', tokens: visibleTokensForPlayers },
         grid: { type: 'grid', visible: gridVisible },
+        viewport: {
+          type: 'viewport',
+          enabled: viewportEnabled,
+          x: viewport.x,
+          y: viewport.y,
+          width: viewport.width,
+          height: viewport.height
+        },
         timestamp: Date.now()
       };
 
@@ -9225,6 +9394,15 @@ ${currentNpc.stats.abilities.map(a => `• **${a.name}** (${a.type}): ${a.descri
       localStorage.setItem('daggerheart-battle-map-state', JSON.stringify({
         visible: mapVisible,
         gridSize: gridSize
+      }));
+
+      // Store viewport state
+      localStorage.setItem('daggerheart-battle-viewport', JSON.stringify({
+        enabled: viewportEnabled,
+        x: viewport.x,
+        y: viewport.y,
+        width: viewport.width,
+        height: viewport.height
       }));
 
       // Strip base64 images from tokens before storing (keep URL images)
@@ -9728,8 +9906,203 @@ ${currentNpc.stats.abilities.map(a => `• **${a.name}** (${a.type}): ${a.descri
         setTimeout(() => {
           drawMapPreviewGrid();
           renderMapPreviewTokens();
+          if (viewportEnabled) {
+            updateViewportBox();
+          }
         }, 100);
       }
+    });
+
+    // ===== Viewport Functions =====
+
+    function toggleViewportMode() {
+      if (!currentMap) {
+        alert('Please upload a map first');
+        return;
+      }
+
+      viewportEnabled = !viewportEnabled;
+      const toggleBtn = document.getElementById('viewportToggleBtn');
+      const resetBtn = document.getElementById('viewportResetBtn');
+      const viewportBox = document.getElementById('viewportBox');
+
+      if (viewportEnabled) {
+        toggleBtn.classList.add('active');
+        resetBtn.style.display = 'inline-block';
+        viewportBox.style.display = 'block';
+        updateViewportBox();
+      } else {
+        toggleBtn.classList.remove('active');
+        resetBtn.style.display = 'none';
+        viewportBox.style.display = 'none';
+        // Reset viewport to full map when disabled
+        viewport = { x: 0, y: 0, width: 100, height: 100 };
+      }
+
+      syncBattleMap();
+    }
+
+    function resetViewport() {
+      viewport = { x: 0, y: 0, width: 100, height: 100 };
+      updateViewportBox();
+      syncBattleMap();
+    }
+
+    function updateViewportBox() {
+      const viewportBox = document.getElementById('viewportBox');
+      const mapPreview = document.getElementById('mapPreview');
+
+      if (!viewportBox || !mapPreview || mapPreview.style.display === 'none') return;
+
+      // Get the displayed map dimensions
+      const mapWidth = mapPreview.width;
+      const mapHeight = mapPreview.height;
+
+      // Convert percentage to pixels
+      const left = (viewport.x / 100) * mapWidth;
+      const top = (viewport.y / 100) * mapHeight;
+      const width = (viewport.width / 100) * mapWidth;
+      const height = (viewport.height / 100) * mapHeight;
+
+      viewportBox.style.left = `${left}px`;
+      viewportBox.style.top = `${top}px`;
+      viewportBox.style.width = `${width}px`;
+      viewportBox.style.height = `${height}px`;
+    }
+
+    function initViewportDragHandlers() {
+      const viewportBox = document.getElementById('viewportBox');
+      if (!viewportBox) return;
+
+      // Drag handler for moving the viewport
+      viewportBox.addEventListener('mousedown', (e) => {
+        // Ignore if clicking on resize handles
+        if (e.target.classList.contains('viewport-resize-handle')) return;
+        // Ignore if clicking on the label
+        if (e.target.classList.contains('viewport-box-label')) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        viewportDragging = true;
+        viewportBox.classList.add('dragging');
+        viewportDragStart = { x: e.clientX, y: e.clientY };
+        viewportStartState = { ...viewport };
+      });
+
+      // Resize handlers
+      viewportBox.querySelectorAll('.viewport-resize-handle').forEach(handle => {
+        handle.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          viewportResizing = true;
+          viewportResizeHandle = handle.dataset.handle;
+          viewportDragStart = { x: e.clientX, y: e.clientY };
+          viewportStartState = { ...viewport };
+        });
+      });
+
+      // Global mouse move handler
+      document.addEventListener('mousemove', (e) => {
+        if (!viewportDragging && !viewportResizing) return;
+
+        const mapPreview = document.getElementById('mapPreview');
+        if (!mapPreview) return;
+
+        const mapWidth = mapPreview.width;
+        const mapHeight = mapPreview.height;
+
+        // Calculate delta in percentage
+        const deltaX = ((e.clientX - viewportDragStart.x) / mapWidth) * 100;
+        const deltaY = ((e.clientY - viewportDragStart.y) / mapHeight) * 100;
+
+        if (viewportDragging) {
+          // Move the viewport
+          let newX = viewportStartState.x + deltaX;
+          let newY = viewportStartState.y + deltaY;
+
+          // Constrain to map bounds
+          newX = Math.max(0, Math.min(100 - viewport.width, newX));
+          newY = Math.max(0, Math.min(100 - viewport.height, newY));
+
+          viewport.x = newX;
+          viewport.y = newY;
+        } else if (viewportResizing) {
+          // Resize the viewport based on which handle is being dragged
+          let newX = viewportStartState.x;
+          let newY = viewportStartState.y;
+          let newWidth = viewportStartState.width;
+          let newHeight = viewportStartState.height;
+
+          const handle = viewportResizeHandle;
+
+          // Handle horizontal resizing
+          if (handle.includes('w')) {
+            newX = viewportStartState.x + deltaX;
+            newWidth = viewportStartState.width - deltaX;
+          } else if (handle.includes('e')) {
+            newWidth = viewportStartState.width + deltaX;
+          }
+
+          // Handle vertical resizing
+          if (handle.includes('n')) {
+            newY = viewportStartState.y + deltaY;
+            newHeight = viewportStartState.height - deltaY;
+          } else if (handle.includes('s')) {
+            newHeight = viewportStartState.height + deltaY;
+          }
+
+          // Enforce minimum size
+          if (newWidth < MIN_VIEWPORT_SIZE) {
+            if (handle.includes('w')) {
+              newX = viewportStartState.x + viewportStartState.width - MIN_VIEWPORT_SIZE;
+            }
+            newWidth = MIN_VIEWPORT_SIZE;
+          }
+          if (newHeight < MIN_VIEWPORT_SIZE) {
+            if (handle.includes('n')) {
+              newY = viewportStartState.y + viewportStartState.height - MIN_VIEWPORT_SIZE;
+            }
+            newHeight = MIN_VIEWPORT_SIZE;
+          }
+
+          // Constrain to map bounds
+          newX = Math.max(0, newX);
+          newY = Math.max(0, newY);
+          if (newX + newWidth > 100) newWidth = 100 - newX;
+          if (newY + newHeight > 100) newHeight = 100 - newY;
+
+          viewport.x = newX;
+          viewport.y = newY;
+          viewport.width = newWidth;
+          viewport.height = newHeight;
+        }
+
+        updateViewportBox();
+      });
+
+      // Global mouse up handler
+      document.addEventListener('mouseup', () => {
+        if (viewportDragging || viewportResizing) {
+          viewportDragging = false;
+          viewportResizing = false;
+          viewportResizeHandle = null;
+
+          const viewportBox = document.getElementById('viewportBox');
+          if (viewportBox) {
+            viewportBox.classList.remove('dragging');
+          }
+
+          // Sync the updated viewport to Firebase
+          syncBattleMap();
+        }
+      });
+    }
+
+    // Initialize viewport handlers when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      initViewportDragHandlers();
     });
 
     function renderTokenList() {
@@ -10558,6 +10931,9 @@ ${currentNpc.stats.abilities.map(a => `• **${a.name}** (${a.type}): ${a.descri
         setTimeout(() => {
           drawMapPreviewGrid();
           renderMapPreviewTokens();
+          if (viewportEnabled) {
+            updateViewportBox();
+          }
         }, 50);
       };
 
@@ -11588,6 +11964,7 @@ ${currentNpc.stats.abilities.map(a => `• **${a.name}** (${a.type}): ${a.descri
               map: data.map || null,
               tokens: data.tokens || null,
               grid: data.grid || null,
+              viewport: data.viewport || null,
               timestamp: data.timestamp
             });
             break;
@@ -13005,6 +13382,9 @@ ${currentNpc.stats.abilities.map(a => `• **${a.name}** (${a.type}): ${a.descri
               setTimeout(() => {
                 drawMapPreviewGrid();
                 renderMapPreviewTokens();
+                if (viewportEnabled) {
+                  updateViewportBox();
+                }
               }, 50);
             };
           }
