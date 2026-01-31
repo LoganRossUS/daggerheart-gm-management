@@ -593,12 +593,22 @@
 
       if (data.visible && data.mapImage) {
         currentMap = data;
-        mapImage.src = data.mapImage;
-        mapContainer.classList.add('visible');
 
         if (data.gridSize) {
           gridSize = data.gridSize;
         }
+
+        // Set up onload handler before changing src to ensure it fires
+        mapImage.onload = () => {
+          // Re-render tokens and grid once image dimensions are available
+          renderTokens();
+          if (document.getElementById('gridOverlay').classList.contains('visible')) {
+            drawGrid();
+          }
+        };
+
+        mapImage.src = data.mapImage;
+        mapContainer.classList.add('visible');
       } else {
         mapContainer.classList.remove('visible');
         currentMap = null;
@@ -617,19 +627,52 @@
       if (!currentMap || !tokens.length) return;
 
       const mapImage = document.getElementById('mapImage');
+
+      // Wait for image to have natural dimensions
+      if (!mapImage.naturalWidth || !mapImage.naturalHeight) {
+        return;
+      }
+
       const mapRect = mapImage.getBoundingClientRect();
+
+      // Calculate the actual displayed dimensions accounting for object-fit: contain
+      // The image maintains aspect ratio, so we need to find where it actually renders
+      const imgAspect = mapImage.naturalWidth / mapImage.naturalHeight;
+      const containerAspect = mapRect.width / mapRect.height;
+
+      let displayedWidth, displayedHeight, offsetX, offsetY;
+
+      if (imgAspect > containerAspect) {
+        // Image is wider than container - letterboxing on top/bottom
+        displayedWidth = mapRect.width;
+        displayedHeight = mapRect.width / imgAspect;
+        offsetX = 0;
+        offsetY = (mapRect.height - displayedHeight) / 2;
+      } else {
+        // Image is taller than container - letterboxing on left/right
+        displayedHeight = mapRect.height;
+        displayedWidth = mapRect.height * imgAspect;
+        offsetX = (mapRect.width - displayedWidth) / 2;
+        offsetY = 0;
+      }
+
+      // Calculate scale factor between natural and displayed size
+      const scaleX = displayedWidth / mapImage.naturalWidth;
+      const scaleY = displayedHeight / mapImage.naturalHeight;
 
       tokens.forEach(token => {
         const tokenEl = document.createElement('div');
         tokenEl.className = `token ${token.type}`;
         tokenEl.id = `token-${token.id}`;
 
-        // Calculate position based on grid coordinates
-        const pixelX = mapRect.left + (token.x * gridSize);
-        const pixelY = mapRect.top + (token.y * gridSize);
+        // Calculate pixel position based on grid coordinates and scale
+        // Add gridSize/2 to center token in the grid cell (matching GM panel behavior)
+        const pixelX = mapRect.left + offsetX + (token.x * gridSize + gridSize / 2) * scaleX;
+        const pixelY = mapRect.top + offsetY + (token.y * gridSize + gridSize / 2) * scaleY;
 
-        tokenEl.style.left = `${pixelX}px`;
-        tokenEl.style.top = `${pixelY}px`;
+        // Center the token element itself (subtract half its size)
+        tokenEl.style.left = `${pixelX - 30}px`;
+        tokenEl.style.top = `${pixelY - 30}px`;
 
         // Set token image
         if (token.image) {
@@ -708,24 +751,60 @@
       if (!currentMap) return;
 
       const mapImage = document.getElementById('mapImage');
+
+      // Wait for image to have natural dimensions
+      if (!mapImage.naturalWidth || !mapImage.naturalHeight) {
+        return;
+      }
+
       const mapRect = mapImage.getBoundingClientRect();
+
+      // Calculate the actual displayed dimensions accounting for object-fit: contain
+      const imgAspect = mapImage.naturalWidth / mapImage.naturalHeight;
+      const containerAspect = mapRect.width / mapRect.height;
+
+      let displayedWidth, displayedHeight, offsetX, offsetY;
+
+      if (imgAspect > containerAspect) {
+        // Image is wider than container - letterboxing on top/bottom
+        displayedWidth = mapRect.width;
+        displayedHeight = mapRect.width / imgAspect;
+        offsetX = 0;
+        offsetY = (mapRect.height - displayedHeight) / 2;
+      } else {
+        // Image is taller than container - letterboxing on left/right
+        displayedHeight = mapRect.height;
+        displayedWidth = mapRect.height * imgAspect;
+        offsetX = (mapRect.width - displayedWidth) / 2;
+        offsetY = 0;
+      }
+
+      // Calculate scale factor
+      const scaleX = displayedWidth / mapImage.naturalWidth;
+      const scaledGridSize = gridSize * scaleX;
+
+      // Calculate where the image actually starts
+      const imageLeft = mapRect.left + offsetX;
+      const imageTop = mapRect.top + offsetY;
+      const imageRight = imageLeft + displayedWidth;
+      const imageBottom = imageTop + displayedHeight;
 
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
       ctx.lineWidth = 1;
 
-      // Draw vertical lines
-      for (let x = mapRect.left; x < mapRect.right; x += gridSize) {
+      // Draw vertical lines (only within the actual image area)
+      for (let x = imageLeft; x <= imageRight; x += scaledGridSize) {
         ctx.beginPath();
-        ctx.moveTo(x, mapRect.top);
-        ctx.lineTo(x, mapRect.bottom);
+        ctx.moveTo(x, imageTop);
+        ctx.lineTo(x, imageBottom);
         ctx.stroke();
       }
 
-      // Draw horizontal lines
-      for (let y = mapRect.top; y < mapRect.bottom; y += gridSize) {
+      // Draw horizontal lines (only within the actual image area)
+      for (let y = imageTop; y <= imageBottom; y += scaledGridSize) {
         ctx.beginPath();
-        ctx.moveTo(mapRect.left, y);
-        ctx.lineTo(mapRect.right, y);
+        ctx.moveTo(imageLeft, y);
+        ctx.lineTo(imageRight, y);
         ctx.stroke();
       }
     }
