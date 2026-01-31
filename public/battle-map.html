@@ -805,30 +805,38 @@
 
     function calculateFullMapDisplayInfo() {
       const mapImage = document.getElementById('mapImage');
-      const mapRect = mapImage.getBoundingClientRect();
+      const containerWidth = window.innerWidth;
+      const containerHeight = window.innerHeight;
+
+      // Wait for natural dimensions
+      if (!mapImage.naturalWidth || !mapImage.naturalHeight) {
+        return null;
+      }
 
       const imgAspect = mapImage.naturalWidth / mapImage.naturalHeight;
-      const containerAspect = mapRect.width / mapRect.height;
+      const containerAspect = containerWidth / containerHeight;
 
       let displayedWidth, displayedHeight, offsetX, offsetY;
 
       if (imgAspect > containerAspect) {
-        displayedWidth = mapRect.width;
-        displayedHeight = mapRect.width / imgAspect;
+        // Image is wider - fit to width, center vertically
+        displayedWidth = containerWidth;
+        displayedHeight = containerWidth / imgAspect;
         offsetX = 0;
-        offsetY = (mapRect.height - displayedHeight) / 2;
+        offsetY = (containerHeight - displayedHeight) / 2;
       } else {
-        displayedHeight = mapRect.height;
-        displayedWidth = mapRect.height * imgAspect;
-        offsetX = (mapRect.width - displayedWidth) / 2;
+        // Image is taller - fit to height, center horizontally
+        displayedHeight = containerHeight;
+        displayedWidth = containerHeight * imgAspect;
+        offsetX = (containerWidth - displayedWidth) / 2;
         offsetY = 0;
       }
 
       return {
         displayedWidth,
         displayedHeight,
-        offsetX: mapRect.left + offsetX,
-        offsetY: mapRect.top + offsetY,
+        offsetX,
+        offsetY,
         scaleX: displayedWidth / mapImage.naturalWidth,
         scaleY: displayedHeight / mapImage.naturalHeight,
         viewportX: 0,
@@ -1179,13 +1187,47 @@
         mapContainer.style.overflow = 'hidden';
 
       } else {
-        // Viewport disabled or showing full map - reset to default
+        // Viewport disabled or showing full map - scale to fill screen
+        // Wait for natural dimensions to be available
+        if (!mapImage.naturalWidth || !mapImage.naturalHeight) {
+          // Reset styles and let CSS handle it temporarily
+          mapImage.style.transform = '';
+          mapImage.style.transformOrigin = '';
+          mapImage.style.maxWidth = '100%';
+          mapImage.style.maxHeight = '100%';
+          mapImage.style.width = '';
+          mapImage.style.height = '';
+          mapImage.style.position = 'relative';
+          mapImage.style.left = '';
+          mapImage.style.top = '';
+          mapContainer.style.overflow = '';
+          return;
+        }
+
+        // Calculate dimensions to fill the screen while maintaining aspect ratio
+        const containerWidth = window.innerWidth;
+        const containerHeight = window.innerHeight;
+        const imgAspect = mapImage.naturalWidth / mapImage.naturalHeight;
+        const containerAspect = containerWidth / containerHeight;
+
+        let displayWidth, displayHeight;
+        if (imgAspect > containerAspect) {
+          // Image is wider than container - fit to width
+          displayWidth = containerWidth;
+          displayHeight = containerWidth / imgAspect;
+        } else {
+          // Image is taller than container - fit to height
+          displayHeight = containerHeight;
+          displayWidth = containerHeight * imgAspect;
+        }
+
+        // Apply calculated dimensions
         mapImage.style.transform = '';
         mapImage.style.transformOrigin = '';
-        mapImage.style.maxWidth = '100%';
-        mapImage.style.maxHeight = '100%';
-        mapImage.style.width = '';
-        mapImage.style.height = '';
+        mapImage.style.maxWidth = 'none';
+        mapImage.style.maxHeight = 'none';
+        mapImage.style.width = `${displayWidth}px`;
+        mapImage.style.height = `${displayHeight}px`;
         mapImage.style.position = 'relative';
         mapImage.style.left = '';
         mapImage.style.top = '';
