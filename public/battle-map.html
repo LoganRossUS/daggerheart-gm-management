@@ -460,6 +460,9 @@
       height: 100 // Height as percentage of full map
     };
 
+    // Auto-rotation state - true if map is rotated 90° for better screen fit
+    let isMapRotated = false;
+
     // Heartbeat and reconnection configuration
     const HEARTBEAT_TIMEOUT = 45000; // Consider connection dead after 45 seconds without heartbeat
     const RECONNECT_BASE_DELAY = 2000; // Base delay for exponential backoff (2 seconds)
@@ -813,36 +816,62 @@
         return null;
       }
 
-      const imgAspect = mapImage.naturalWidth / mapImage.naturalHeight;
+      // Use the same rotation logic as applyViewport
+      const contentWidth = mapImage.naturalWidth;
+      const contentHeight = mapImage.naturalHeight;
+      const contentAspect = contentWidth / contentHeight;
       const containerAspect = containerWidth / containerHeight;
 
-      let displayedWidth, displayedHeight, offsetX, offsetY;
-
-      if (imgAspect > containerAspect) {
-        // Image is wider - fit to width, center vertically
-        displayedWidth = containerWidth;
-        displayedHeight = containerWidth / imgAspect;
-        offsetX = 0;
-        offsetY = (containerHeight - displayedHeight) / 2;
+      // Calculate coverage without rotation
+      let normalWidth, normalHeight;
+      if (contentAspect > containerAspect) {
+        normalWidth = containerWidth;
+        normalHeight = containerWidth / contentAspect;
       } else {
-        // Image is taller - fit to height, center horizontally
-        displayedHeight = containerHeight;
-        displayedWidth = containerHeight * imgAspect;
-        offsetX = (containerWidth - displayedWidth) / 2;
-        offsetY = 0;
+        normalHeight = containerHeight;
+        normalWidth = containerHeight * contentAspect;
       }
+
+      // Calculate coverage with rotation
+      const rotatedAspect = contentHeight / contentWidth;
+      let rotatedWidth, rotatedHeight;
+      if (rotatedAspect > containerAspect) {
+        rotatedWidth = containerWidth;
+        rotatedHeight = containerWidth / rotatedAspect;
+      } else {
+        rotatedHeight = containerHeight;
+        rotatedWidth = containerHeight * rotatedAspect;
+      }
+
+      const normalCoverage = normalWidth * normalHeight;
+      const rotatedCoverage = rotatedWidth * rotatedHeight;
+      const rotated = rotatedCoverage > normalCoverage;
+
+      let displayedWidth, displayedHeight, offsetX, offsetY;
+      if (rotated) {
+        displayedWidth = rotatedWidth;
+        displayedHeight = rotatedHeight;
+      } else {
+        displayedWidth = normalWidth;
+        displayedHeight = normalHeight;
+      }
+      offsetX = (containerWidth - displayedWidth) / 2;
+      offsetY = (containerHeight - displayedHeight) / 2;
 
       return {
         displayedWidth,
         displayedHeight,
         offsetX,
         offsetY,
-        scaleX: displayedWidth / mapImage.naturalWidth,
-        scaleY: displayedHeight / mapImage.naturalHeight,
+        scaleX: displayedWidth / (rotated ? contentHeight : contentWidth),
+        scaleY: displayedHeight / (rotated ? contentWidth : contentHeight),
         viewportX: 0,
         viewportY: 0,
         viewportWidth: 100,
-        viewportHeight: 100
+        viewportHeight: 100,
+        rotated,
+        naturalWidth: contentWidth,
+        naturalHeight: contentHeight
       };
     }
 
@@ -855,27 +884,50 @@
       const viewportWidthPx = (currentViewport.width / 100) * mapImage.naturalWidth;
       const viewportHeightPx = (currentViewport.height / 100) * mapImage.naturalHeight;
 
-      // Calculate how the viewport fills the screen
-      const viewportAspect = viewportWidthPx / viewportHeightPx;
+      // Use the same rotation logic as applyViewport
+      const contentAspect = viewportWidthPx / viewportHeightPx;
       const containerAspect = containerWidth / containerHeight;
 
-      let displayWidth, displayHeight, offsetX, offsetY;
-
-      if (viewportAspect > containerAspect) {
-        displayWidth = containerWidth;
-        displayHeight = containerWidth / viewportAspect;
-        offsetX = 0;
-        offsetY = (containerHeight - displayHeight) / 2;
+      // Calculate coverage without rotation
+      let normalWidth, normalHeight;
+      if (contentAspect > containerAspect) {
+        normalWidth = containerWidth;
+        normalHeight = containerWidth / contentAspect;
       } else {
-        displayHeight = containerHeight;
-        displayWidth = containerHeight * viewportAspect;
-        offsetX = (containerWidth - displayWidth) / 2;
-        offsetY = 0;
+        normalHeight = containerHeight;
+        normalWidth = containerHeight * contentAspect;
       }
 
+      // Calculate coverage with rotation
+      const rotatedAspect = viewportHeightPx / viewportWidthPx;
+      let rotatedWidth, rotatedHeight;
+      if (rotatedAspect > containerAspect) {
+        rotatedWidth = containerWidth;
+        rotatedHeight = containerWidth / rotatedAspect;
+      } else {
+        rotatedHeight = containerHeight;
+        rotatedWidth = containerHeight * rotatedAspect;
+      }
+
+      const normalCoverage = normalWidth * normalHeight;
+      const rotatedCoverage = rotatedWidth * rotatedHeight;
+      const rotated = rotatedCoverage > normalCoverage;
+
+      let displayWidth, displayHeight, offsetX, offsetY;
+      if (rotated) {
+        displayWidth = rotatedWidth;
+        displayHeight = rotatedHeight;
+      } else {
+        displayWidth = normalWidth;
+        displayHeight = normalHeight;
+      }
+      offsetX = (containerWidth - displayWidth) / 2;
+      offsetY = (containerHeight - displayHeight) / 2;
+
       // Scale from viewport region to displayed size
-      const scaleX = displayWidth / viewportWidthPx;
-      const scaleY = displayHeight / viewportHeightPx;
+      // When rotated, viewport width maps to display height and vice versa
+      const scaleX = rotated ? (displayWidth / viewportHeightPx) : (displayWidth / viewportWidthPx);
+      const scaleY = rotated ? (displayHeight / viewportWidthPx) : (displayHeight / viewportHeightPx);
 
       return {
         displayedWidth: displayWidth,
@@ -889,7 +941,10 @@
         viewportWidth: currentViewport.width,
         viewportHeight: currentViewport.height,
         viewportWidthPx,
-        viewportHeightPx
+        viewportHeightPx,
+        rotated,
+        naturalWidth: mapImage.naturalWidth,
+        naturalHeight: mapImage.naturalHeight
       };
     }
 
@@ -899,28 +954,52 @@
       tokenEl.className = `token ${token.type}`;
       tokenEl.id = `token-${token.id}`;
 
+      // Token position on the original (non-rotated) map
+      const tokenPosOnMapX = token.x * gridSize + gridSize / 2;
+      const tokenPosOnMapY = token.y * gridSize + gridSize / 2;
+
       let pixelX, pixelY;
 
-      if (viewportActive) {
-        // Calculate position relative to the viewport
-        const tokenPosOnMapX = token.x * gridSize + gridSize / 2;
-        const tokenPosOnMapY = token.y * gridSize + gridSize / 2;
+      if (displayInfo.rotated) {
+        // Map is rotated 90° clockwise
+        // Transform: (x, y) -> (y, naturalWidth - x)
+        const rotatedX = tokenPosOnMapY;
+        const rotatedY = displayInfo.naturalWidth - tokenPosOnMapX;
 
-        // Offset from viewport origin
-        const viewportOriginX = (displayInfo.viewportX / 100) * mapImage.naturalWidth;
-        const viewportOriginY = (displayInfo.viewportY / 100) * mapImage.naturalHeight;
+        if (viewportActive) {
+          // Viewport origin in rotated coordinates
+          const viewportOriginX = (displayInfo.viewportY / 100) * displayInfo.naturalHeight;
+          const viewportOriginY = displayInfo.naturalWidth - ((displayInfo.viewportX + displayInfo.viewportWidth) / 100) * displayInfo.naturalWidth;
 
-        // Position relative to viewport
-        const relativeX = tokenPosOnMapX - viewportOriginX;
-        const relativeY = tokenPosOnMapY - viewportOriginY;
+          // Position relative to rotated viewport
+          const relativeX = rotatedX - viewportOriginX;
+          const relativeY = rotatedY - viewportOriginY;
 
-        // Scale to screen coordinates
-        pixelX = displayInfo.offsetX + relativeX * displayInfo.scaleX;
-        pixelY = displayInfo.offsetY + relativeY * displayInfo.scaleY;
+          pixelX = displayInfo.offsetX + relativeX * displayInfo.scaleX;
+          pixelY = displayInfo.offsetY + relativeY * displayInfo.scaleY;
+        } else {
+          // Full map mode with rotation
+          pixelX = displayInfo.offsetX + rotatedX * displayInfo.scaleX;
+          pixelY = displayInfo.offsetY + rotatedY * displayInfo.scaleY;
+        }
       } else {
-        // Full map mode - use original calculation
-        pixelX = displayInfo.offsetX + (token.x * gridSize + gridSize / 2) * displayInfo.scaleX;
-        pixelY = displayInfo.offsetY + (token.y * gridSize + gridSize / 2) * displayInfo.scaleY;
+        // No rotation
+        if (viewportActive) {
+          // Offset from viewport origin
+          const viewportOriginX = (displayInfo.viewportX / 100) * mapImage.naturalWidth;
+          const viewportOriginY = (displayInfo.viewportY / 100) * mapImage.naturalHeight;
+
+          // Position relative to viewport
+          const relativeX = tokenPosOnMapX - viewportOriginX;
+          const relativeY = tokenPosOnMapY - viewportOriginY;
+
+          pixelX = displayInfo.offsetX + relativeX * displayInfo.scaleX;
+          pixelY = displayInfo.offsetY + relativeY * displayInfo.scaleY;
+        } else {
+          // Full map mode - standard calculation
+          pixelX = displayInfo.offsetX + tokenPosOnMapX * displayInfo.scaleX;
+          pixelY = displayInfo.offsetY + tokenPosOnMapY * displayInfo.scaleY;
+        }
       }
 
       tokenEl.style.left = `${pixelX - 30}px`;
@@ -1122,116 +1201,166 @@
 
       if (!mapImage || !currentMap) return;
 
-      if (currentViewport.enabled && (currentViewport.width < 100 || currentViewport.height < 100 || currentViewport.x > 0 || currentViewport.y > 0)) {
-        // Viewport is active - apply clipping and scaling
-        // Calculate the transform to show only the viewport region
-
-        // The viewport is specified as percentages of the full map
-        // We need to scale up the map and translate it so the viewport fills the screen
-
-        // Scale factor: 100 / viewport_percentage
-        const scaleX = 100 / currentViewport.width;
-        const scaleY = 100 / currentViewport.height;
-        const scale = Math.min(scaleX, scaleY); // Use uniform scale to maintain aspect ratio
-
-        // Calculate translation to center the viewport region
-        // The viewport x,y are percentages from top-left
-        const translateX = -currentViewport.x * scale;
-        const translateY = -currentViewport.y * scale;
-
-        // Apply transform to the map image
-        mapImage.style.transformOrigin = '0 0';
-        mapImage.style.transform = `scale(${scale}) translate(${translateX}%, ${translateY}%)`;
-
-        // Remove max-width/max-height constraints when viewport is active
-        mapImage.style.maxWidth = 'none';
-        mapImage.style.maxHeight = 'none';
-
-        // Calculate the size of the visible portion
-        const viewportWidthPx = (currentViewport.width / 100) * mapImage.naturalWidth;
-        const viewportHeightPx = (currentViewport.height / 100) * mapImage.naturalHeight;
-
-        // Scale to fill the container while maintaining aspect ratio
-        const containerWidth = window.innerWidth;
-        const containerHeight = window.innerHeight;
-        const viewportAspect = viewportWidthPx / viewportHeightPx;
-        const containerAspect = containerWidth / containerHeight;
-
-        let displayWidth, displayHeight;
-        if (viewportAspect > containerAspect) {
-          // Viewport is wider than container
-          displayWidth = containerWidth;
-          displayHeight = containerWidth / viewportAspect;
-        } else {
-          // Viewport is taller than container
-          displayHeight = containerHeight;
-          displayWidth = containerHeight * viewportAspect;
-        }
-
-        // Set the base size of the image so that viewport fills the container
-        mapImage.style.width = `${displayWidth * (100 / currentViewport.width)}px`;
-        mapImage.style.height = `${displayHeight * (100 / currentViewport.height)}px`;
-
-        // Reset transform and use clip-path instead for cleaner approach
-        mapImage.style.transform = '';
-
-        // Position the image so the viewport region is centered
-        const offsetX = -((currentViewport.x / 100) * displayWidth * (100 / currentViewport.width));
-        const offsetY = -((currentViewport.y / 100) * displayHeight * (100 / currentViewport.height));
-
-        mapImage.style.position = 'absolute';
-        mapImage.style.left = `calc(50% - ${displayWidth / 2}px + ${offsetX}px)`;
-        mapImage.style.top = `calc(50% - ${displayHeight / 2}px + ${offsetY}px)`;
-
-        // Use overflow hidden on container to clip the map
-        mapContainer.style.overflow = 'hidden';
-
-      } else {
-        // Viewport disabled or showing full map - scale to fill screen
-        // Wait for natural dimensions to be available
-        if (!mapImage.naturalWidth || !mapImage.naturalHeight) {
-          // Reset styles and let CSS handle it temporarily
-          mapImage.style.transform = '';
-          mapImage.style.transformOrigin = '';
-          mapImage.style.maxWidth = '100%';
-          mapImage.style.maxHeight = '100%';
-          mapImage.style.width = '';
-          mapImage.style.height = '';
-          mapImage.style.position = 'relative';
-          mapImage.style.left = '';
-          mapImage.style.top = '';
-          mapContainer.style.overflow = '';
-          return;
-        }
-
-        // Calculate dimensions to fill the screen while maintaining aspect ratio
-        const containerWidth = window.innerWidth;
-        const containerHeight = window.innerHeight;
-        const imgAspect = mapImage.naturalWidth / mapImage.naturalHeight;
-        const containerAspect = containerWidth / containerHeight;
-
-        let displayWidth, displayHeight;
-        if (imgAspect > containerAspect) {
-          // Image is wider than container - fit to width
-          displayWidth = containerWidth;
-          displayHeight = containerWidth / imgAspect;
-        } else {
-          // Image is taller than container - fit to height
-          displayHeight = containerHeight;
-          displayWidth = containerHeight * imgAspect;
-        }
-
-        // Apply calculated dimensions
+      // Wait for natural dimensions to be available
+      if (!mapImage.naturalWidth || !mapImage.naturalHeight) {
         mapImage.style.transform = '';
         mapImage.style.transformOrigin = '';
-        mapImage.style.maxWidth = 'none';
-        mapImage.style.maxHeight = 'none';
-        mapImage.style.width = `${displayWidth}px`;
-        mapImage.style.height = `${displayHeight}px`;
+        mapImage.style.maxWidth = '100%';
+        mapImage.style.maxHeight = '100%';
+        mapImage.style.width = '';
+        mapImage.style.height = '';
         mapImage.style.position = 'relative';
         mapImage.style.left = '';
         mapImage.style.top = '';
         mapContainer.style.overflow = '';
+        isMapRotated = false;
+        return;
+      }
+
+      const containerWidth = window.innerWidth;
+      const containerHeight = window.innerHeight;
+
+      // Determine what content we're displaying (viewport region or full map)
+      let contentWidth, contentHeight;
+      if (currentViewport.enabled && (currentViewport.width < 100 || currentViewport.height < 100 || currentViewport.x > 0 || currentViewport.y > 0)) {
+        // Viewport active - use viewport region dimensions
+        contentWidth = (currentViewport.width / 100) * mapImage.naturalWidth;
+        contentHeight = (currentViewport.height / 100) * mapImage.naturalHeight;
+      } else {
+        // Full map
+        contentWidth = mapImage.naturalWidth;
+        contentHeight = mapImage.naturalHeight;
+      }
+
+      // Determine if rotation would allow the content to fill more screen space
+      const contentAspect = contentWidth / contentHeight;
+      const containerAspect = containerWidth / containerHeight;
+
+      // Calculate coverage without rotation
+      let normalWidth, normalHeight;
+      if (contentAspect > containerAspect) {
+        normalWidth = containerWidth;
+        normalHeight = containerWidth / contentAspect;
+      } else {
+        normalHeight = containerHeight;
+        normalWidth = containerHeight * contentAspect;
+      }
+      const normalCoverage = (normalWidth * normalHeight) / (containerWidth * containerHeight);
+
+      // Calculate coverage with 90° rotation (swap content dimensions)
+      const rotatedAspect = contentHeight / contentWidth;
+      let rotatedWidth, rotatedHeight;
+      if (rotatedAspect > containerAspect) {
+        rotatedWidth = containerWidth;
+        rotatedHeight = containerWidth / rotatedAspect;
+      } else {
+        rotatedHeight = containerHeight;
+        rotatedWidth = containerHeight * rotatedAspect;
+      }
+      const rotatedCoverage = (rotatedWidth * rotatedHeight) / (containerWidth * containerHeight);
+
+      // Choose rotation if it provides better coverage
+      isMapRotated = rotatedCoverage > normalCoverage;
+
+      // Use the appropriate dimensions based on rotation decision
+      let displayWidth, displayHeight;
+      if (isMapRotated) {
+        displayWidth = rotatedWidth;
+        displayHeight = rotatedHeight;
+      } else {
+        displayWidth = normalWidth;
+        displayHeight = normalHeight;
+      }
+
+      if (currentViewport.enabled && (currentViewport.width < 100 || currentViewport.height < 100 || currentViewport.x > 0 || currentViewport.y > 0)) {
+        // Viewport is active - apply clipping and scaling with optional rotation
+        mapImage.style.maxWidth = 'none';
+        mapImage.style.maxHeight = 'none';
+        mapContainer.style.overflow = 'hidden';
+
+        if (isMapRotated) {
+          // Calculate the full map size needed so viewport fills displayWidth x displayHeight
+          // When rotated, the viewport's width maps to display height and vice versa
+          const fullMapWidth = displayHeight * (100 / currentViewport.width);
+          const fullMapHeight = displayWidth * (100 / currentViewport.height);
+
+          mapImage.style.width = `${fullMapWidth}px`;
+          mapImage.style.height = `${fullMapHeight}px`;
+
+          // Position the viewport region at center, accounting for rotation
+          const viewportOriginX = (currentViewport.x / 100) * fullMapWidth;
+          const viewportOriginY = (currentViewport.y / 100) * fullMapHeight;
+
+          // Center of screen
+          const centerX = containerWidth / 2;
+          const centerY = containerHeight / 2;
+
+          // After 90° clockwise rotation around image center:
+          // The image center needs to be at screen center
+          // Then offset to show the viewport region
+          const imgCenterX = fullMapWidth / 2;
+          const imgCenterY = fullMapHeight / 2;
+
+          // Viewport center on the original image
+          const vpCenterX = viewportOriginX + (currentViewport.width / 100) * fullMapWidth / 2;
+          const vpCenterY = viewportOriginY + (currentViewport.height / 100) * fullMapHeight / 2;
+
+          // After rotation, viewport center becomes: (vpCenterY, fullMapWidth - vpCenterX)
+          // We want this to be at screen center
+          const rotatedVpCenterX = vpCenterY;
+          const rotatedVpCenterY = fullMapWidth - vpCenterX;
+
+          const offsetX = centerX - rotatedVpCenterX;
+          const offsetY = centerY - rotatedVpCenterY;
+
+          mapImage.style.position = 'absolute';
+          mapImage.style.transformOrigin = '0 0';
+          mapImage.style.transform = `translate(${offsetX}px, ${offsetY}px) rotate(90deg)`;
+          mapImage.style.left = '0';
+          mapImage.style.top = '0';
+        } else {
+          // No rotation - standard viewport handling
+          const fullMapWidth = displayWidth * (100 / currentViewport.width);
+          const fullMapHeight = displayHeight * (100 / currentViewport.height);
+
+          mapImage.style.width = `${fullMapWidth}px`;
+          mapImage.style.height = `${fullMapHeight}px`;
+
+          const offsetX = -((currentViewport.x / 100) * fullMapWidth);
+          const offsetY = -((currentViewport.y / 100) * fullMapHeight);
+
+          mapImage.style.position = 'absolute';
+          mapImage.style.transform = '';
+          mapImage.style.transformOrigin = '';
+          mapImage.style.left = `calc(50% - ${displayWidth / 2}px + ${offsetX}px)`;
+          mapImage.style.top = `calc(50% - ${displayHeight / 2}px + ${offsetY}px)`;
+        }
+
+      } else {
+        // Full map display with optional rotation
+        mapImage.style.maxWidth = 'none';
+        mapImage.style.maxHeight = 'none';
+        mapContainer.style.overflow = '';
+
+        if (isMapRotated) {
+          // Rotated full map - swap display dimensions for sizing
+          mapImage.style.width = `${displayHeight}px`;
+          mapImage.style.height = `${displayWidth}px`;
+          mapImage.style.position = 'absolute';
+          mapImage.style.transformOrigin = 'center center';
+          mapImage.style.transform = 'rotate(90deg)';
+          mapImage.style.left = `${(containerWidth - displayHeight) / 2}px`;
+          mapImage.style.top = `${(containerHeight - displayWidth) / 2}px`;
+        } else {
+          // Normal full map display
+          mapImage.style.width = `${displayWidth}px`;
+          mapImage.style.height = `${displayHeight}px`;
+          mapImage.style.position = 'relative';
+          mapImage.style.transform = '';
+          mapImage.style.transformOrigin = '';
+          mapImage.style.left = '';
+          mapImage.style.top = '';
+        }
       }
     }
 
@@ -1265,47 +1394,63 @@
 
       if (!displayInfo) return;
 
-      // Calculate scaled grid size based on display
-      let scaledGridSize;
-      let imageLeft, imageTop, imageRight, imageBottom;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 1;
 
-      if (viewportActive) {
-        // Grid needs to align with the visible viewport region
-        scaledGridSize = gridSize * displayInfo.scaleX;
+      const imageLeft = displayInfo.offsetX;
+      const imageTop = displayInfo.offsetY;
+      const imageRight = imageLeft + displayInfo.displayedWidth;
+      const imageBottom = imageTop + displayInfo.displayedHeight;
 
-        // Calculate grid offset to align with viewport position
-        const viewportOriginX = (currentViewport.x / 100) * mapImage.naturalWidth;
-        const viewportOriginY = (currentViewport.y / 100) * mapImage.naturalHeight;
+      // Grid scale - use the same scale for both dimensions
+      const scaledGridSize = gridSize * displayInfo.scaleX;
 
-        // Find the first grid line that would appear in the viewport
-        const firstGridX = Math.ceil(viewportOriginX / gridSize) * gridSize;
-        const firstGridY = Math.ceil(viewportOriginY / gridSize) * gridSize;
+      if (displayInfo.rotated) {
+        // When rotated, the grid needs to be drawn at 90° angle
+        // The "vertical" lines on the original map become horizontal on screen
+        // The "horizontal" lines on the original map become vertical on screen
 
-        // Calculate offset from viewport origin to first grid line
-        const gridOffsetX = (firstGridX - viewportOriginX) * displayInfo.scaleX;
-        const gridOffsetY = (firstGridY - viewportOriginY) * displayInfo.scaleY;
+        if (viewportActive) {
+          // Calculate grid offset in rotated space
+          const viewportOriginX = (currentViewport.y / 100) * displayInfo.naturalHeight;
+          const viewportOriginY = displayInfo.naturalWidth - ((currentViewport.x + currentViewport.width) / 100) * displayInfo.naturalWidth;
 
-        imageLeft = displayInfo.offsetX;
-        imageTop = displayInfo.offsetY;
-        imageRight = imageLeft + displayInfo.displayedWidth;
-        imageBottom = imageTop + displayInfo.displayedHeight;
+          // First grid lines in rotated coordinates
+          const firstGridX = Math.ceil(viewportOriginX / gridSize) * gridSize;
+          const firstGridY = Math.ceil(viewportOriginY / gridSize) * gridSize;
 
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx.lineWidth = 1;
+          const gridOffsetX = (firstGridX - viewportOriginX) * displayInfo.scaleX;
+          const gridOffsetY = (firstGridY - viewportOriginY) * displayInfo.scaleY;
 
-        // Draw vertical lines starting from the first aligned grid line
-        for (let x = imageLeft + gridOffsetX; x <= imageRight; x += scaledGridSize) {
-          if (x >= imageLeft) {
+          // Draw "vertical" lines (were horizontal on original map)
+          for (let x = imageLeft + gridOffsetX; x <= imageRight; x += scaledGridSize) {
+            if (x >= imageLeft) {
+              ctx.beginPath();
+              ctx.moveTo(x, imageTop);
+              ctx.lineTo(x, imageBottom);
+              ctx.stroke();
+            }
+          }
+
+          // Draw "horizontal" lines (were vertical on original map)
+          for (let y = imageTop + gridOffsetY; y <= imageBottom; y += scaledGridSize) {
+            if (y >= imageTop) {
+              ctx.beginPath();
+              ctx.moveTo(imageLeft, y);
+              ctx.lineTo(imageRight, y);
+              ctx.stroke();
+            }
+          }
+        } else {
+          // Full rotated map - grid starts from edge
+          for (let x = imageLeft; x <= imageRight; x += scaledGridSize) {
             ctx.beginPath();
             ctx.moveTo(x, imageTop);
             ctx.lineTo(x, imageBottom);
             ctx.stroke();
           }
-        }
 
-        // Draw horizontal lines starting from the first aligned grid line
-        for (let y = imageTop + gridOffsetY; y <= imageBottom; y += scaledGridSize) {
-          if (y >= imageTop) {
+          for (let y = imageTop; y <= imageBottom; y += scaledGridSize) {
             ctx.beginPath();
             ctx.moveTo(imageLeft, y);
             ctx.lineTo(imageRight, y);
@@ -1313,30 +1458,49 @@
           }
         }
       } else {
-        // Full map mode - use original calculation
-        scaledGridSize = gridSize * displayInfo.scaleX;
-        imageLeft = displayInfo.offsetX;
-        imageTop = displayInfo.offsetY;
-        imageRight = imageLeft + displayInfo.displayedWidth;
-        imageBottom = imageTop + displayInfo.displayedHeight;
+        // Non-rotated grid drawing
+        if (viewportActive) {
+          const viewportOriginX = (currentViewport.x / 100) * mapImage.naturalWidth;
+          const viewportOriginY = (currentViewport.y / 100) * mapImage.naturalHeight;
 
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx.lineWidth = 1;
+          const firstGridX = Math.ceil(viewportOriginX / gridSize) * gridSize;
+          const firstGridY = Math.ceil(viewportOriginY / gridSize) * gridSize;
 
-        // Draw vertical lines (only within the actual image area)
-        for (let x = imageLeft; x <= imageRight; x += scaledGridSize) {
-          ctx.beginPath();
-          ctx.moveTo(x, imageTop);
-          ctx.lineTo(x, imageBottom);
-          ctx.stroke();
-        }
+          const gridOffsetX = (firstGridX - viewportOriginX) * displayInfo.scaleX;
+          const gridOffsetY = (firstGridY - viewportOriginY) * displayInfo.scaleY;
 
-        // Draw horizontal lines (only within the actual image area)
-        for (let y = imageTop; y <= imageBottom; y += scaledGridSize) {
-          ctx.beginPath();
-          ctx.moveTo(imageLeft, y);
-          ctx.lineTo(imageRight, y);
-          ctx.stroke();
+          for (let x = imageLeft + gridOffsetX; x <= imageRight; x += scaledGridSize) {
+            if (x >= imageLeft) {
+              ctx.beginPath();
+              ctx.moveTo(x, imageTop);
+              ctx.lineTo(x, imageBottom);
+              ctx.stroke();
+            }
+          }
+
+          for (let y = imageTop + gridOffsetY; y <= imageBottom; y += scaledGridSize) {
+            if (y >= imageTop) {
+              ctx.beginPath();
+              ctx.moveTo(imageLeft, y);
+              ctx.lineTo(imageRight, y);
+              ctx.stroke();
+            }
+          }
+        } else {
+          // Full non-rotated map
+          for (let x = imageLeft; x <= imageRight; x += scaledGridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, imageTop);
+            ctx.lineTo(x, imageBottom);
+            ctx.stroke();
+          }
+
+          for (let y = imageTop; y <= imageBottom; y += scaledGridSize) {
+            ctx.beginPath();
+            ctx.moveTo(imageLeft, y);
+            ctx.lineTo(imageRight, y);
+            ctx.stroke();
+          }
         }
       }
     }
