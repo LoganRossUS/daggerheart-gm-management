@@ -866,6 +866,12 @@
       color: #ccc;
     }
 
+    .npc-clothing-value {
+      line-height: 1.6;
+      color: #b0bec5;
+      font-style: italic;
+    }
+
     .npc-stat-block {
       background: rgba(0, 0, 0, 0.4);
       border-radius: 8px;
@@ -6706,6 +6712,13 @@
           </div>
           <div class="npc-field-value" id="npcGenAncestry">-</div>
         </div>
+        <div class="npc-field">
+          <div class="npc-field-header">
+            <span class="npc-field-label">Occupation</span>
+            <button class="npc-field-reroll" onclick="rerollNpcField('occupation')">↻</button>
+          </div>
+          <div class="npc-field-value" id="npcGenOccupation">-</div>
+        </div>
       </div>
 
       <!-- Physical Description -->
@@ -6715,6 +6728,15 @@
           <button class="npc-field-reroll" onclick="rerollNpcField('description')">↻ Reroll</button>
         </div>
         <div class="npc-description-value" id="npcGenDescription">-</div>
+      </div>
+
+      <!-- Clothing & Appearance -->
+      <div class="npc-field">
+        <div class="npc-field-header">
+          <span class="npc-field-label">Clothing & Appearance</span>
+          <button class="npc-field-reroll" onclick="rerollNpcField('clothing')">↻ Reroll</button>
+        </div>
+        <div class="npc-clothing-value" id="npcGenClothing">-</div>
       </div>
 
       <!-- Voice -->
@@ -8872,6 +8894,359 @@
       { name: 'Dramatic Exit', type: 'Reaction', description: 'When things go wrong, can slip away unnoticed.' }
     ];
 
+    // ========== NPC Occupation/Social Role Data ==========
+    // Occupations grouped by formality level
+    const npcOccupations = {
+      peasant: [
+        { name: 'Farmer', formality: 'peasant' },
+        { name: 'Herder', formality: 'peasant' },
+        { name: 'Fisherman', formality: 'peasant' },
+        { name: 'Woodcutter', formality: 'peasant' },
+        { name: 'Miner', formality: 'peasant' },
+        { name: 'Servant', formality: 'peasant' },
+        { name: 'Beggar', formality: 'peasant' },
+        { name: 'Laborer', formality: 'peasant' }
+      ],
+      artisan: [
+        { name: 'Blacksmith', formality: 'artisan' },
+        { name: 'Carpenter', formality: 'artisan' },
+        { name: 'Tailor', formality: 'artisan' },
+        { name: 'Potter', formality: 'artisan' },
+        { name: 'Weaver', formality: 'artisan' },
+        { name: 'Leatherworker', formality: 'artisan' },
+        { name: 'Baker', formality: 'artisan' },
+        { name: 'Brewer', formality: 'artisan' },
+        { name: 'Jeweler', formality: 'artisan' },
+        { name: 'Glassblower', formality: 'artisan' }
+      ],
+      merchant: [
+        { name: 'Shopkeeper', formality: 'merchant' },
+        { name: 'Trader', formality: 'merchant' },
+        { name: 'Innkeeper', formality: 'merchant' },
+        { name: 'Caravan Master', formality: 'merchant' },
+        { name: 'Money Changer', formality: 'merchant' },
+        { name: 'Fence', formality: 'merchant' },
+        { name: 'Auctioneer', formality: 'merchant' }
+      ],
+      scholar: [
+        { name: 'Scribe', formality: 'scholar' },
+        { name: 'Librarian', formality: 'scholar' },
+        { name: 'Sage', formality: 'scholar' },
+        { name: 'Alchemist', formality: 'scholar' },
+        { name: 'Healer', formality: 'scholar' },
+        { name: 'Priest', formality: 'scholar' },
+        { name: 'Teacher', formality: 'scholar' },
+        { name: 'Astronomer', formality: 'scholar' }
+      ],
+      adventurer: [
+        { name: 'Mercenary', formality: 'adventurer' },
+        { name: 'Scout', formality: 'adventurer' },
+        { name: 'Bounty Hunter', formality: 'adventurer' },
+        { name: 'Treasure Hunter', formality: 'adventurer' },
+        { name: 'Monster Slayer', formality: 'adventurer' },
+        { name: 'Caravan Guard', formality: 'adventurer' },
+        { name: 'Retired Soldier', formality: 'adventurer' }
+      ],
+      noble: [
+        { name: 'Minor Noble', formality: 'noble' },
+        { name: 'Court Official', formality: 'noble' },
+        { name: 'Ambassador', formality: 'noble' },
+        { name: 'Wealthy Patron', formality: 'noble' },
+        { name: 'Estate Owner', formality: 'noble' },
+        { name: 'Guild Master', formality: 'noble' },
+        { name: 'High Priest', formality: 'noble' }
+      ],
+      entertainer: [
+        { name: 'Bard', formality: 'entertainer' },
+        { name: 'Actor', formality: 'entertainer' },
+        { name: 'Dancer', formality: 'entertainer' },
+        { name: 'Acrobat', formality: 'entertainer' },
+        { name: 'Storyteller', formality: 'entertainer' },
+        { name: 'Fortune Teller', formality: 'entertainer' }
+      ],
+      criminal: [
+        { name: 'Thief', formality: 'criminal' },
+        { name: 'Smuggler', formality: 'criminal' },
+        { name: 'Pickpocket', formality: 'criminal' },
+        { name: 'Spy', formality: 'criminal' },
+        { name: 'Assassin', formality: 'criminal' },
+        { name: 'Gang Member', formality: 'criminal' }
+      ]
+    };
+
+    // Flatten all occupations for random selection with weights
+    const allOccupations = [
+      ...npcOccupations.peasant,
+      ...npcOccupations.peasant, // Double weight for peasants (more common)
+      ...npcOccupations.artisan,
+      ...npcOccupations.merchant,
+      ...npcOccupations.scholar,
+      ...npcOccupations.adventurer,
+      ...npcOccupations.noble,
+      ...npcOccupations.entertainer,
+      ...npcOccupations.criminal
+    ];
+
+    // ========== Ancestry-Specific Clothing Data ==========
+    const ancestryClothing = {
+      clank: {
+        garments: {
+          peasant: ['oil-stained work apron', 'simple maintenance harness', 'patched canvas covering', 'basic protective plating'],
+          artisan: ['brass-buttoned work vest', 'leather tool belt with polished buckles', 'embossed chest panel', 'engraved arm guards'],
+          merchant: ['polished copper chest piece with decorative rivets', 'fine leather straps with silver clasps', 'engraved identification plates', 'ornate gear-pattern waist sash'],
+          scholar: ['inscribed knowledge plates affixed to shoulders', 'archive access medallions on chains', 'etched reference panels', 'scholarly robe adapted for mechanical form'],
+          adventurer: ['reinforced armor plating', 'weapons-grade casing', 'travel-worn protective shell', 'combat-modified chassis panels'],
+          noble: ['gold-inlaid decorative plating', 'gem-studded chassis panels', 'aristocratic crest engravings', 'ceremonial chrome finish'],
+          entertainer: ['polished mirror-finish panels', 'decorative spinning gears visible through glass panels', 'musical instrument attachments', 'colorful enamel coating'],
+          criminal: ['matte black stealth plating', 'noise-dampening joint covers', 'concealed compartment panels', 'unmarked anonymous casing']
+        },
+        accessories: ['spare gears in a belt pouch', 'oil flask hanging from a chain', 'diagnostic tools', 'winding key on a necklace', 'decorative cog brooch', 'maintenance manual in a waterproof case'],
+        culturalNotes: 'Clanks often modify and customize their outer shells to express identity, as their "clothing" is essentially decorative plating and functional attachments.'
+      },
+      drakona: {
+        garments: {
+          peasant: ['simple open-backed tunic', 'scale-friendly wrap skirt', 'loose hemp shirt with reinforced shoulder seams', 'basic loincloth and chest wrap'],
+          artisan: ['fireproof leather apron', 'scale-polishing vest', 'heat-resistant work clothes', 'horn-accommodating headband'],
+          merchant: ['silk robes with flame-pattern embroidery', 'tailored coat with horn slits', 'fine scale-complementing fabrics', 'wealthy traders vestments'],
+          scholar: ['inscribed ceremonial robes', 'dragon-tongue texts worn as sashes', 'academic vestments with clan symbols', 'ancient pattern formal wear'],
+          adventurer: ['battle-scarred leather armor', 'trophy-adorned harness', 'flame-resistant traveling cloak', 'scale-reinforced combat gear'],
+          noble: ['imperial dragon-silk robes', 'gold-threaded ceremonial vestments', 'crown-like horn jewelry', 'ancestral pattern formal attire'],
+          entertainer: ['flowing performance silks', 'fire-dancing costume', 'scale-shimmer enhancing clothes', 'dramatic horned headdress additions'],
+          criminal: ['hooded cloak hiding features', 'dark scale-dulling clothes', 'concealing wrap obscuring dragon features', 'nondescript common wear']
+        },
+        accessories: ['clan sigil medallion', 'scale polish and brush kit', 'fire-starting flint shaped like a dragon', 'horn rings', 'tail jewelry', 'elemental focus stone'],
+        culturalNotes: 'Drakona clothing must accommodate their scales, horns, and tails. Many favor open-backed designs and heat-resistant materials.'
+      },
+      dwarf: {
+        garments: {
+          peasant: ['sturdy wool tunic with leather patches', 'mining apron', 'simple beard ties', 'worn but practical boots and trousers'],
+          artisan: ['leather smith apron with clan symbols', 'tool-laden belt over stout trousers', 'metalwork-embroidered vest', 'forge-resistant work clothes'],
+          merchant: ['velvet doublet with metal thread embroidery', 'gem-clasped belt', 'fine wool coat with silver buttons', 'respectable guild attire'],
+          scholar: ['runic-embroidered robes', 'ancestral knowledge keeper vestments', 'stone-tablet carrying harness', 'library keeper attire'],
+          adventurer: ['chainmail visible under traveling cloak', 'battle-worn plate pieces', 'sturdy mountain-hiking gear', 'veteran warrior attire'],
+          noble: ['mithril-threaded ceremonial robes', 'ancestral armor pieces', 'crown-like beard jewelry', 'ancient clan formal regalia'],
+          entertainer: ['colorful festival vest', 'drinking-song leader attire', 'tale-teller robes', 'celebration finery'],
+          criminal: ['shadowy hooded cloak', 'muffled chainmail', 'tunneler dark clothes', 'discrete smuggler attire']
+        },
+        accessories: ['beard rings and clasps', 'clan crest brooch', 'ancestral rune amulet', 'stone-carved belt buckle', 'gem-studded hair clasps', 'drinking horn'],
+        culturalNotes: 'Dwarven clothing emphasizes durability and craftsmanship. Metal accessories, beard adornments, and clan symbols are essential parts of dress.'
+      },
+      elf: {
+        garments: {
+          peasant: ['simple linen tunic with leaf patterns', 'homespun forest-toned clothes', 'practical woodland garments', 'hand-woven basic attire'],
+          artisan: ['fine crafting robes', 'silver-threaded work vest', 'artist smock in muted tones', 'delicate but practical attire'],
+          merchant: ['silk traveling robes', 'elegantly embroidered coat', 'fine fabrics in forest colors', 'wealthy merchant attire'],
+          scholar: ['star-chart embroidered robes', 'ancient pattern ceremonial dress', 'sage vestments', 'moon-silver threaded attire'],
+          adventurer: ['leaf-pattern traveling cloak', 'ranger leather armor', 'woodland camouflage attire', 'graceful but practical gear'],
+          noble: ['moonweave court gown', 'starlight-shimmer formal robes', 'ancient house regalia', 'ceremonial silver-thread attire'],
+          entertainer: ['flowing performance silks', 'musical instrument-matched attire', 'elegant dancer garments', 'artistic display clothing'],
+          criminal: ['shadow-blend cloak', 'silent-step boots and dark tunic', 'forgettable common clothes', 'darkness-favoring attire']
+        },
+        accessories: ['leaf-shaped ear cuffs', 'moonstone pendant', 'silver circlet', 'flower crown', 'nature-entwined jewelry', 'starlight-catching gems'],
+        culturalNotes: 'Elven clothing favors natural materials, flowing lines, and subtle elegance. Even practical garments have an ethereal quality.'
+      },
+      faerie: {
+        garments: {
+          peasant: ['petal skirt and leaf top', 'flower-woven simple dress', 'seed-pod accessories', 'nature-scavenged basic attire'],
+          artisan: ['spider-silk work apron', 'dewdrop-decorated craft clothes', 'tiny tool belt', 'delicate but functional attire'],
+          merchant: ['butterfly-wing pattern dress', 'fine pollen-dusted silks', 'impressive tiny merchant attire', 'colorful trading clothes'],
+          scholar: ['ink-stained miniature robes', 'scroll-pattern dress', 'knowledge keeper vestments', 'tiny academic attire'],
+          adventurer: ['thorn-armor vest', 'insect-shell pauldrons', 'adventuring gear sized for tiny form', 'practical exploration attire'],
+          noble: ['royal gossamer gown', 'crown of tiny gems', 'court-appropriate finery', 'dazzling formal attire'],
+          entertainer: ['rainbow-shimmer performance outfit', 'dancing lights costume', 'musical wing-chimes', 'attention-catching attire'],
+          criminal: ['shadow-colored stealth outfit', 'muted wing covers', 'darkness-favoring clothes', 'inconspicuous attire']
+        },
+        accessories: ['dewdrop jewelry', 'flower petal accessories', 'tiny gem earrings', 'wing decorations', 'pollen pouch', 'luminescent dust vial'],
+        culturalNotes: 'Faerie clothing is made from natural materials at tiny scale - flower petals, leaves, spider silk, and dewdrops. Wing decorations are especially prized.'
+      },
+      faun: {
+        garments: {
+          peasant: ['simple vest leaving legs free', 'rustic forest tunic', 'woven grass waist wrap', 'basic pastoral attire'],
+          artisan: ['leather crafting vest', 'musical instrument strap harness', 'artisan belt and practical top', 'woodland worker clothes'],
+          merchant: ['colorful embroidered vest', 'fine wool wrap', 'festive merchant attire', 'cheerful trading clothes'],
+          scholar: ['nature-lore inscribed sash', 'druidic symbols on simple robes', 'forest wisdom keeper attire', 'scholarly woodland dress'],
+          adventurer: ['travel-worn leather vest and harness', 'forest camouflage cloak', 'ranger practical gear', 'wanderer attire'],
+          noble: ['elaborate horn decorations with fine vest', 'ceremonial nature-priest attire', 'revel-master finery', 'forest noble dress'],
+          entertainer: ['colorful performance vest', 'instrument-carrying harness', 'festival dancer attire', 'celebration clothing'],
+          criminal: ['hooded cloak concealing horns', 'muted forest colors', 'shadow-favoring attire', 'discrete woodland clothes']
+        },
+        accessories: ['horn decorations', 'pan pipe', 'flower garlands', 'vine bracelets', 'hoof polish kit', 'carved wooden charms'],
+        culturalNotes: 'Faun clothing typically leaves the lower goat-legs uncovered. Vests, sashes, and upper-body garments predominate, often decorated with natural elements.'
+      },
+      firbolg: {
+        garments: {
+          peasant: ['simple homespun robes sized for giant frame', 'moss-covered shoulder cape', 'bark-cloth basic garments', 'forest gathered clothes'],
+          artisan: ['druid-craft work robes', 'nature-shaping vestments', 'practical large-sized work attire', 'gentle giant artisan clothes'],
+          merchant: ['fine oversized traveling robes', 'nature-trade ceremonial dress', 'forest market attire', 'dignified large merchant clothes'],
+          scholar: ['ancient druid vestments', 'nature-wisdom keeper robes', 'tree-speaker ceremonial attire', 'wise one scholarly dress'],
+          adventurer: ['large traveling cloak', 'nature-camouflage gear', 'gentle protector attire', 'woodland guardian clothes'],
+          noble: ['elder tree-pattern formal robes', 'forest-voice ceremonial vestments', 'nature-noble regalia', 'dignified large formal attire'],
+          entertainer: ['nature-tale teller robes', 'story-keeper vestments', 'gentle performer attire', 'calming presence clothes'],
+          criminal: ['unlikely garments for this gentle ancestry', 'forest-shadow cloak', 'reluctant stealth attire', 'nature-hide clothes']
+        },
+        accessories: ['living moss shoulder growth', 'bark jewelry', 'nature spirit charms', 'oversized druid focus', 'forest creature companion', 'leaf-woven bag'],
+        culturalNotes: 'Firbolg clothing blends with nature, often incorporating living plants and moss. Garments must be oversized to fit their large frames.'
+      },
+      fungril: {
+        garments: {
+          peasant: ['simple spore-cloth wraps', 'mycelium-woven basic garments', 'underground worker attire', 'damp-comfortable clothes'],
+          artisan: ['spore-pattern work vest', 'cultivation tools harness', 'mushroom farmer attire', 'fungal craft worker clothes'],
+          merchant: ['colorful cap-matching trade clothes', 'bioluminescent-decorated merchant attire', 'impressive spore-silk garments', 'underground market dress'],
+          scholar: ['ancient mycelium-pattern robes', 'colony-memory keeper vestments', 'fungal sage attire', 'wisdom-network scholarly dress'],
+          adventurer: ['travel-resistant spore clothing', 'surface-adapted gear', 'exploring underground and above attire', 'adaptable adventurer clothes'],
+          noble: ['rare spore-silk formal garments', 'elder fungril ceremonial vestments', 'colony-leader regalia', 'impressive bioluminescent formal attire'],
+          entertainer: ['color-shifting performance clothes', 'spore-light show attire', 'hypnotic pattern garments', 'attention-capturing display clothes'],
+          criminal: ['spore-camouflage clothes', 'shadow-dark cap covering', 'stealth-suited attire', 'discrete underground clothes']
+        },
+        accessories: ['bioluminescent jewelry', 'spore pouches', 'mycelium-grown tools', 'moisture-retaining accessories', 'cap decorations', 'symbiotic companion growths'],
+        culturalNotes: 'Fungril clothing is grown from mycelium and spore-silk, often bioluminescent. They require moisture and prefer damp-compatible materials.'
+      },
+      galapa: {
+        garments: {
+          peasant: ['simple shell-accommodating wrap', 'practical traveler clothes', 'sun-basking comfortable attire', 'basic wanderer garments'],
+          artisan: ['shell-decorating work clothes', 'patient craftsman attire', 'careful maker garments', 'deliberate worker dress'],
+          merchant: ['well-worn but quality travel clothes', 'experienced trader attire', 'road-wise merchant garments', 'journey-tested dress'],
+          scholar: ['ancient wisdom keeper robes', 'patient scholar vestments', 'long-view sage attire', 'contemplative academic dress'],
+          adventurer: ['travel-worn practical gear', 'shell-accommodating armor', 'experienced explorer attire', 'road-ready adventurer clothes'],
+          noble: ['shell-polish ceremonial attire', 'elder wisdom formal robes', 'patient dignity vestments', 'ancient family regalia'],
+          entertainer: ['storyteller comfortable robes', 'patient performance attire', 'wisdom-tale teller garments', 'calming presence dress'],
+          criminal: ['unlikely for this patient ancestry', 'discrete traveler clothes', 'forgettable wanderer attire', 'inconspicuous road garments']
+        },
+        accessories: ['shell polish and decorations', 'travel journal and maps', 'sun-basking blanket', 'journey mementos', 'patience stones', 'wisdom tokens collected over years'],
+        culturalNotes: 'Galapa clothing must accommodate their shell and is designed for long journeys. Practical, durable, and comfortable for patient traveling.'
+      },
+      giant: {
+        garments: {
+          peasant: ['simple enormous tunic', 'basic hide wrap', 'large-scale homespun clothes', 'practical massive attire'],
+          artisan: ['mega-sized smith apron', 'boulder-lifting work clothes', 'mountain-craft attire', 'large-scale artisan dress'],
+          merchant: ['impressive large trading clothes', 'enormous but fine merchant attire', 'oversized quality garments', 'big trader dress'],
+          scholar: ['massive sage robes', 'mountain-lore keeper vestments', 'giant-wisdom scholarly attire', 'enormous academic dress'],
+          adventurer: ['massive traveling cloak', 'giant-scale armor pieces', 'mountain warrior attire', 'oversized adventurer gear'],
+          noble: ['impressive ceremonial robes', 'mountain-king regalia', 'giant noble formal attire', 'massive dignified dress'],
+          entertainer: ['enormous performer costume', 'impressive display attire', 'attention-commanding clothes', 'giant entertainer dress'],
+          criminal: ['difficult to hide such size', 'shadow-dark massive cloak', 'intimidating attire', 'oversized stealth attempt clothes']
+        },
+        accessories: ['boulder-sized belt pouch', 'tree-trunk walking staff', 'mountain crystal jewelry', 'enormous practical tools', 'mega-sized food sack', 'impressive trophies'],
+        culturalNotes: 'Giant clothing is simple but massive, often made from multiple animal hides or enormous bolts of fabric. Functionality over fashion at this scale.'
+      },
+      goblin: {
+        garments: {
+          peasant: ['patched and re-patched rags', 'scavenged mismatched clothes', 'found and claimed attire', 'improvised basic garments'],
+          artisan: ['many-pocketed tinkerer vest', 'scrap-metal decorated work clothes', 'creative maker attire', 'clever crafter garments'],
+          merchant: ['surprisingly well-kept trader clothes', 'shrewd dealer attire', 'clever bargainer garments', 'resourceful merchant dress'],
+          scholar: ['ink-stained experimenter robes', 'alchemist burn-marked attire', 'curious learner garments', 'eager scholar dress'],
+          adventurer: ['scavenged armor pieces', 'trophy-decorated gear', 'survivor attire', 'resourceful adventurer clothes'],
+          noble: ['stolen finery poorly fitted', 'self-proclaimed boss attire', 'impressive to other goblins garments', 'ambitious leader dress'],
+          entertainer: ['loud colorful scavenged costume', 'attention-grabbing attire', 'performer rag-collection', 'entertaining chaos clothes'],
+          criminal: ['shadow-suited stealth gear', 'many hidden pockets', 'escape-ready attire', 'professional sneak clothes']
+        },
+        accessories: ['many pouches for collecting things', 'shiny object collection', 'useful tools of questionable origin', 'lucky charms', 'trap components', 'snacks hidden everywhere'],
+        culturalNotes: 'Goblin clothing is resourceful and scavenged, with many pockets for collecting interesting things. Prized items are displayed proudly regardless of condition.'
+      },
+      halfling: {
+        garments: {
+          peasant: ['comfortable homespun clothes', 'practical farming attire', 'well-worn comfortable garments', 'cozy simple dress'],
+          artisan: ['cheerful work vest with many pockets', 'baker flour-dusted apron', 'comfortable craftsman attire', 'practical maker clothes'],
+          merchant: ['respectable but comfortable trader clothes', 'well-appointed merchant attire', 'quality yet cozy garments', 'prosperous shopkeeper dress'],
+          scholar: ['comfortable reading robes', 'knowledge-keeper practical vestments', 'cozy scholar attire', 'sensible academic dress'],
+          adventurer: ['surprisingly practical travel gear', 'unassuming but quality adventurer attire', 'comfortable wanderer clothes', 'road-ready cozy gear'],
+          noble: ['finest comfortable formal attire', 'respectable family best clothes', 'quality celebration garments', 'prosperous but sensible dress'],
+          entertainer: ['cheerful colorful performer clothes', 'storyteller comfortable attire', 'festive celebration garments', 'merry entertainer dress'],
+          criminal: ['unassuming forgettable clothes', 'surprisingly sneaky attire', 'overlooked common garments', 'discrete small-folk dress']
+        },
+        accessories: ['snack pouch', 'comfortable pipe', 'family heirloom jewelry', 'cozy scarf', 'lucky stone from home', 'recipe book'],
+        culturalNotes: 'Halfling clothing emphasizes comfort and practicality. Quality fabrics in earth tones, always with pockets for snacks and useful items.'
+      },
+      human: {
+        garments: {
+          peasant: ['simple wool and linen clothes', 'regional working attire', 'practical common garments', 'local-style basic dress'],
+          artisan: ['guild-appropriate work clothes', 'trade-marked attire', 'professional craftsman garments', 'respectable worker dress'],
+          merchant: ['quality fabric trading clothes', 'wealthy but practical merchant attire', 'respectable business garments', 'prosperous trader dress'],
+          scholar: ['academic robes', 'knowledge-institution vestments', 'learned professional attire', 'scholarly traditional dress'],
+          adventurer: ['practical traveling gear', 'versatile adventurer attire', 'adaptable wanderer clothes', 'road-ready practical dress'],
+          noble: ['fine formal court attire', 'wealthy family regalia', 'high-status garments', 'aristocratic traditional dress'],
+          entertainer: ['attention-catching performance clothes', 'theatrical attire', 'crowd-pleasing garments', 'memorable entertainer dress'],
+          criminal: ['forgettable common clothes', 'blend-in attire', 'unremarkable garments', 'anonymous street dress']
+        },
+        accessories: ['regional jewelry', 'practical belt pouch', 'family keepsake', 'holy symbol', 'trade tools', 'local fashion accessories'],
+        culturalNotes: 'Human clothing varies enormously by region and station. They adapt quickly to local fashions and blend functional with decorative.'
+      },
+      infernis: {
+        garments: {
+          peasant: ['simple heat-resistant clothes', 'horn-accommodating basic attire', 'tail-hole patched garments', 'practical infernal-adapted dress'],
+          artisan: ['fire-forged work clothes', 'heat-proof artisan attire', 'sulfur-resistant garments', 'infernal craftsman dress'],
+          merchant: ['dark elegant trader clothes', 'contract-keeper formal attire', 'deal-making impressive garments', 'successful bargainer dress'],
+          scholar: ['infernal-script embroidered robes', 'pact-lore keeper vestments', 'otherworld scholar attire', 'planar academic dress'],
+          adventurer: ['hell-touched battle gear', 'intimidating adventurer attire', 'fire-walking clothes', 'dangerous wanderer dress'],
+          noble: ['infernal court formal regalia', 'dark aristocratic finery', 'impressive noble garments', 'otherworld dignitary dress'],
+          entertainer: ['seductive performance attire', 'fire-dancing clothes', 'tempting entertainer garments', 'captivating performer dress'],
+          criminal: ['shadow-dark stealth clothes', 'deal-broker discrete attire', 'infernal rogue garments', 'sinister operative dress']
+        },
+        accessories: ['horn jewelry', 'tail rings', 'infernal sigil amulet', 'contract case', 'heat-proof pouch', 'fire-starting tools'],
+        culturalNotes: 'Infernis clothing accommodates horns and tails, often in dark reds and blacks. Fire-resistant materials are standard, with infernal symbols common.'
+      },
+      katari: {
+        garments: {
+          peasant: ['simple fur-comfortable clothes', 'basic hunting attire', 'practical cat-folk garments', 'loose comfortable dress'],
+          artisan: ['flexible work clothes', 'tail-free movement attire', 'agile craftsman garments', 'practical maker dress'],
+          merchant: ['sleek trader clothes', 'comfortable but impressive merchant attire', 'graceful business garments', 'smooth dealer dress'],
+          scholar: ['loose comfortable robes', 'patient watcher vestments', 'observant scholar attire', 'contemplative academic dress'],
+          adventurer: ['flexible hunting gear', 'silent-movement attire', 'predator-practical clothes', 'agile adventurer dress'],
+          noble: ['sleek elegant formal attire', 'groomed perfection garments', 'impressive cat-folk finery', 'graceful noble dress'],
+          entertainer: ['attention-catching performer clothes', 'graceful dancer attire', 'impressive display garments', 'captivating entertainer dress'],
+          criminal: ['shadow-dark stealth attire', 'silent-movement clothes', 'natural hunter garments', 'discrete predator dress']
+        },
+        accessories: ['grooming kit', 'claw-care tools', 'ear jewelry', 'tail accessories', 'comfortable scarf', 'hunting trophies'],
+        culturalNotes: 'Katari clothing allows for feline agility and grooming. Loose, flexible garments that dont restrict movement, often with fur-complementing colors.'
+      },
+      orc: {
+        garments: {
+          peasant: ['simple sturdy clothes', 'practical worker attire', 'durable basic garments', 'functional common dress'],
+          artisan: ['strong work clothes', 'weapon-smith attire', 'powerful craftsman garments', 'respected maker dress'],
+          merchant: ['impressive trader clothes', 'strong bargainer attire', 'respect-commanding merchant garments', 'powerful dealer dress'],
+          scholar: ['war-lore keeper robes', 'ancestral wisdom vestments', 'strength-history scholar attire', 'honored keeper dress'],
+          adventurer: ['battle-tested armor and gear', 'warrior wanderer attire', 'combat-ready clothes', 'strong adventurer dress'],
+          noble: ['warlord ceremonial armor', 'chieftain regalia', 'strength-leader formal attire', 'powerful noble dress'],
+          entertainer: ['war-chant leader clothes', 'strength-celebration attire', 'impressive performer garments', 'honor-singer dress'],
+          criminal: ['intimidating stealth gear', 'enforcer attire', 'shadow-warrior clothes', 'dangerous operative dress']
+        },
+        accessories: ['tribal tattoo displays', 'tusk decorations', 'battle trophy jewelry', 'clan symbol arm bands', 'strength-proving tokens', 'ancestral war paint'],
+        culturalNotes: 'Orc clothing emphasizes strength and tribal identity. Practical for combat, adorned with trophies and clan symbols. Scars displayed proudly.'
+      },
+      ribbet: {
+        garments: {
+          peasant: ['simple moisture-wicking clothes', 'basic swamp worker attire', 'practical amphibian garments', 'comfortable wet-ready dress'],
+          artisan: ['water-resistant work clothes', 'marsh craftsman attire', 'amphibian maker garments', 'practical creator dress'],
+          merchant: ['impressive wetland trader clothes', 'swamp-market merchant attire', 'respected dealer garments', 'successful amphibian dress'],
+          scholar: ['knowledge-keeper moisture-safe robes', 'wetland sage vestments', 'amphibian scholar attire', 'wise one academic dress'],
+          adventurer: ['amphibious travel gear', 'wet-and-dry adventurer attire', 'versatile explorer clothes', 'adaptable wanderer dress'],
+          noble: ['impressive ceremonial attire', 'respected elder garments', 'honored leader formal dress', 'wetland noble regalia'],
+          entertainer: ['colorful performer clothes', 'croaking-choir attire', 'attention-catching garments', 'impressive entertainer dress'],
+          criminal: ['shadow-water stealth clothes', 'silent swimmer attire', 'discrete amphibian garments', 'underwater escape dress']
+        },
+        accessories: ['moisture-keeping accessories', 'fly-catching tools', 'swimming aids', 'vocal sac decorations', 'webbed-hand rings', 'wetland plant jewelry'],
+        culturalNotes: 'Ribbet clothing must work both wet and dry. Water-resistant or water-friendly materials, often in greens and browns matching wetland environments.'
+      },
+      simiah: {
+        garments: {
+          peasant: ['simple climbing-friendly clothes', 'basic tail-free attire', 'practical arboreal garments', 'comfortable tree-dweller dress'],
+          artisan: ['flexible work clothes', 'grip-friendly craftsman attire', 'agile maker garments', 'practical creator dress'],
+          merchant: ['colorful trader clothes', 'impressive merchant attire', 'social dealer garments', 'successful businessfolk dress'],
+          scholar: ['comfortable scholar robes', 'knowledge-keeper vestments', 'curious academic attire', 'thoughtful sage dress'],
+          adventurer: ['climbing-ready gear', 'tail-using adventurer attire', 'agile explorer clothes', 'versatile wanderer dress'],
+          noble: ['impressive formal attire', 'troop-leader regalia', 'respected elder garments', 'dignified noble dress'],
+          entertainer: ['acrobatic performer clothes', 'attention-catching attire', 'agile entertainer garments', 'impressive display dress'],
+          criminal: ['shadow-climbing stealth clothes', 'silent-movement attire', 'agile operative garments', 'discrete infiltrator dress']
+        },
+        accessories: ['tail jewelry', 'climbing tools', 'grooming kit', 'fruit pouch', 'social-bonding gifts', 'troop identification tokens'],
+        culturalNotes: 'Simiah clothing allows for climbing and tail use. Bright colors are favored, with loose fits that dont restrict their acrobatic movements.'
+      }
+    };
+
+    // General clothing descriptors that can enhance any outfit
+    const clothingConditions = ['well-worn', 'pristine', 'travel-stained', 'carefully maintained', 'recently mended', 'showing signs of use', 'surprisingly clean', 'weather-beaten'];
+    const clothingColors = ['earth-toned', 'dark', 'muted', 'colorful', 'faded', 'vibrant', 'natural-hued', 'deep-colored'];
+
     // Current generated NPC state
     let currentNpc = {
       name: '',
@@ -8881,6 +9256,8 @@
       ancestry: '',
       ancestryKey: '',
       description: '',
+      occupation: null, // { name: string, formality: string }
+      clothing: '',     // Generated clothing description
       voice: '',
       stats: null
     };
@@ -8989,6 +9366,147 @@
       return `${quality}, ${mannerism} ${archetype}`;
     }
 
+    // Generate occupation/social role
+    function generateNpcOccupation() {
+      return pickRandom(allOccupations);
+    }
+
+    // Generate clothing description based on ancestry, occupation, and sex
+    function generateNpcClothing(ancestryKey, occupation, sex, ageCategory) {
+      const clothingData = ancestryClothing[ancestryKey];
+      if (!clothingData) {
+        return 'Wears simple, practical clothing appropriate to their station.';
+      }
+
+      const formality = occupation.formality;
+      const garmentOptions = clothingData.garments[formality] || clothingData.garments.peasant;
+      const garment = pickRandom(garmentOptions);
+      const accessory = pickRandom(clothingData.accessories);
+      const condition = pickRandom(clothingConditions);
+      const color = pickRandom(clothingColors);
+
+      // Build clothing description with variety
+      const templates = [
+        // Template 1: Garment-focused with condition
+        () => {
+          let desc = `They wear ${garment}, ${condition} from ${getUsageContext(formality)}.`;
+          desc += ` ${getAccessoryPhrase(accessory, sex)}.`;
+          desc += ` ${getAncestryNote(clothingData.culturalNotes, ancestryKey)}`;
+          return desc;
+        },
+        // Template 2: Color and style focused
+        () => {
+          let desc = `Dressed in ${color} ${garment}, their attire speaks of ${getFormalityDescription(formality)}.`;
+          desc += ` ${getAccessoryPhrase(accessory, sex)}.`;
+          if (ageCategory === 'elder' || ageCategory === 'ancient') {
+            desc += ` Their clothing shows the careful maintenance of someone who values what they have.`;
+          }
+          return desc;
+        },
+        // Template 3: Overall impression focused
+        () => {
+          let desc = `${getFirstImpression(formality, ancestryKey)} wearing ${garment}.`;
+          desc += ` Notable is ${accessory.startsWith('a') || accessory.startsWith('e') || accessory.startsWith('i') || accessory.startsWith('o') || accessory.startsWith('u') ? 'an' : 'a'} ${accessory}.`;
+          desc += ` The overall look is ${condition} but ${getQualityNote(formality)}.`;
+          return desc;
+        }
+      ];
+
+      return pickRandom(templates)();
+    }
+
+    // Helper functions for clothing generation
+    function getUsageContext(formality) {
+      const contexts = {
+        peasant: ['hard labor', 'long days of work', 'years of use', 'practical necessity'],
+        artisan: ['hours at the craft', 'dedicated work', 'their trade', 'professional use'],
+        merchant: ['many negotiations', 'extensive travels', 'years of trade', 'countless transactions'],
+        scholar: ['long hours of study', 'years of research', 'academic pursuits', 'careful preservation'],
+        adventurer: ['the road', 'countless journeys', 'dangerous encounters', 'hard travel'],
+        noble: ['formal occasions', 'careful storage', 'meticulous care', 'professional attendants'],
+        entertainer: ['many performances', 'life on stage', 'countless shows', 'the spotlight'],
+        criminal: ['necessary caution', 'keeping to shadows', 'discrete activities', 'avoiding notice']
+      };
+      return pickRandom(contexts[formality] || contexts.peasant);
+    }
+
+    function getAccessoryPhrase(accessory, sex) {
+      const phrases = [
+        `A ${accessory} completes the look`,
+        `They carry ${accessory}`,
+        `Notable among their possessions is ${accessory}`,
+        `${accessory.charAt(0).toUpperCase() + accessory.slice(1)} adds a personal touch`
+      ];
+      return pickRandom(phrases);
+    }
+
+    function getAncestryNote(culturalNotes, ancestryKey) {
+      // Return a shortened version of the cultural note
+      const shortNotes = {
+        clank: 'The overall effect is both functional and expressive of their mechanical nature.',
+        drakona: 'The style accommodates their draconic features with practiced ease.',
+        dwarf: 'Every piece reflects their pride in craftsmanship and clan.',
+        elf: 'The ensemble has an effortless elegance typical of their kind.',
+        faerie: 'Everything is delicate and nature-touched, perfect for their tiny form.',
+        faun: 'The attire leaves their legs free while expressing their connection to nature.',
+        firbolg: 'Living elements blend with fabric in their gentle-giant way.',
+        fungril: 'Bioluminescent touches and organic materials define their unique style.',
+        galapa: 'Everything is practical for both their shell and their patient wandering.',
+        giant: 'The sheer scale of everything is impressive, yet functional.',
+        goblin: 'Resourceful and chaotic, with hidden pockets everywhere.',
+        halfling: 'Comfort clearly comes first, with quality close behind.',
+        human: 'The style reflects regional influences and practical adaptability.',
+        infernis: 'Dark tones and heat-resistant materials mark their infernal heritage.',
+        katari: 'Flexible and sleek, allowing for their feline grace.',
+        orc: 'Strength and tribal pride are evident in every choice.',
+        ribbet: 'Amphibious practicality defines their water-friendly wardrobe.',
+        simiah: 'Bright and loose-fitting for climbing and tail movement.'
+      };
+      return shortNotes[ancestryKey] || '';
+    }
+
+    function getFormalityDescription(formality) {
+      const descriptions = {
+        peasant: 'a life of hard work and simple means',
+        artisan: 'skilled hands and professional pride',
+        merchant: 'commercial success and worldly experience',
+        scholar: 'intellectual pursuits and careful study',
+        adventurer: 'a life of danger and exploration',
+        noble: 'wealth, status, and refined taste',
+        entertainer: 'a flair for the dramatic and desire to be seen',
+        criminal: 'someone who prefers not to be remembered'
+      };
+      return descriptions[formality] || 'their station in life';
+    }
+
+    function getFirstImpression(formality, ancestryKey) {
+      const impressions = {
+        peasant: ['A humble figure', 'Clearly a working person', 'Someone of modest means'],
+        artisan: ['A skilled craftsperson', 'Someone proud of their trade', 'A professional'],
+        merchant: ['A person of business', 'Someone worldly-wise', 'A shrewd-looking individual'],
+        scholar: ['A learned individual', 'Someone bookish', 'An intellectual figure'],
+        adventurer: ['A seasoned traveler', 'Someone dangerous-looking', 'A hardened wanderer'],
+        noble: ['A person of obvious status', 'Someone of refined bearing', 'An aristocratic figure'],
+        entertainer: ['A colorful character', 'Someone attention-catching', 'A dramatic figure'],
+        criminal: ['Someone keeping to themselves', 'A discrete figure', 'An unremarkable-seeming person']
+      };
+      return pickRandom(impressions[formality] || impressions.peasant);
+    }
+
+    function getQualityNote(formality) {
+      const qualities = {
+        peasant: 'serviceable',
+        artisan: 'well-made',
+        merchant: 'quality',
+        scholar: 'dignified',
+        adventurer: 'practical',
+        noble: 'exquisite',
+        entertainer: 'eye-catching',
+        criminal: 'forgettable'
+      };
+      return qualities[formality] || 'appropriate';
+    }
+
     // Generate social stat block
     function generateNpcStats() {
       // Social NPCs have lower stats - they're not combat-focused
@@ -9025,6 +9543,8 @@
       currentNpc.ageCategory = ageResult.category;
       currentNpc.name = generateNpcFullName(currentNpc.sex);
       currentNpc.description = generateNpcDescription(currentNpc.ancestryKey, currentNpc.ageCategory, currentNpc.sex);
+      currentNpc.occupation = generateNpcOccupation();
+      currentNpc.clothing = generateNpcClothing(currentNpc.ancestryKey, currentNpc.occupation, currentNpc.sex, currentNpc.ageCategory);
       currentNpc.voice = generateNpcVoice();
       currentNpc.stats = generateNpcStats();
     }
@@ -9035,7 +9555,9 @@
       document.getElementById('npcGenSex').textContent = currentNpc.sex;
       document.getElementById('npcGenAge').textContent = `${currentNpc.age} (${currentNpc.ageCategory})`;
       document.getElementById('npcGenAncestry').textContent = currentNpc.ancestry;
+      document.getElementById('npcGenOccupation').textContent = currentNpc.occupation.name;
       document.getElementById('npcGenDescription').textContent = currentNpc.description;
+      document.getElementById('npcGenClothing').textContent = currentNpc.clothing;
       document.getElementById('npcGenVoice').textContent = currentNpc.voice;
 
       // Render stats
@@ -9100,16 +9622,20 @@
         case 'sex':
           currentNpc.sex = generateNpcSex();
           currentNpc.name = generateNpcFullName(currentNpc.sex); // Regenerate name to match sex
+          currentNpc.clothing = generateNpcClothing(currentNpc.ancestryKey, currentNpc.occupation, currentNpc.sex, currentNpc.ageCategory);
           document.getElementById('npcGenSex').textContent = currentNpc.sex;
           document.getElementById('npcGenName').textContent = currentNpc.name;
+          document.getElementById('npcGenClothing').textContent = currentNpc.clothing;
           break;
         case 'age':
           const ageResult = generateNpcAge(currentNpc.ancestryKey);
           currentNpc.age = ageResult.age;
           currentNpc.ageCategory = ageResult.category;
           currentNpc.description = generateNpcDescription(currentNpc.ancestryKey, currentNpc.ageCategory, currentNpc.sex);
+          currentNpc.clothing = generateNpcClothing(currentNpc.ancestryKey, currentNpc.occupation, currentNpc.sex, currentNpc.ageCategory);
           document.getElementById('npcGenAge').textContent = `${currentNpc.age} (${currentNpc.ageCategory})`;
           document.getElementById('npcGenDescription').textContent = currentNpc.description;
+          document.getElementById('npcGenClothing').textContent = currentNpc.clothing;
           break;
         case 'ancestry':
           currentNpc.ancestryKey = generateNpcAncestry();
@@ -9118,13 +9644,25 @@
           currentNpc.age = newAgeResult.age;
           currentNpc.ageCategory = newAgeResult.category;
           currentNpc.description = generateNpcDescription(currentNpc.ancestryKey, currentNpc.ageCategory, currentNpc.sex);
+          currentNpc.clothing = generateNpcClothing(currentNpc.ancestryKey, currentNpc.occupation, currentNpc.sex, currentNpc.ageCategory);
           document.getElementById('npcGenAncestry').textContent = currentNpc.ancestry;
           document.getElementById('npcGenAge').textContent = `${currentNpc.age} (${currentNpc.ageCategory})`;
           document.getElementById('npcGenDescription').textContent = currentNpc.description;
+          document.getElementById('npcGenClothing').textContent = currentNpc.clothing;
+          break;
+        case 'occupation':
+          currentNpc.occupation = generateNpcOccupation();
+          currentNpc.clothing = generateNpcClothing(currentNpc.ancestryKey, currentNpc.occupation, currentNpc.sex, currentNpc.ageCategory);
+          document.getElementById('npcGenOccupation').textContent = currentNpc.occupation.name;
+          document.getElementById('npcGenClothing').textContent = currentNpc.clothing;
           break;
         case 'description':
           currentNpc.description = generateNpcDescription(currentNpc.ancestryKey, currentNpc.ageCategory, currentNpc.sex);
           document.getElementById('npcGenDescription').textContent = currentNpc.description;
+          break;
+        case 'clothing':
+          currentNpc.clothing = generateNpcClothing(currentNpc.ancestryKey, currentNpc.occupation, currentNpc.sex, currentNpc.ageCategory);
+          document.getElementById('npcGenClothing').textContent = currentNpc.clothing;
           break;
         case 'voice':
           currentNpc.voice = generateNpcVoice();
@@ -9141,10 +9679,13 @@
     function copyNpcToClipboard() {
       const text = `
 ${currentNpc.name}
-${currentNpc.sex} ${currentNpc.ancestry}, ${currentNpc.age} years old (${currentNpc.ageCategory})
+${currentNpc.sex} ${currentNpc.ancestry} ${currentNpc.occupation.name}, ${currentNpc.age} years old (${currentNpc.ageCategory})
 
 PHYSICAL DESCRIPTION:
 ${currentNpc.description}
+
+CLOTHING & APPEARANCE:
+${currentNpc.clothing}
 
 VOICE: "${currentNpc.voice}"
 
@@ -9179,10 +9720,13 @@ ${currentNpc.stats.abilities.map(a => `• ${a.name} (${a.type}): ${a.descriptio
       }
 
       const noteContent = `
-**${currentNpc.sex} ${currentNpc.ancestry}** | ${currentNpc.age} years old (${currentNpc.ageCategory})
+**${currentNpc.sex} ${currentNpc.ancestry} ${currentNpc.occupation.name}** | ${currentNpc.age} years old (${currentNpc.ageCategory})
 
 **Physical Description:**
 ${currentNpc.description}
+
+**Clothing & Appearance:**
+${currentNpc.clothing}
 
 **Voice:** "${currentNpc.voice}"
 
