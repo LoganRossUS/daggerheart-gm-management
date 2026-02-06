@@ -1011,6 +1011,333 @@
       color: #e0e0e0;
     }
 
+    /* NPC Portrait Generation */
+    .npc-portrait-section {
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      border: 1px solid rgba(179, 136, 255, 0.2);
+    }
+
+    .npc-portrait-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .npc-portrait-label {
+      font-size: 0.75rem;
+      color: #b388ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Cinzel', serif;
+    }
+
+    .npc-btn-generate {
+      background: linear-gradient(135deg, #7c4dff, #651fff);
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .npc-btn-generate:hover:not(:disabled) {
+      transform: scale(1.02);
+      background: linear-gradient(135deg, #651fff, #6200ea);
+    }
+
+    .npc-btn-generate:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .npc-portrait-preview {
+      text-align: center;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .npc-portrait-preview img {
+      max-width: 100%;
+      max-height: 400px;
+      border-radius: 8px;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+    }
+
+    .npc-portrait-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 20px;
+      color: #b388ff;
+    }
+
+    .npc-portrait-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(179, 136, 255, 0.2);
+      border-top: 3px solid #b388ff;
+      border-radius: 50%;
+      animation: npcPortraitSpin 1s linear infinite;
+    }
+
+    @keyframes npcPortraitSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    .npc-portrait-placeholder {
+      color: #666;
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    .npc-portrait-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      justify-content: center;
+    }
+
+    .npc-portrait-actions button {
+      padding: 6px 12px;
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      border-radius: 4px;
+      background: rgba(179, 136, 255, 0.1);
+      color: #b388ff;
+      font-size: 0.75rem;
+      font-family: 'Cinzel', serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .npc-portrait-actions button:hover {
+      background: rgba(179, 136, 255, 0.2);
+    }
+
+    /* Portrait Gallery */
+    .npc-portrait-gallery {
+      margin-top: 12px;
+    }
+
+    .npc-portrait-gallery-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: 8px 0;
+    }
+
+    .npc-portrait-gallery-title {
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .npc-portrait-gallery-toggle {
+      font-size: 0.7rem;
+      color: #888;
+      transition: transform 0.2s;
+    }
+
+    .npc-portrait-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .npc-portrait-gallery-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 6px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .npc-portrait-gallery-item:hover {
+      border-color: #b388ff;
+    }
+
+    .npc-portrait-gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .npc-portrait-gallery-item .gallery-delete {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: rgba(244, 67, 54, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 0.6rem;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .npc-portrait-gallery-item:hover .gallery-delete {
+      display: flex;
+    }
+
+    .npc-portrait-gallery-name {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.7);
+      color: #ccc;
+      font-size: 0.55rem;
+      padding: 2px 4px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Settings - AI Image Generation section */
+    .settings-ai-section {
+      position: relative;
+    }
+
+    .settings-ai-section.locked {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .settings-ai-section.locked::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 8px;
+      cursor: not-allowed;
+    }
+
+    .settings-premium-badge {
+      display: inline-block;
+      font-size: 0.6rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      color: #1a1a2e;
+      font-weight: bold;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    .settings-ai-key-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .settings-ai-key-input {
+      flex: 1;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(179, 136, 255, 0.3);
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 0.8rem;
+      font-family: monospace;
+    }
+
+    .settings-ai-key-input::placeholder {
+      color: #555;
+    }
+
+    .settings-ai-btn-save {
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #4CAF50, #2e7d32);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .settings-ai-btn-save:hover {
+      transform: scale(1.02);
+    }
+
+    .settings-ai-btn-remove {
+      padding: 8px 12px;
+      background: rgba(244, 67, 54, 0.2);
+      border: 1px solid rgba(244, 67, 54, 0.4);
+      border-radius: 6px;
+      color: #f44336;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .settings-ai-btn-remove:hover {
+      background: rgba(244, 67, 54, 0.3);
+    }
+
+    .settings-ai-status {
+      font-size: 0.75rem;
+      padding: 6px 10px;
+      border-radius: 4px;
+      margin-top: 6px;
+    }
+
+    .settings-ai-status.saved {
+      background: rgba(76, 175, 80, 0.15);
+      color: #4CAF50;
+      border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .settings-ai-status.not-saved {
+      background: rgba(255, 152, 0, 0.15);
+      color: #ff9800;
+      border: 1px solid rgba(255, 152, 0, 0.3);
+    }
+
+    .settings-ai-status.error {
+      background: rgba(244, 67, 54, 0.15);
+      color: #f44336;
+      border: 1px solid rgba(244, 67, 54, 0.3);
+    }
+
+    .settings-premium-lock-msg {
+      text-align: center;
+      padding: 12px;
+      color: #888;
+      font-size: 0.8rem;
+    }
+
+    .settings-premium-lock-msg span {
+      color: #ffd700;
+      font-weight: bold;
+    }
+
     /* Tab Navigation */
     .tab-nav {
       display: flex;
@@ -6764,6 +7091,30 @@
         </div>
       </div>
 
+      <!-- AI Portrait Generation -->
+      <div class="npc-portrait-section" id="npcPortraitSection">
+        <div class="npc-portrait-header">
+          <span class="npc-portrait-label">AI Portrait <span class="settings-premium-badge">PREMIUM</span></span>
+          <button class="npc-btn-generate" id="generatePortraitBtn" onclick="generateNpcPortraitFromModal()" disabled>Generate Portrait</button>
+        </div>
+        <div class="npc-portrait-preview" id="npcPortraitPreview">
+          <span class="npc-portrait-placeholder" id="npcPortraitPlaceholder">Premium feature — generate a portrait for this NPC</span>
+        </div>
+        <div class="npc-portrait-actions" id="npcPortraitActions" style="display: none;">
+          <button onclick="usePortraitAsNpcImage()">Use as NPC Image</button>
+          <button onclick="generateNpcPortraitFromModal()">Regenerate</button>
+        </div>
+        <div class="npc-portrait-gallery" id="npcPortraitGallery" style="display: none;">
+          <div class="npc-portrait-gallery-header" onclick="togglePortraitGallery()">
+            <span class="npc-portrait-gallery-title">Saved Portraits</span>
+            <span class="npc-portrait-gallery-toggle" id="galleryToggleIcon">&#9660;</span>
+          </div>
+          <div class="npc-portrait-gallery-grid" id="portraitGalleryGrid" style="display: none;">
+            <!-- Gallery items rendered here -->
+          </div>
+        </div>
+      </div>
+
       <div class="npc-generator-modal-footer">
         <button class="npc-btn-regenerate" onclick="regenerateAllNpc()">↻ Regenerate All</button>
         <div style="display: flex; gap: 10px;">
@@ -7446,6 +7797,24 @@
               <input type="checkbox" id="sceneryVisibilityToggle" onchange="toggleSceneryVisibility()" disabled>
               <span class="toggle-slider"></span>
             </label>
+          </div>
+        </div>
+
+        <div class="settings-section settings-ai-section" id="aiImageGenSection">
+          <h3>AI Image Generation <span class="settings-premium-badge">PREMIUM</span></h3>
+          <p style="color: #888; font-size: 0.75rem; margin-bottom: 10px;">
+            Generate NPC portraits using DALL-E. Requires your own OpenAI API key.
+          </p>
+          <div id="aiSettingsContent">
+            <div class="settings-ai-key-row">
+              <input type="password" class="settings-ai-key-input" id="openaiApiKeyInput" placeholder="sk-..." autocomplete="off">
+              <button class="settings-ai-btn-save" onclick="saveOpenAIApiKey()">Save Key</button>
+              <button class="settings-ai-btn-remove" onclick="removeOpenAIApiKey()" id="removeApiKeyBtn" style="display: none;">Remove</button>
+            </div>
+            <div class="settings-ai-status" id="apiKeyStatus" style="display: none;"></div>
+          </div>
+          <div class="settings-premium-lock-msg" id="aiPremiumLockMsg" style="display: none;">
+            <span>PREMIUM</span> feature — upgrade to unlock AI image generation.
           </div>
         </div>
       </div>
@@ -8286,6 +8655,8 @@
         renderEncounter();
       } else if (tabName === 'queue') {
         renderQueueList();
+      } else if (tabName === 'settings') {
+        updateAiImageGenUI();
       }
 
       // Clear update indicator on the tab we're switching to
@@ -9596,8 +9967,30 @@
     function openNpcGeneratorModal() {
       generateFullNpc();
       renderNpcToModal();
+      resetNpcPortraitState();
       const modal = document.getElementById('npcGeneratorModal');
       modal.classList.add('visible');
+    }
+
+    // Reset portrait UI when opening modal or regenerating
+    function resetNpcPortraitState() {
+      currentGeneratedPortraitUrl = null;
+      const preview = document.getElementById('npcPortraitPreview');
+      const actions = document.getElementById('npcPortraitActions');
+      const generateBtn = document.getElementById('generatePortraitBtn');
+      const entitlement = window.cloudFeatures?.getEntitlement?.() || 'demo';
+      const isPremium = entitlement === 'premium';
+
+      if (preview) {
+        preview.innerHTML = isPremium
+          ? '<span class="npc-portrait-placeholder">Click "Generate Portrait" to create an AI image for this NPC</span>'
+          : '<span class="npc-portrait-placeholder">Premium feature \u2014 upgrade to unlock AI image generation</span>';
+      }
+      if (actions) actions.style.display = 'none';
+      if (generateBtn) generateBtn.disabled = !isPremium;
+
+      // Load gallery if premium
+      if (isPremium) loadPortraitGallery();
     }
 
     // Close NPC generator modal
@@ -9610,6 +10003,7 @@
     function regenerateAllNpc() {
       generateFullNpc();
       renderNpcToModal();
+      resetNpcPortraitState();
     }
 
     // Reroll individual field
@@ -13246,6 +13640,280 @@ ${currentNpc.stats.abilities.map(a => `• **${a.name}** (${a.type}): ${a.descri
       document.getElementById('deleteConfirmationSection').style.display = 'none';
       document.getElementById('deleteConfirmInput').value = '';
       document.getElementById('confirmDeleteBtn').disabled = true;
+    }
+
+    // ========== AI Image Generation (Premium) ==========
+    let npcPortraitGenerating = false;
+    let currentGeneratedPortraitUrl = null;
+
+    // Update AI section visibility based on entitlement
+    function updateAiImageGenUI() {
+      const entitlement = window.cloudFeatures?.getEntitlement?.() || 'demo';
+      const isPremium = entitlement === 'premium';
+      const section = document.getElementById('aiImageGenSection');
+      const content = document.getElementById('aiSettingsContent');
+      const lockMsg = document.getElementById('aiPremiumLockMsg');
+      const generateBtn = document.getElementById('generatePortraitBtn');
+      const portraitPlaceholder = document.getElementById('npcPortraitPlaceholder');
+
+      if (isPremium) {
+        section?.classList.remove('locked');
+        if (content) content.style.display = 'block';
+        if (lockMsg) lockMsg.style.display = 'none';
+        if (generateBtn) generateBtn.disabled = false;
+        if (portraitPlaceholder) portraitPlaceholder.textContent = 'Click "Generate Portrait" to create an AI image for this NPC';
+        loadApiKeyStatus();
+        loadPortraitGallery();
+      } else {
+        section?.classList.add('locked');
+        if (content) content.style.display = 'none';
+        if (lockMsg) lockMsg.style.display = 'block';
+        if (generateBtn) generateBtn.disabled = true;
+        if (portraitPlaceholder) portraitPlaceholder.textContent = 'Premium feature \u2014 upgrade to unlock AI image generation';
+      }
+    }
+
+    // Load API key status on settings tab
+    async function loadApiKeyStatus() {
+      try {
+        const result = await window.cloudFeatures?.getApiKeyStatus?.();
+        const statusEl = document.getElementById('apiKeyStatus');
+        const removeBtn = document.getElementById('removeApiKeyBtn');
+        const inputEl = document.getElementById('openaiApiKeyInput');
+
+        if (result?.hasKey) {
+          if (statusEl) {
+            statusEl.textContent = 'API key saved securely.';
+            statusEl.className = 'settings-ai-status saved';
+            statusEl.style.display = 'block';
+          }
+          if (removeBtn) removeBtn.style.display = 'inline-block';
+          if (inputEl) inputEl.placeholder = 'Key saved \u2014 enter new key to replace';
+        } else {
+          if (statusEl) {
+            statusEl.textContent = 'No API key saved. Enter your OpenAI API key above.';
+            statusEl.className = 'settings-ai-status not-saved';
+            statusEl.style.display = 'block';
+          }
+          if (removeBtn) removeBtn.style.display = 'none';
+          if (inputEl) inputEl.placeholder = 'sk-...';
+        }
+      } catch (err) {
+        console.log('Could not load API key status:', err);
+      }
+    }
+
+    // Save OpenAI API key
+    async function saveOpenAIApiKey() {
+      const inputEl = document.getElementById('openaiApiKeyInput');
+      const statusEl = document.getElementById('apiKeyStatus');
+      const apiKey = inputEl?.value?.trim();
+
+      if (!apiKey) {
+        if (statusEl) {
+          statusEl.textContent = 'Please enter an API key.';
+          statusEl.className = 'settings-ai-status error';
+          statusEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (!apiKey.startsWith('sk-')) {
+        if (statusEl) {
+          statusEl.textContent = 'Invalid key format. OpenAI API keys start with sk-';
+          statusEl.className = 'settings-ai-status error';
+          statusEl.style.display = 'block';
+        }
+        return;
+      }
+
+      try {
+        if (statusEl) {
+          statusEl.textContent = 'Saving...';
+          statusEl.className = 'settings-ai-status';
+          statusEl.style.display = 'block';
+        }
+
+        await window.cloudFeatures.saveApiKey(apiKey);
+        inputEl.value = '';
+        loadApiKeyStatus();
+      } catch (err) {
+        if (statusEl) {
+          statusEl.textContent = 'Failed to save: ' + (err.message || 'Unknown error');
+          statusEl.className = 'settings-ai-status error';
+          statusEl.style.display = 'block';
+        }
+      }
+    }
+
+    // Remove OpenAI API key
+    async function removeOpenAIApiKey() {
+      if (!confirm('Remove your OpenAI API key? You will need to re-enter it to generate portraits.')) return;
+
+      const statusEl = document.getElementById('apiKeyStatus');
+      try {
+        await window.cloudFeatures.removeApiKey();
+        loadApiKeyStatus();
+      } catch (err) {
+        if (statusEl) {
+          statusEl.textContent = 'Failed to remove: ' + (err.message || 'Unknown error');
+          statusEl.className = 'settings-ai-status error';
+          statusEl.style.display = 'block';
+        }
+      }
+    }
+
+    // Generate NPC portrait from the NPC modal
+    async function generateNpcPortraitFromModal() {
+      if (npcPortraitGenerating || !currentNpc) return;
+
+      const entitlement = window.cloudFeatures?.getEntitlement?.() || 'demo';
+      if (entitlement !== 'premium') {
+        alert('NPC image generation requires a Premium subscription.');
+        return;
+      }
+
+      npcPortraitGenerating = true;
+      const generateBtn = document.getElementById('generatePortraitBtn');
+      const preview = document.getElementById('npcPortraitPreview');
+      const actions = document.getElementById('npcPortraitActions');
+
+      if (generateBtn) generateBtn.disabled = true;
+      if (actions) actions.style.display = 'none';
+
+      // Show loading state
+      preview.innerHTML = `
+        <div class="npc-portrait-loading">
+          <div class="npc-portrait-spinner"></div>
+          <span>Generating portrait... this may take 10-20 seconds</span>
+        </div>
+      `;
+
+      try {
+        const result = await window.cloudFeatures.generateNpcPortrait({
+          name: currentNpc.name,
+          sex: currentNpc.sex,
+          ancestry: currentNpc.ancestry,
+          ancestryKey: currentNpc.ancestryKey,
+          age: currentNpc.age,
+          ageCategory: currentNpc.ageCategory,
+          occupation: currentNpc.occupation,
+          description: currentNpc.description,
+          clothing: currentNpc.clothing,
+        });
+
+        if (result?.imageUrl) {
+          currentGeneratedPortraitUrl = result.imageUrl;
+          preview.innerHTML = `<img src="${result.imageUrl}" alt="Generated portrait of ${currentNpc.name}" onerror="this.parentElement.innerHTML='<span class=\\'npc-portrait-placeholder\\'>Failed to load image</span>'">`;
+          if (actions) actions.style.display = 'flex';
+          // Refresh the gallery
+          loadPortraitGallery();
+        } else {
+          preview.innerHTML = '<span class="npc-portrait-placeholder">No image returned. Check your API key.</span>';
+        }
+      } catch (err) {
+        const errMsg = err.message || 'Unknown error';
+        preview.innerHTML = `<span class="npc-portrait-placeholder" style="color: #f44336;">${errMsg}</span>`;
+      } finally {
+        npcPortraitGenerating = false;
+        if (generateBtn && (window.cloudFeatures?.getEntitlement?.() === 'premium')) {
+          generateBtn.disabled = false;
+        }
+      }
+    }
+
+    // Use the generated portrait as the spotlight NPC image
+    function usePortraitAsNpcImage() {
+      if (!currentGeneratedPortraitUrl) return;
+      currentNpcImage = currentGeneratedPortraitUrl;
+      updateNpcPreview();
+      syncNpcToStorage();
+
+      // Toast notification
+      let toast = document.getElementById('npcSaveToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'npcSaveToast';
+        toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #7c4dff, #651fff); color: white; padding: 12px 20px; border-radius: 6px; font-family: Cinzel, serif; font-size: 0.9rem; z-index: 10001; opacity: 0; transition: opacity 0.3s;';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = 'Portrait set as NPC image!';
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+    }
+
+    // Load and render portrait gallery
+    async function loadPortraitGallery() {
+      const gallerySection = document.getElementById('npcPortraitGallery');
+      const grid = document.getElementById('portraitGalleryGrid');
+      if (!gallerySection || !grid) return;
+
+      try {
+        const result = await window.cloudFeatures?.listNpcPortraits?.();
+        const portraits = result?.portraits || [];
+
+        if (portraits.length === 0) {
+          gallerySection.style.display = 'none';
+          return;
+        }
+
+        gallerySection.style.display = 'block';
+
+        grid.innerHTML = portraits.map(p => `
+          <div class="npc-portrait-gallery-item" onclick="selectGalleryPortrait('${p.imageUrl}')" title="${p.npcName || 'NPC Portrait'}">
+            <img src="${p.imageUrl}" alt="${p.npcName || 'Portrait'}" loading="lazy">
+            <button class="gallery-delete" onclick="event.stopPropagation(); deleteGalleryPortrait('${p.id}')" title="Delete portrait">&times;</button>
+            <div class="npc-portrait-gallery-name">${p.npcName || 'Unknown'}</div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.log('Could not load portrait gallery:', err);
+        gallerySection.style.display = 'none';
+      }
+    }
+
+    // Toggle gallery visibility
+    function togglePortraitGallery() {
+      const grid = document.getElementById('portraitGalleryGrid');
+      const icon = document.getElementById('galleryToggleIcon');
+      if (!grid) return;
+
+      if (grid.style.display === 'none') {
+        grid.style.display = 'grid';
+        if (icon) icon.innerHTML = '&#9650;';
+      } else {
+        grid.style.display = 'none';
+        if (icon) icon.innerHTML = '&#9660;';
+      }
+    }
+
+    // Select a portrait from the gallery
+    function selectGalleryPortrait(imageUrl) {
+      currentGeneratedPortraitUrl = imageUrl;
+      const preview = document.getElementById('npcPortraitPreview');
+      const actions = document.getElementById('npcPortraitActions');
+
+      if (preview) {
+        preview.innerHTML = `<img src="${imageUrl}" alt="Selected portrait">`;
+      }
+      if (actions) actions.style.display = 'flex';
+    }
+
+    // Delete a portrait from the gallery
+    async function deleteGalleryPortrait(portraitId) {
+      if (!confirm('Delete this portrait permanently?')) return;
+
+      try {
+        await window.cloudFeatures?.deleteNpcPortrait?.(portraitId);
+        loadPortraitGallery();
+      } catch (err) {
+        alert('Failed to delete portrait: ' + (err.message || 'Unknown error'));
+      }
+    }
+
+    // Initialize AI UI state when settings tab loads
+    function initAiImageGenState() {
+      updateAiImageGenUI();
     }
 
     // Add input listener to enable/disable delete button

@@ -3,6 +3,8 @@ import { handleCampaigns } from './routes/campaigns.js';
 import { handleUpload } from './routes/upload.js';
 import { handleAccount } from './routes/account.js';
 import { handleFiles } from './routes/files.js';
+import { handleSettings } from './routes/settings.js';
+import { handleNpcPortraits } from './routes/npc-portraits.js';
 
 function corsHeaders() {
   return {
@@ -52,6 +54,12 @@ export default {
       }
       if (path.startsWith('/api/files')) {
         return handleFiles(request, env, { jsonResponse, errorResponse });
+      }
+      if (path.startsWith('/api/settings')) {
+        return handleSettings(request, env, { jsonResponse, errorResponse });
+      }
+      if (path.startsWith('/api/npc-portraits')) {
+        return handleNpcPortraits(request, env, { jsonResponse, errorResponse });
       }
 
       return errorResponse('Not Found', 404);
