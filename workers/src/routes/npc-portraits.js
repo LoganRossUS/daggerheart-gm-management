@@ -103,7 +103,7 @@ async function generatePortrait(request, env, userId, userDoc, { jsonResponse, e
 
     const prompt = buildPrompt(npcData);
 
-    // Call DALL-E API
+    // Call DALL-E API - request URL format so we can fetch and convert
     const dalleResponse = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
@@ -116,7 +116,7 @@ async function generatePortrait(request, env, userId, userDoc, { jsonResponse, e
         n: 1,
         size: '1024x1024',
         quality: 'standard',
-        response_format: 'b64_json',
+        response_format: 'url',
       }),
     });
 
@@ -138,20 +138,56 @@ async function generatePortrait(request, env, userId, userDoc, { jsonResponse, e
     }
 
     const dalleData = await dalleResponse.json();
-    const imageB64 = dalleData.data?.[0]?.b64_json;
+    const imageUrl = dalleData.data?.[0]?.url;
 
-    if (!imageB64) {
+    if (!imageUrl) {
       return errorResponse('No image data received from DALL-E', 500);
     }
 
-    // Convert base64 to binary and upload to R2
-    const imageBytes = Uint8Array.from(atob(imageB64), c => c.charCodeAt(0));
+    // Fetch the image and convert to WebP via Cloudflare Image Resizing
+    let imageBytes;
+    let contentType = 'image/webp';
+    try {
+      const imgResponse = await fetch(imageUrl, {
+        cf: {
+          image: {
+            format: 'webp',
+            quality: 80,
+            width: 1024,
+            height: 1024,
+            fit: 'contain',
+          },
+        },
+      });
+
+      if (imgResponse.ok) {
+        imageBytes = new Uint8Array(await imgResponse.arrayBuffer());
+      } else {
+        // Fallback: if image resizing is not available, fetch raw PNG
+        const fallbackResponse = await fetch(imageUrl);
+        if (!fallbackResponse.ok) {
+          return errorResponse('Failed to download generated image', 500);
+        }
+        imageBytes = new Uint8Array(await fallbackResponse.arrayBuffer());
+        contentType = 'image/png';
+      }
+    } catch (imgErr) {
+      // Fallback: fetch raw image without transformation
+      const fallbackResponse = await fetch(imageUrl);
+      if (!fallbackResponse.ok) {
+        return errorResponse('Failed to download generated image', 500);
+      }
+      imageBytes = new Uint8Array(await fallbackResponse.arrayBuffer());
+      contentType = 'image/png';
+    }
+
     const portraitId = crypto.randomUUID();
-    const key = `user-uploads/${userId}/npc-portraits/${portraitId}.png`;
+    const ext = contentType === 'image/webp' ? 'webp' : 'png';
+    const key = `user-uploads/${userId}/npc-portraits/${portraitId}.${ext}`;
 
     await env.STORAGE.put(key, imageBytes, {
       httpMetadata: {
-        contentType: 'image/png',
+        contentType: contentType,
       },
     });
 
