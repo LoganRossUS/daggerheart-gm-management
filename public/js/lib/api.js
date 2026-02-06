@@ -134,4 +134,22 @@ export const api = {
     }),
     delete: (campaignId, creatureId) => apiCall(`/campaigns/${campaignId}/creatures/${creatureId}`, { method: 'DELETE' }),
   },
+
+  settings: {
+    saveApiKey: (apiKey) => apiCall('/settings/api-key', {
+      method: 'PUT',
+      body: JSON.stringify({ apiKey }),
+    }),
+    getApiKeyStatus: () => apiCall('/settings/api-key/status'),
+    removeApiKey: () => apiCall('/settings/api-key', { method: 'DELETE' }),
+  },
+
+  npcPortraits: {
+    generate: (npcData) => apiCall('/npc-portraits/generate', {
+      method: 'POST',
+      body: JSON.stringify(npcData),
+    }),
+    list: () => apiCall('/npc-portraits'),
+    delete: (portraitId) => apiCall(`/npc-portraits/${portraitId}`, { method: 'DELETE' }),
+  },
 };

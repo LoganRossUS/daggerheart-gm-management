@@ -4,6 +4,7 @@ const FEATURES = {
   notes: ['demo', 'basic', 'premium'],
   battlemapUpload: ['basic', 'premium'],
   communityRepo: ['premium'],
+  npcImageGen: ['premium'],
 };
 
 let currentEntitlement = 'demo';

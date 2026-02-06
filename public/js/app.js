@@ -536,6 +536,50 @@ export async function deleteAccount() {
   }
 }
 
+// API key management for NPC image generation
+export async function saveApiKey(apiKey) {
+  if (!canUse('npcImageGen')) {
+    throw new Error('Premium subscription required for NPC image generation');
+  }
+  return api.settings.saveApiKey(apiKey);
+}
+
+export async function getApiKeyStatus() {
+  if (!canUse('npcImageGen')) {
+    return { hasKey: false };
+  }
+  return api.settings.getApiKeyStatus();
+}
+
+export async function removeApiKey() {
+  if (!canUse('npcImageGen')) {
+    throw new Error('Premium subscription required');
+  }
+  return api.settings.removeApiKey();
+}
+
+// NPC portrait generation
+export async function generateNpcPortrait(npcData) {
+  if (!canUse('npcImageGen')) {
+    throw new Error('Premium subscription required for NPC image generation');
+  }
+  return api.npcPortraits.generate(npcData);
+}
+
+export async function listNpcPortraits() {
+  if (!canUse('npcImageGen')) {
+    return { portraits: [] };
+  }
+  return api.npcPortraits.list();
+}
+
+export async function deleteNpcPortrait(portraitId) {
+  if (!canUse('npcImageGen')) {
+    throw new Error('Premium subscription required');
+  }
+  return api.npcPortraits.delete(portraitId);
+}
+
 // Export for use by existing app
 window.cloudFeatures = {
   initCloudFeatures,
@@ -551,4 +595,10 @@ window.cloudFeatures = {
   getEntitlement,
   uploadFile,
   listFiles,
+  saveApiKey,
+  getApiKeyStatus,
+  removeApiKey,
+  generateNpcPortrait,
+  listNpcPortraits,
+  deleteNpcPortrait,
 };
